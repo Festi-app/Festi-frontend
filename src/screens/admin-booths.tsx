@@ -5,7 +5,7 @@ import soongsilMap from '../assets/soongsil-map.png'
 
 // ── Filter controls ───────────────────────────────────────────────────────────
 
-export function Segmented({ value, options, icons, dark: _dark = false }: {
+export function Segmented({ value, options, icons }: {
   value: string
   options: string[]
   icons?: Array<(c?: string) => ReactElement>
@@ -37,7 +37,7 @@ export function Segmented({ value, options, icons, dark: _dark = false }: {
   )
 }
 
-export function Chip({ label, badge, active, dark: _dark = false }: {
+export function Chip({ label, badge, active }: {
   label: string
   badge?: string
   active?: boolean

@@ -3,7 +3,7 @@ import { SpotTabBar } from './mobile-home'
 
 // ── Sub-section header (shared with mobile-waiting) ───────────────────────────
 
-export function SubHeader({ title, right, dark: _dark = false }: {
+export function SubHeader({ title, right }: {
   title: string
   right?: string
   dark?: boolean

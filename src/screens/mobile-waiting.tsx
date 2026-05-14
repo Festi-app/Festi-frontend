@@ -5,7 +5,7 @@ import { SubHeader } from './mobile-detail'
 
 // ── Field label ───────────────────────────────────────────────────────────────
 
-export function FieldLabel({ children, dark: _dark = false }: { children: ReactNode; dark?: boolean }) {
+export function FieldLabel({ children }: { children: ReactNode; dark?: boolean }) {
   const t = tone()
   return (
     <div style={{

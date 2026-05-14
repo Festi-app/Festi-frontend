@@ -24,7 +24,7 @@ export function AdminShell({ active = 'booths', children, dark = false }: {
   )
 }
 
-function AdminSidebar({ active, dark: _dark = false }: { active: string; dark?: boolean }) {
+function AdminSidebar({ active }: { active: string; dark?: boolean }) {
   const t = tone()
   const items: Array<{ id: string; l: string; ico: (c?: string) => ReactElement; n: number | null }> = [
     { id: 'home',     l: '대시보드',   ico: I.home,     n: null },
@@ -109,7 +109,7 @@ function AdminSidebar({ active, dark: _dark = false }: { active: string; dark?: 
   )
 }
 
-export function AdminTopBar({ title, sub, dark: _dark = false, right }: {
+export function AdminTopBar({ title, sub, right }: {
   title: string
   sub?: string
   dark?: boolean
@@ -131,7 +131,7 @@ export function AdminTopBar({ title, sub, dark: _dark = false, right }: {
   )
 }
 
-export function AdminBtn({ children, primary, ghost, dark: _dark = false, icon }: {
+export function AdminBtn({ children, primary, ghost, icon }: {
   children?: ReactNode
   primary?: boolean
   ghost?: boolean
@@ -157,7 +157,7 @@ export function AdminBtn({ children, primary, ghost, dark: _dark = false, icon }
 
 // ── Internal card / field primitives ─────────────────────────────────────────
 
-function Card({ title, right, children, dark: _dark = false }: {
+function Card({ title, right, children }: {
   title?: string
   right?: ReactNode
   children: ReactNode
@@ -177,7 +177,7 @@ function Card({ title, right, children, dark: _dark = false }: {
   )
 }
 
-function Field({ label, children, dark: _dark = false }: { label: string; children: ReactNode; dark?: boolean }) {
+function Field({ label, children }: { label: string; children: ReactNode; dark?: boolean }) {
   const t = tone()
   return (
     <div style={{ marginBottom: 12 }}>
@@ -187,7 +187,7 @@ function Field({ label, children, dark: _dark = false }: { label: string; childr
   )
 }
 
-function TextInput({ value, dark: _dark = false, icon }: { value: string; dark?: boolean; icon?: ReactElement }) {
+function TextInput({ value, icon }: { value: string; dark?: boolean; icon?: ReactElement }) {
   const t = tone()
   return (
     <div style={{
@@ -202,7 +202,7 @@ function TextInput({ value, dark: _dark = false, icon }: { value: string; dark?:
   )
 }
 
-function ToggleRow({ title, sub, on, dark: _dark = false, last }: {
+function ToggleRow({ title, sub, on, last }: {
   title: string
   sub?: string
   on?: boolean
@@ -224,7 +224,7 @@ function ToggleRow({ title, sub, on, dark: _dark = false, last }: {
   )
 }
 
-function TimeRow({ ico, label, range, dark: _dark = false }: {
+function TimeRow({ ico, label, range }: {
   ico: () => ReactElement
   label: string
   range: string

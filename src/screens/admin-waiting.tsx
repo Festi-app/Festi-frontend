@@ -5,7 +5,7 @@ import { Chip } from './admin-booths'
 
 // ── Row action button ─────────────────────────────────────────────────────────
 
-export function RowBtn({ children, primary, icon, dark: _dark = false }: {
+export function RowBtn({ children, primary, icon }: {
   children?: ReactNode
   primary?: boolean
   icon?: ReactElement

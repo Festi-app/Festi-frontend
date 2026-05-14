@@ -5,7 +5,7 @@ import soongsilMap from '../assets/soongsil-map.png'
 
 // ── Stat cell ─────────────────────────────────────────────────────────────────
 
-export function Stat({ label, value, icon, color, dark: _dark = false }: {
+export function Stat({ label, value, icon, color }: {
   label: string
   value: string
   icon?: ReactElement

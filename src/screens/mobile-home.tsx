@@ -55,7 +55,7 @@ export function SpotStatusWash({ color = '#A9E5E7', height = 58 }: { color?: str
 
 // ── Section header ────────────────────────────────────────────────────────────
 
-export function SectionHeader({ title, sub, dark: _dark = false, more = false }: {
+export function SectionHeader({ title, sub, more = false }: {
   title: string
   sub: string
   dark?: boolean
@@ -82,7 +82,7 @@ export function SectionHeader({ title, sub, dark: _dark = false, more = false }:
 
 // ── Booth card ────────────────────────────────────────────────────────────────
 
-export function BoothCard({ n, name, tag, wait, tone: ph, dark: _dark = false }: {
+export function BoothCard({ n, name, tag, wait, tone: ph }: {
   n: number
   name: string
   tag: string
