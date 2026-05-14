@@ -1,4 +1,4 @@
-import { SPOT_TOKENS, SPOT_FONT, tone, I, PhotoSlot, Pill } from '../tokens'
+import { SPOT_TOKENS, SPOT_FONT, tone, I, PhotoSlot, Pill } from '../../tokens'
 import { SpotTabBar } from './Home'
 
 // ── Sub-section header (shared with mobile-waiting) ───────────────────────────
