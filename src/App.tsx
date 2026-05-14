@@ -4,11 +4,13 @@ import { Routes, Route, Navigate, NavLink } from 'react-router-dom'
 import { create } from 'zustand'
 import { SPOT_TOKENS, SPOT_FONT } from './tokens'
 
-
 import { AdminBooths } from './pages/Admin/Booths'
 import { AdminFestival } from './pages/Admin/Festival'
 import { AdminWaiting } from './pages/Admin/Waiting'
-import { MobileWaitingRegister, MobileWaitingStatus } from './pages/User/Waiting'
+import {
+  MobileWaitingRegister,
+  MobileWaitingStatus,
+} from './pages/User/Waiting'
 import { MobileBoothDetail, MobileFoodTrucks } from './pages/User/Detail'
 import { MobileHome } from './pages/User/Home'
 import { MobileMap } from './pages/User/Map'

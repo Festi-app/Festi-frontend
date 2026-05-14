@@ -10,7 +10,6 @@ import {
 } from '../../tokens'
 import { Switch } from '../User/Waiting'
 
-
 // ── Shared admin chrome ───────────────────────────────────────────────────────
 
 export function AdminShell({
