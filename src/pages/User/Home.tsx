@@ -5,7 +5,7 @@ import {
   SpotterMark,
   I,
   PhotoSlot,
-} from '../tokens'
+} from '../../tokens'
 
 // ── Bottom tab bar (shared across mobile screens) ────────────────────────────
 

@@ -1,7 +1,7 @@
 import type { ReactElement, ReactNode } from 'react'
-import { SPOT_TOKENS, SPOT_FONT, tone, I, PhotoSlot, Pill } from '../tokens'
-import { AdminShell, AdminTopBar, AdminBtn } from './admin-festival'
-import { Chip } from './admin-booths'
+import { SPOT_TOKENS, SPOT_FONT, tone, I, PhotoSlot, Pill } from '../../tokens'
+import { AdminShell, AdminTopBar, AdminBtn } from './Festival'
+import { Chip } from './Booths'
 
 // ── Row action button ─────────────────────────────────────────────────────────
 

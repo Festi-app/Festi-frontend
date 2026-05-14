@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react'
-import { SPOT_TOKENS, SPOT_FONT, tone, I, Pill } from '../tokens'
-import { SpotTabBar } from './mobile-home'
-import soongsilMap from '../assets/soongsil-map.png'
+import { SPOT_TOKENS, SPOT_FONT, tone, I, Pill } from '../../tokens'
+import { SpotTabBar } from './Home'
+import soongsilMap from '../../assets/soongsil-map.png'
 
 // ── Stat cell ─────────────────────────────────────────────────────────────────
 
