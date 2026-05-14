@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactElement, ReactNode } from 'react'
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const SPOT_TOKENS = {
   mint: '#A9E5E7',
   mintDeep: '#6FC8CB',
@@ -56,6 +57,7 @@ export interface ToneTheme {
   chipInk: string
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function tone(): ToneTheme {
   return {
     bg: 'var(--bg)',
@@ -131,6 +133,7 @@ export function SpotterMark({
 }
 
 // ── Mini icon set (24px, 1.6 stroke) ─────────────────────────────
+// eslint-disable-next-line react-refresh/only-export-components
 export const I = {
   pin: (c = 'currentColor'): ReactElement => (
     <svg viewBox="0 0 24 24" fill="none" width="100%" height="100%">
