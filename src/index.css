@@ -1,0 +1,67 @@
+@import "tailwindcss";
+@variant dark (&:is(.dark *));
+
+@theme {
+  --color-mint: #A9E5E7;
+  --color-mint-deep: #6FC8CB;
+  --color-pop: #22C36A;
+  --color-pop-soft: #D9F2E2;
+  --color-alert: #FF5A5A;
+  --color-alert-soft: #FFE0E1;
+  --color-sun: #FFD747;
+  --color-sun-soft: #FFF3C2;
+  --color-grape: #9C8BE0;
+  --color-grape-soft: #E7E1F7;
+  --color-leaf: #7DBE7A;
+  --color-leaf-soft: #DDEFDC;
+  --color-rose: #F38AA5;
+  --color-rose-soft: #FCDDE5;
+  --color-coral: #00C6E0;
+  --color-coral-soft: #CCF4FA;
+  --font-spot: 'Pretendard', 'Pretendard Variable', -apple-system, system-ui, sans-serif;
+}
+
+:root {
+  --bg: #F2F3F4;
+  --surface: #FFFFFF;
+  --surface-alt: #F1F7F8;
+  --border-color: #E6E9EC;
+  --ink: #141A1F;
+  --ink-80: #2E363C;
+  --ink-60: #5E676D;
+  --ink-40: #8C949A;
+  --ink-20: #C8CDD1;
+  --mint-soft: #E6F2F3;
+  --cta: #00C6E0;
+  --cta-ink: #FFFFFF;
+  --chip: #F3F5F6;
+  --chip-ink: #141A1F;
+}
+
+.dark {
+  --bg: #0F1216;
+  --surface: #1A1E23;
+  --surface-alt: #252A30;
+  --border-color: #2F353B;
+  --ink: #F2F5F7;
+  --ink-80: #CDD5DA;
+  --ink-60: #8B939B;
+  --ink-40: #5F676D;
+  --ink-20: #3E454D;
+  --mint-soft: #1F3035;
+  --cta: #00C6E0;
+  --cta-ink: #FFFFFF;
+  --chip: #252A30;
+  --chip-ink: #F2F5F7;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overscroll-behavior: none;
+  font-family: var(--font-spot);
+  background: var(--bg);
+  color: var(--ink);
+}
+
+* { box-sizing: border-box; }
