@@ -3,16 +3,15 @@ import type { ReactNode } from 'react'
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom'
 import { create } from 'zustand'
 import { SPOT_TOKENS, SPOT_FONT } from './tokens'
-import { MobileHome } from './screens/mobile-home'
-import { MobileMap } from './screens/mobile-map'
-import { MobileBoothDetail, MobileFoodTrucks } from './screens/mobile-detail'
-import {
-  MobileWaitingRegister,
-  MobileWaitingStatus,
-} from './screens/mobile-waiting'
-import { AdminFestival } from './screens/admin-festival'
-import { AdminBooths } from './screens/admin-booths'
-import { AdminWaiting } from './screens/admin-waiting'
+
+
+import { AdminBooths } from './pages/Admin/Booths'
+import { AdminFestival } from './pages/Admin/Festival'
+import { AdminWaiting } from './pages/Admin/Waiting'
+import { MobileWaitingRegister, MobileWaitingStatus } from './pages/User/Waiting'
+import { MobileBoothDetail, MobileFoodTrucks } from './pages/User/Detail'
+import { MobileHome } from './pages/User/Home'
+import { MobileMap } from './pages/User/Map'
 
 // ── Global UI state ───────────────────────────────────────────────────────
 
@@ -226,10 +225,10 @@ function Nav() {
 function MobileLayout({ children }: { children: ReactNode }) {
   return (
     <div
-      className="md:ml-[180px] min-h-screen md:flex md:items-start md:justify-center md:py-10 md:px-6"
+      className="md:ml-45 min-h-screen md:flex md:items-start md:justify-center md:py-10 md:px-6"
       style={{ background: 'var(--bg)' }}
     >
-      <div className="w-full overflow-hidden relative mt-14 h-[calc(100dvh-3.5rem)] md:mt-0 md:h-[844px] md:w-[390px] md:rounded-3xl md:flex-shrink-0 md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]">
+      <div className="w-full overflow-hidden relative mt-14 h-[calc(100dvh-3.5rem)] md:mt-0 md:h-211 md:w-97.5 md:rounded-3xl md:shrink-0 md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]">
         {children}
       </div>
     </div>
@@ -239,7 +238,7 @@ function MobileLayout({ children }: { children: ReactNode }) {
 function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <div
-      className="md:ml-[180px] min-h-screen pt-14 md:pt-0"
+      className="md:ml-45 min-h-screen pt-14 md:pt-0"
       style={{ background: 'var(--bg)' }}
     >
       {children}

@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
-import { SPOT_TOKENS, SPOT_FONT, tone, I, PhotoSlot, Pill } from '../tokens'
-import { AdminShell, AdminTopBar, AdminBtn } from './admin-festival'
+import { SPOT_TOKENS, SPOT_FONT, tone, I, PhotoSlot, Pill } from '../../tokens'
+import { AdminShell, AdminTopBar, AdminBtn } from './Festival'
 import soongsilMap from '../assets/soongsil-map.png'
 
 // ── Filter controls ───────────────────────────────────────────────────────────

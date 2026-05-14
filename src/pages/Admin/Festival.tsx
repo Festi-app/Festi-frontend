@@ -7,8 +7,9 @@ import {
   I,
   PhotoSlot,
   Pill,
-} from '../tokens'
-import { Switch } from './mobile-waiting'
+} from '../../tokens'
+import { Switch } from '../User/Waiting'
+
 
 // ── Shared admin chrome ───────────────────────────────────────────────────────
 

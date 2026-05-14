@@ -7,9 +7,9 @@ import {
   I,
   PhotoSlot,
   Pill,
-} from '../tokens'
-import { SpotTabBar } from './mobile-home'
-import { SubHeader } from './mobile-detail'
+} from '../../tokens'
+import { SpotTabBar } from './Home'
+import { SubHeader } from './Detail'
 
 // ── Field label ───────────────────────────────────────────────────────────────
 
