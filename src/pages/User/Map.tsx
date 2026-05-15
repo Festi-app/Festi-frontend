@@ -3,7 +3,7 @@ import type { ReactElement } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTI_TOKENS, I, Pill } from '../../tokens'
 
-import soongsilMap from '../../assets/soongsil-map.png'
+import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { useDayNightStore } from '../../stores/useDayNightStore'
 
@@ -189,7 +189,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: `url(${soongsilMap})`,
+          backgroundImage: `url(${soongsilDayMap})`,
           filter: dark
             ? 'brightness(0.45) saturate(0.5)'
             : 'brightness(1.05) saturate(0.6)',
