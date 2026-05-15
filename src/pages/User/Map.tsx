@@ -47,6 +47,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [scale, setScale] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
+  const [isPinching, setIsPinching] = useState(false)
   const lastTouchDist = useRef<number | null>(null)
   const lastOffset = useRef({ x: 0, y: 0 })
   const dragStart = useRef<{ x: number; y: number } | null>(null)
@@ -68,6 +69,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       const dx = e.touches[0].clientX - e.touches[1].clientX
       const dy = e.touches[0].clientY - e.touches[1].clientY
       lastTouchDist.current = Math.hypot(dx, dy)
+      setIsPinching(true)
       lastOffset.current = offset
     } else if (e.touches.length === 1 && scale > 1) {
       dragStart.current = {
@@ -100,6 +102,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
 
   function handleTouchEnd() {
     lastTouchDist.current = null
+    setIsPinching(false)
     dragStart.current = null
     if (scale < 1.05) {
       setScale(1)
@@ -274,9 +277,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         style={{
           transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
           transformOrigin: 'center center',
-          transition: lastTouchDist.current
-            ? 'none'
-            : 'transform 0.15s ease-out',
+          transition: isPinching ? 'none' : 'transform 0.15s ease-out',
         }}
       >
         {/* Map image */}

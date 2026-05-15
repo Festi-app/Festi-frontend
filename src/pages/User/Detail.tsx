@@ -198,7 +198,7 @@ export function MobileBoothDetail({ dark = false }: { dark?: boolean }) {
 
 // ── Screen: Food Truck List ───────────────────────────────────────────────────
 
-export function MobileFoodTrucks({ dark = false }: { dark?: boolean }) {
+export function MobileFoodTrucks({ dark: _dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const trucks = [
     {
