@@ -236,10 +236,9 @@ function BoothRoute() {
   )
 }
 function TrucksRoute() {
-  const { dark } = useUI()
   return (
     <MobileLayout>
-      <MobileFoodTrucks dark={dark} />
+      <MobileFoodTrucks />
     </MobileLayout>
   )
 }
