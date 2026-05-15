@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import type { ReactElement } from 'react'
+import { useRef, useState } from 'react'
+import type { ReactElement, TouchEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTI_TOKENS, I, Pill } from '../../tokens'
 
@@ -43,6 +43,64 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { isDay, setIsDay } = useDayNightStore()
   const [selectedFestivalDay, setSelectedFestivalDay] = useState('2일차')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [scale, setScale] = useState(1)
+  const [offset, setOffset] = useState({ x: 0, y: 0 })
+  const lastTouchDist = useRef<number | null>(null)
+  const lastOffset = useRef({ x: 0, y: 0 })
+  const dragStart = useRef<{ x: number; y: number } | null>(null)
+
+  const MIN_SCALE = 1
+  const MAX_SCALE = 3.5
+
+  function clampOffset(x: number, y: number, s: number) {
+    const maxX = (s - 1) * 50
+    const maxY = (s - 1) * 50
+    return { x: Math.max(-maxX, Math.min(maxX, x)), y: Math.max(-maxY, Math.min(maxY, y)) }
+  }
+
+  function handleTouchStart(e: TouchEvent) {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX
+      const dy = e.touches[0].clientY - e.touches[1].clientY
+      lastTouchDist.current = Math.hypot(dx, dy)
+      lastOffset.current = offset
+    } else if (e.touches.length === 1 && scale > 1) {
+      dragStart.current = { x: e.touches[0].clientX - offset.x, y: e.touches[0].clientY - offset.y }
+    }
+  }
+
+  function handleTouchMove(e: TouchEvent) {
+    if (e.touches.length === 2 && lastTouchDist.current !== null) {
+      e.preventDefault()
+      const dx = e.touches[0].clientX - e.touches[1].clientX
+      const dy = e.touches[0].clientY - e.touches[1].clientY
+      const dist = Math.hypot(dx, dy)
+      const next = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * (dist / lastTouchDist.current)))
+      lastTouchDist.current = dist
+      const clamped = clampOffset(offset.x, offset.y, next)
+      setScale(next)
+      setOffset(clamped)
+    } else if (e.touches.length === 1 && dragStart.current && scale > 1) {
+      const nx = e.touches[0].clientX - dragStart.current.x
+      const ny = e.touches[0].clientY - dragStart.current.y
+      setOffset(clampOffset(nx, ny, scale))
+    }
+  }
+
+  function handleTouchEnd() {
+    lastTouchDist.current = null
+    dragStart.current = null
+    if (scale < 1.05) { setScale(1); setOffset({ x: 0, y: 0 }) }
+  }
+
+  function zoom(delta: number) {
+    const next = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale + delta))
+    const clamped = clampOffset(offset.x, offset.y, next)
+    setScale(next)
+    setOffset(clamped)
+  }
 
   const markers = [
     {
@@ -183,8 +241,22 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     return { color: FESTI_TOKENS.alert, label: `${w}팀` }
   }
 
+  const searchResults = markers.filter((m) => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return true
+    return m.name.toLowerCase().includes(q) || String(m.id).includes(q) || m.cat.toLowerCase().includes(q)
+  })
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-[#E8F4F5] font-festi dark:bg-[#0B1A1F]">
+      {/* Zoomable map layer */}
+      <div
+        className="absolute inset-0 touch-none"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`, transformOrigin: 'center center', transition: lastTouchDist.current ? 'none' : 'transform 0.15s ease-out' }}
+      >
       {/* Map image */}
       <div
         className="absolute inset-0 bg-cover bg-center"
@@ -222,8 +294,10 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
           const ws = waitStatus(m.wait)
 
           return (
-            <div
+            <button
+              type="button"
               key={m.id}
+              onClick={() => navigate('/booth')}
               className="absolute flex translate-x-[-50%] items-center gap-1.25"
               style={{
                 left: `${m.x}%`,
@@ -271,9 +345,29 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                   </span>
                 )}
               </div>
-            </div>
+            </button>
           )
         })}
+      </div>
+      </div>{/* end zoomable layer */}
+
+      {/* Zoom buttons */}
+      <div className="absolute right-3 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={() => zoom(0.5)}
+          className="flex size-9 items-center justify-center rounded-full border border-border bg-white/95 text-[20px] font-bold text-ink shadow-[0_2px_8px_rgba(20,26,31,0.15)] dark:bg-[#13262D]/95"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          onClick={() => zoom(-0.5)}
+          disabled={scale <= MIN_SCALE}
+          className="flex size-9 items-center justify-center rounded-full border border-border bg-white/95 text-[20px] font-bold text-ink shadow-[0_2px_8px_rgba(20,26,31,0.15)] disabled:opacity-35 dark:bg-[#13262D]/95"
+        >
+          −
+        </button>
       </div>
 
       {/* Top header */}
@@ -281,7 +375,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         <div className="mt-1.5 mb-2.5 flex items-center gap-2.5">
           <button
             type="button"
-            onClick={() => navigate('/booth')}
+            onClick={() => setSearchOpen(true)}
             className="flex flex-1 items-center gap-2 rounded-full border border-border bg-white px-3.5 py-2.5 text-left shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)] dark:bg-white/5"
           >
             <div className="size-4.5 text-ink-60">{I.search()}</div>
@@ -433,6 +527,83 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
           </button>
         </div>
       </div>
+
+      {/* Search overlay */}
+      {searchOpen && (
+        <>
+          <div
+            className="absolute inset-0 z-30 bg-[rgba(0,0,0,0.4)]"
+            style={{ animation: 'festi-fade-in 0.18s ease both' }}
+            onClick={() => { setSearchOpen(false); setSearchQuery('') }}
+          />
+          <div
+            className="absolute inset-x-0 top-0 z-40 bg-surface px-4 pt-13.5 pb-4 shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
+            style={{ animation: 'festi-page-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both' }}
+          >
+            <div className="mt-1.5 flex items-center gap-2">
+              <div className="flex flex-1 items-center gap-2 rounded-full border border-border bg-surface-alt px-3.5 py-2.5">
+                <div className="size-4.5 text-ink-60">{I.search()}</div>
+                <input
+                  autoFocus
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="부스 번호 또는 이름"
+                  className="flex-1 bg-transparent text-sm font-medium text-ink outline-none placeholder:text-ink-40"
+                />
+                {searchQuery && (
+                  <button type="button" onClick={() => setSearchQuery('')} className="size-4 text-ink-40">
+                    <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
+                      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => { setSearchOpen(false); setSearchQuery('') }}
+                className="text-sm font-bold text-ink-60"
+              >
+                취소
+              </button>
+            </div>
+
+            <div className="mt-3 max-h-72 overflow-y-auto">
+              {searchResults.length === 0 ? (
+                <div className="py-8 text-center text-sm text-ink-40">검색 결과가 없습니다</div>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  {searchResults.map((m) => {
+                    const ws = waitStatus(m.wait)
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => { setSearchOpen(false); setSearchQuery(''); navigate('/booth') }}
+                        className="flex items-center gap-3 rounded-[14px] px-3 py-3 text-left transition-colors hover:bg-surface-alt active:bg-surface-alt"
+                      >
+                        <div
+                          className="flex size-9 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white"
+                          style={{ background: typeColor(m.type) }}
+                        >
+                          {m.id}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">{m.name}</div>
+                          <div className="mt-0.5 text-[11px] text-ink-60">{m.cat}</div>
+                        </div>
+                        <div className="text-[13px] font-extrabold" style={{ color: ws.color }}>
+                          {ws.label}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       <FestiTabBar active="map" dark={dark} />
 

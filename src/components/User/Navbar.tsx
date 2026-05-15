@@ -11,10 +11,10 @@ export function FestiTabBar({
   const navigate = useNavigate()
   const muted = dark ? '#8B939B' : '#5E676D'
   const items = [
-    { id: 'home', label: '홈', icon: I.home, to: '/home' },
-    { id: 'map', label: '배치도', icon: I.map, to: '/map' },
+    { id: 'home', label: '홈',   icon: I.home,   to: '/home' },
+    { id: 'map',  label: '배치도', icon: I.map,    to: '/map' },
     { id: 'wait', label: '웨이팅', icon: I.ticket, to: '/waiting' },
-    { id: 'me', label: '마이', icon: I.user, to: '/me' },
+    { id: 'me',   label: '마이',  icon: I.user,   to: '/me' },
   ]
 
   return (
