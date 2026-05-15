@@ -332,7 +332,10 @@ export default function App() {
         <Route path="/admin/festival" element={<AdminFestivalRoute />} />
         <Route path="/admin/booths" element={<AdminBoothsRoute />} />
         <Route path="/admin/trucks" element={<AdminFoodTrucksRoute />} />
-        <Route path="/admin/booth-requests" element={<AdminBoothRequestsRoute />} />
+        <Route
+          path="/admin/booth-requests"
+          element={<AdminBoothRequestsRoute />}
+        />
         <Route path="/booth-admin/login" element={<BoothAdminLoginRoute />} />
         <Route
           path="/booth-admin/register"

@@ -912,7 +912,9 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
       .map((a) => ({
         id: a.id,
         name: a.orgName,
-        type: (a.orgType === '동아리/소모임' ? '동아리' : '학생회') as OrgAccount['type'],
+        type: (a.orgType === '동아리/소모임'
+          ? '동아리'
+          : '학생회') as OrgAccount['type'],
         color: FESTI_TOKENS.mint,
         applications: ([1, 2, 3] as PermDay[]).flatMap((d) =>
           a.operatingTimes.map((t) => ({ day: d, time: t as PermTime }))
@@ -981,7 +983,9 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
   function handlePermissionAssign(orgId: string, category: BoothCategory) {
     if (!assignModal) return
     const org = allOrgs.find((o) => o.id === orgId)!
-    const zone = [...ZONES, ...NIGHT_ZONES].find((z) => z.id === assignModal.zoneId)
+    const zone = [...ZONES, ...NIGHT_ZONES].find(
+      (z) => z.id === assignModal.zoneId
+    )
     const zoneLabel = zone
       ? `${zone.name} (${assignModal.sections.map((s) => s + 1).join(', ')}번)`
       : assignModal.zoneId

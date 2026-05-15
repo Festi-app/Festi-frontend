@@ -69,7 +69,8 @@ function AccountCard({
             </span>
           </div>
           <div className="mt-0.5 text-xs text-ink-60">
-            {account.orgType} · {account.representativeName} · {account.studentId}
+            {account.orgType} · {account.representativeName} ·{' '}
+            {account.studentId}
           </div>
         </div>
         <div className="shrink-0 text-[11px] text-ink-40">
