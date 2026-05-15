@@ -28,14 +28,18 @@ export function WaitingTicketCard({
   etaMin: number
   onCancel: () => void
 }) {
-  const bgColor   = dark ? '#0F1216' : '#F2F3F4'
+  const bgColor = dark ? '#0F1216' : '#F2F3F4'
   const cardColor = dark ? '#1A3137' : FESTI_TOKENS.ink
-  const cardText  = dark ? '#EAF6F7' : '#FFFFFF'
+  const cardText = dark ? '#EAF6F7' : '#FFFFFF'
 
   return (
     <div
       className="relative overflow-hidden rounded-[28px] p-5.5"
-      style={{ background: cardColor, color: cardText, border: dark ? '1px solid #2F353B' : 'none' }}
+      style={{
+        background: cardColor,
+        color: cardText,
+        border: dark ? '1px solid #2F353B' : 'none',
+      }}
     >
       {/* 배경 그라데이션 */}
       <div
@@ -48,7 +52,9 @@ export function WaitingTicketCard({
 
       {/* 별 워터마크 */}
       <svg
-        width={200} height={200} viewBox="0 0 100 100"
+        width={200}
+        height={200}
+        viewBox="0 0 100 100"
         className="pointer-events-none absolute -top-7 -right-5 opacity-[0.13]"
       >
         <path fill="white" d={STAR_PATH} />
@@ -57,7 +63,11 @@ export function WaitingTicketCard({
       {/* 대기번호 + 호출번호 */}
       <div className="relative">
         <div className="flex items-center justify-between">
-          <Pill color="rgba(169,229,231,0.18)" ink={FESTI_TOKENS.mint} style={{ fontSize: 11 }}>
+          <Pill
+            color="rgba(169,229,231,0.18)"
+            ink={FESTI_TOKENS.mint}
+            style={{ fontSize: 11 }}
+          >
             <span className="mr-1 inline-block size-1.5 animate-[festi-blink_1.6s_ease-in-out_infinite] rounded-full bg-mint" />
             LIVE · 진행중
           </Pill>
@@ -69,8 +79,12 @@ export function WaitingTicketCard({
             {waitNo}
           </div>
           <div>
-            <div className="text-[13px] font-semibold opacity-70">현재 호출</div>
-            <div className="mt-0.5 text-[34px] leading-none font-extrabold tracking-[-1px]">{callNo}</div>
+            <div className="text-[13px] font-semibold opacity-70">
+              현재 호출
+            </div>
+            <div className="mt-0.5 text-[34px] leading-none font-extrabold tracking-[-1px]">
+              {callNo}
+            </div>
           </div>
         </div>
 
@@ -83,16 +97,26 @@ export function WaitingTicketCard({
             />
           </div>
           <div className="mt-2.5 flex justify-between text-xs font-semibold">
-            <span className="opacity-70">앞에 <strong className="text-white">{aheadTeams}팀</strong> 남음</span>
-            <span className="opacity-70">예상 대기 <strong className="text-white">~{etaMin}분</strong></span>
+            <span className="opacity-70">
+              앞에 <strong className="text-white">{aheadTeams}팀</strong> 남음
+            </span>
+            <span className="opacity-70">
+              예상 대기 <strong className="text-white">~{etaMin}분</strong>
+            </span>
           </div>
         </div>
       </div>
 
       {/* 티켓 퍼포레이션 */}
       <div className="relative -mx-5.5 mt-5 mb-3.5 h-px border-t border-dashed border-white/20">
-        <div className="absolute -top-3 -left-3 size-6 rounded-full" style={{ background: bgColor }} />
-        <div className="absolute -top-3 -right-3 size-6 rounded-full" style={{ background: bgColor }} />
+        <div
+          className="absolute -top-3 -left-3 size-6 rounded-full"
+          style={{ background: bgColor }}
+        />
+        <div
+          className="absolute -top-3 -right-3 size-6 rounded-full"
+          style={{ background: bgColor }}
+        />
       </div>
 
       {/* 부스 정보 + 취소 */}
@@ -101,8 +125,12 @@ export function WaitingTicketCard({
           <PhotoSlot label="" tone={boothTone} radius={12} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[15px] font-extrabold tracking-[-0.3px]">{boothName}</div>
-          <div className="mt-0.5 text-[11px] opacity-70">#{boothId} · {registered}</div>
+          <div className="text-[15px] font-extrabold tracking-[-0.3px]">
+            {boothName}
+          </div>
+          <div className="mt-0.5 text-[11px] opacity-70">
+            #{boothId} · {registered}
+          </div>
         </div>
         <button
           type="button"

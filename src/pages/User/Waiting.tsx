@@ -194,11 +194,20 @@ export function MobileWaitingRegister({ dark = false }: { dark?: boolean }) {
       {showToast && (
         <div
           className="absolute inset-x-5 bottom-28 z-50 flex items-center gap-3 rounded-[20px] bg-[#141A1F] px-4 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
-          style={{ animation: 'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both' }}
+          style={{
+            animation:
+              'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
+          }}
         >
           <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-pop shadow-[0_0_0_3px_rgba(34,195,106,0.25)]">
             <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
-              <path d="M3 8l3.5 3.5L13 4.5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M3 8l3.5 3.5L13 4.5"
+                stroke="#fff"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
           <div>
@@ -290,9 +299,11 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
           ].map((w, i) => {
             // 3팀 이하: 초록(pop) / 4~7팀: 노랑(sun) / 8팀 이상: 주황(alert)
             const pillColor =
-              w.wait <= 3 ? FESTI_TOKENS.pop
-              : w.wait <= 7 ? FESTI_TOKENS.sun
-              : FESTI_TOKENS.alert
+              w.wait <= 3
+                ? FESTI_TOKENS.pop
+                : w.wait <= 7
+                  ? FESTI_TOKENS.sun
+                  : FESTI_TOKENS.alert
             return (
               <button
                 type="button"
@@ -338,13 +349,18 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
           />
           <div
             className="absolute inset-x-5 top-1/2 z-50 -translate-y-1/2 rounded-[24px] bg-surface p-6 shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
-            style={{ animation: 'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both' }}
+            style={{
+              animation:
+                'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
+            }}
           >
             <div className="mb-1 text-center text-[18px] font-extrabold tracking-[-0.4px] text-ink">
               웨이팅을 취소할까요?
             </div>
             <div className="mb-6 text-center text-[13px] leading-normal text-ink-60">
-              컴공과 칵테일 바 · 34번<br />취소 후에는 다시 등록해야 합니다.
+              컴공과 칵테일 바 · 34번
+              <br />
+              취소 후에는 다시 등록해야 합니다.
             </div>
             <div className="flex gap-2.5">
               <button
@@ -356,7 +372,10 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
               </button>
               <button
                 type="button"
-                onClick={() => { setActiveWaiting(false); setConfirmCancel(false) }}
+                onClick={() => {
+                  setActiveWaiting(false)
+                  setConfirmCancel(false)
+                }}
                 className="flex-1 rounded-[16px] bg-alert py-3.5 text-[15px] font-extrabold text-white"
               >
                 취소하기
@@ -410,7 +429,6 @@ export function MobileWaitingDetail({ dark = false }: { dark?: boolean }) {
 
         {/* Booth info + notifications */}
         <div className="relative mt-4">
-
           <div className="overflow-hidden rounded-[20px] border border-border bg-surface">
             <div className="flex items-center gap-3 p-4">
               <div className="size-14 shrink-0 overflow-hidden rounded-[14px]">
@@ -441,8 +459,12 @@ export function MobileWaitingDetail({ dark = false }: { dark?: boolean }) {
                   key={i}
                   className={`py-3 text-center ${i === 0 ? 'border-r border-border' : ''}`}
                 >
-                  <div className="text-[11px] font-semibold text-ink-60">{x.l}</div>
-                  <div className="mt-1 text-[17px] font-extrabold tracking-[-0.3px] text-ink">{x.v}</div>
+                  <div className="text-[11px] font-semibold text-ink-60">
+                    {x.l}
+                  </div>
+                  <div className="mt-1 text-[17px] font-extrabold tracking-[-0.3px] text-ink">
+                    {x.v}
+                  </div>
                   <div className="mt-0.5 text-[10px] text-ink-40">{x.s}</div>
                 </div>
               ))}
@@ -463,7 +485,9 @@ export function MobileWaitingDetail({ dark = false }: { dark?: boolean }) {
                 className={`flex items-center gap-2.5 px-4 py-3.5 ${i < arr.length - 1 ? 'border-b border-border' : ''}`}
               >
                 <div className="flex-1">
-                  <div className="text-sm font-bold tracking-[-0.3px] text-ink">{row.l}</div>
+                  <div className="text-sm font-bold tracking-[-0.3px] text-ink">
+                    {row.l}
+                  </div>
                   <div className="mt-0.5 text-[11px] text-ink-60">{row.s}</div>
                 </div>
                 <Switch on={true} />
@@ -473,7 +497,8 @@ export function MobileWaitingDetail({ dark = false }: { dark?: boolean }) {
 
           {/* Notice */}
           <div className="mt-3.5 rounded-[14px] bg-surface-alt p-3.5 text-[11px] leading-normal text-ink-60">
-            호출 후 5분 이내 미도착 시 자동 취소될 수 있어요. 부스 근처에서 대기해 주세요.
+            호출 후 5분 이내 미도착 시 자동 취소될 수 있어요. 부스 근처에서
+            대기해 주세요.
           </div>
         </div>
       </div>
@@ -488,13 +513,18 @@ export function MobileWaitingDetail({ dark = false }: { dark?: boolean }) {
           />
           <div
             className="absolute inset-x-5 top-1/2 z-50 -translate-y-1/2 rounded-[24px] bg-surface p-6 shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
-            style={{ animation: 'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both' }}
+            style={{
+              animation:
+                'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
+            }}
           >
             <div className="mb-1 text-center text-[18px] font-extrabold tracking-[-0.4px] text-ink">
               웨이팅을 취소할까요?
             </div>
             <div className="mb-6 text-center text-[13px] leading-normal text-ink-60">
-              체대 곱창집 · 38번<br />취소 후에는 다시 등록해야 합니다.
+              체대 곱창집 · 38번
+              <br />
+              취소 후에는 다시 등록해야 합니다.
             </div>
             <div className="flex gap-2.5">
               <button
@@ -525,7 +555,10 @@ export function MobileWaitingDetail({ dark = false }: { dark?: boolean }) {
           />
           <div
             className="absolute inset-x-5 bottom-10 z-50 flex items-center gap-3 rounded-[20px] bg-[#141A1F] px-4 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
-            style={{ animation: 'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both' }}
+            style={{
+              animation:
+                'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
+            }}
           >
             <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-alt text-sm">
               ✕

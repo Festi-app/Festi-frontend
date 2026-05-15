@@ -201,12 +201,60 @@ export function MobileBoothDetail({ dark = false }: { dark?: boolean }) {
 export function MobileFoodTrucks({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const trucks = [
-    { name: '브라더스 츄러스', spec: '츄러스 · 아이스크림', price: '4,000원', hours: '12:00 ~ 21:00', tone: 'coral', open: true,  tag: '디저트' },
-    { name: '도쿄 타코야끼',   spec: '타코야끼 · 야끼소바', price: '6,000원', hours: '15:00 ~ 22:00', tone: 'sun',   open: true,  tag: '분식'   },
-    { name: '훈제 통삼겹',     spec: '통삼겹 · 꼬치',       price: '7,000원', hours: '17:00 ~ 23:00', tone: 'rose',  open: true,  tag: '구이'   },
-    { name: '청춘 만두',       spec: '왕만두 · 떡볶이',     price: '5,000원', hours: '13:00 ~ 21:00', tone: 'leaf',  open: true,  tag: '분식'   },
-    { name: '코코넛 라떼',     spec: '음료 전문',            price: '4,500원', hours: '11:00 ~ 20:00', tone: 'mint',  open: true,  tag: '음료'   },
-    { name: '심야 라멘바',     spec: '돈코츠 · 미소',       price: '8,000원', hours: '18:00 ~ 23:00', tone: 'grape', open: false, tag: '면류'   },
+    {
+      name: '브라더스 츄러스',
+      spec: '츄러스 · 아이스크림',
+      price: '4,000원',
+      hours: '12:00 ~ 21:00',
+      tone: 'coral',
+      open: true,
+      tag: '디저트',
+    },
+    {
+      name: '도쿄 타코야끼',
+      spec: '타코야끼 · 야끼소바',
+      price: '6,000원',
+      hours: '15:00 ~ 22:00',
+      tone: 'sun',
+      open: true,
+      tag: '분식',
+    },
+    {
+      name: '훈제 통삼겹',
+      spec: '통삼겹 · 꼬치',
+      price: '7,000원',
+      hours: '17:00 ~ 23:00',
+      tone: 'rose',
+      open: true,
+      tag: '구이',
+    },
+    {
+      name: '청춘 만두',
+      spec: '왕만두 · 떡볶이',
+      price: '5,000원',
+      hours: '13:00 ~ 21:00',
+      tone: 'leaf',
+      open: true,
+      tag: '분식',
+    },
+    {
+      name: '코코넛 라떼',
+      spec: '음료 전문',
+      price: '4,500원',
+      hours: '11:00 ~ 20:00',
+      tone: 'mint',
+      open: true,
+      tag: '음료',
+    },
+    {
+      name: '심야 라멘바',
+      spec: '돈코츠 · 미소',
+      price: '8,000원',
+      hours: '18:00 ~ 23:00',
+      tone: 'grape',
+      open: false,
+      tag: '면류',
+    },
   ]
 
   return (
@@ -250,7 +298,9 @@ export function MobileFoodTrucks({ dark = false }: { dark?: boolean }) {
                   <div className="mt-2 flex items-center justify-between">
                     <div className="text-sm font-extrabold tracking-[-0.3px] text-ink">
                       {tr.price}{' '}
-                      <span className="text-[11px] font-medium text-ink-60">부터</span>
+                      <span className="text-[11px] font-medium text-ink-60">
+                        부터
+                      </span>
                     </div>
                     <div className="text-[11px] text-ink-40">{tr.hours}</div>
                   </div>
@@ -334,8 +384,12 @@ export function MobileTruckDetail({ dark = false }: { dark?: boolean }) {
         {/* Meta strip */}
         <div className="mt-4 rounded-2xl bg-surface-alt py-3">
           <div className="text-center">
-            <div className="text-[11px] font-semibold text-ink-60">운영 시간</div>
-            <div className="mt-1 text-[17px] font-extrabold tracking-[-0.3px] text-ink">~21시</div>
+            <div className="text-[11px] font-semibold text-ink-60">
+              운영 시간
+            </div>
+            <div className="mt-1 text-[17px] font-extrabold tracking-[-0.3px] text-ink">
+              ~21시
+            </div>
             <div className="mt-0.5 text-[10px] text-ink-40">12시 오픈</div>
           </div>
         </div>
@@ -343,10 +397,34 @@ export function MobileTruckDetail({ dark = false }: { dark?: boolean }) {
         <SubHeader title="메뉴" right="총 4종" />
         <div className="flex flex-col gap-2.5">
           {[
-            { name: '오리지널 츄러스', desc: '시나몬 슈가', price: 4000, t: 'sun', best: true },
-            { name: '초코 츄러스', desc: '초코 디핑 소스', price: 4500, t: 'coral', best: false },
-            { name: '소프트 아이스크림', desc: '바닐라 / 초코', price: 3000, t: 'mint', best: false },
-            { name: '츄러스 + 아이스크림 세트', desc: '가장 인기', price: 6500, t: 'rose', best: true },
+            {
+              name: '오리지널 츄러스',
+              desc: '시나몬 슈가',
+              price: 4000,
+              t: 'sun',
+              best: true,
+            },
+            {
+              name: '초코 츄러스',
+              desc: '초코 디핑 소스',
+              price: 4500,
+              t: 'coral',
+              best: false,
+            },
+            {
+              name: '소프트 아이스크림',
+              desc: '바닐라 / 초코',
+              price: 3000,
+              t: 'mint',
+              best: false,
+            },
+            {
+              name: '츄러스 + 아이스크림 세트',
+              desc: '가장 인기',
+              price: 6500,
+              t: 'rose',
+              best: true,
+            },
           ].map((m, i) => (
             <div
               key={i}
@@ -373,7 +451,9 @@ export function MobileTruckDetail({ dark = false }: { dark?: boolean }) {
                 <div className="mt-0.5 text-xs text-ink-60">{m.desc}</div>
                 <div className="mt-1 text-sm font-extrabold tracking-[-0.3px] text-ink">
                   {m.price.toLocaleString()}
-                  <span className="text-[11px] font-semibold text-ink-60">원</span>
+                  <span className="text-[11px] font-semibold text-ink-60">
+                    원
+                  </span>
                 </div>
               </div>
             </div>

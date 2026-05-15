@@ -57,7 +57,10 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   function clampOffset(x: number, y: number, s: number) {
     const maxX = (s - 1) * 50
     const maxY = (s - 1) * 50
-    return { x: Math.max(-maxX, Math.min(maxX, x)), y: Math.max(-maxY, Math.min(maxY, y)) }
+    return {
+      x: Math.max(-maxX, Math.min(maxX, x)),
+      y: Math.max(-maxY, Math.min(maxY, y)),
+    }
   }
 
   function handleTouchStart(e: TouchEvent) {
@@ -67,7 +70,10 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       lastTouchDist.current = Math.hypot(dx, dy)
       lastOffset.current = offset
     } else if (e.touches.length === 1 && scale > 1) {
-      dragStart.current = { x: e.touches[0].clientX - offset.x, y: e.touches[0].clientY - offset.y }
+      dragStart.current = {
+        x: e.touches[0].clientX - offset.x,
+        y: e.touches[0].clientY - offset.y,
+      }
     }
   }
 
@@ -77,7 +83,10 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       const dx = e.touches[0].clientX - e.touches[1].clientX
       const dy = e.touches[0].clientY - e.touches[1].clientY
       const dist = Math.hypot(dx, dy)
-      const next = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * (dist / lastTouchDist.current)))
+      const next = Math.max(
+        MIN_SCALE,
+        Math.min(MAX_SCALE, scale * (dist / lastTouchDist.current))
+      )
       lastTouchDist.current = dist
       const clamped = clampOffset(offset.x, offset.y, next)
       setScale(next)
@@ -92,7 +101,10 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   function handleTouchEnd() {
     lastTouchDist.current = null
     dragStart.current = null
-    if (scale < 1.05) { setScale(1); setOffset({ x: 0, y: 0 }) }
+    if (scale < 1.05) {
+      setScale(1)
+      setOffset({ x: 0, y: 0 })
+    }
   }
 
   function zoom(delta: number) {
@@ -244,7 +256,11 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   const searchResults = markers.filter((m) => {
     const q = searchQuery.trim().toLowerCase()
     if (!q) return true
-    return m.name.toLowerCase().includes(q) || String(m.id).includes(q) || m.cat.toLowerCase().includes(q)
+    return (
+      m.name.toLowerCase().includes(q) ||
+      String(m.id).includes(q) ||
+      m.cat.toLowerCase().includes(q)
+    )
   })
 
   return (
@@ -255,101 +271,108 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        style={{ transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`, transformOrigin: 'center center', transition: lastTouchDist.current ? 'none' : 'transform 0.15s ease-out' }}
-      >
-      {/* Map image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: `url(${soongsilMap})`,
-          filter: dark
-            ? 'brightness(0.45) saturate(0.5)'
-            : 'brightness(1.05) saturate(0.6)',
-          opacity: dark ? 0.9 : 0.7,
+          transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
+          transformOrigin: 'center center',
+          transition: lastTouchDist.current
+            ? 'none'
+            : 'transform 0.15s ease-out',
         }}
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.3)_0%,rgba(255,255,255,0.55)_100%)] dark:bg-[linear-gradient(180deg,rgba(11,26,31,0.35)_0%,rgba(11,26,31,0.55)_100%)]" />
+      >
+        {/* Map image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${soongsilMap})`,
+            filter: dark
+              ? 'brightness(0.45) saturate(0.5)'
+              : 'brightness(1.05) saturate(0.6)',
+            opacity: dark ? 0.9 : 0.7,
+          }}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.3)_0%,rgba(255,255,255,0.55)_100%)] dark:bg-[linear-gradient(180deg,rgba(11,26,31,0.35)_0%,rgba(11,26,31,0.55)_100%)]" />
 
-      {/* Markers layer */}
-      <div className="absolute top-44.5 right-0 bottom-57.5 left-0">
-        {markers.map((m) => {
-          const visible =
-            (isDay &&
-              (m.type === 'day' ||
-                m.type === 'truck' ||
-                m.type === 'special')) ||
-            (!isDay &&
-              (m.type === 'night' ||
-                m.type === 'truck' ||
-                m.type === 'special'))
-          if (!visible) return null
+        {/* Markers layer */}
+        <div className="absolute top-44.5 right-0 bottom-57.5 left-0">
+          {markers.map((m) => {
+            const visible =
+              (isDay &&
+                (m.type === 'day' ||
+                  m.type === 'truck' ||
+                  m.type === 'special')) ||
+              (!isDay &&
+                (m.type === 'night' ||
+                  m.type === 'truck' ||
+                  m.type === 'special'))
+            if (!visible) return null
 
-          const isSel = m.id === selectedId && !isDay
-          const pinColor = typeColor(m.type)
-          const numColor =
-            m.type === 'night' || m.type === 'truck' || m.type === 'day'
-              ? '#fff'
-              : FESTI_TOKENS.ink
-          const labelRight = m.x < 50
-          const ws = waitStatus(m.wait)
+            const isSel = m.id === selectedId && !isDay
+            const pinColor = typeColor(m.type)
+            const numColor =
+              m.type === 'night' || m.type === 'truck' || m.type === 'day'
+                ? '#fff'
+                : FESTI_TOKENS.ink
+            const labelRight = m.x < 50
+            const ws = waitStatus(m.wait)
 
-          return (
-            <button
-              type="button"
-              key={m.id}
-              onClick={() => navigate('/booth')}
-              className="absolute flex translate-x-[-50%] items-center gap-1.25"
-              style={{
-                left: `${m.x}%`,
-                top: `${m.y - 35}%`,
-                flexDirection: labelRight ? 'row' : 'row-reverse',
-                zIndex: isSel ? 5 : 1,
-              }}
-            >
-              <div
-                className="relative flex shrink-0 items-center justify-center rounded-full font-extrabold tracking-[-0.3px]"
+            return (
+              <button
+                type="button"
+                key={m.id}
+                onClick={() => navigate('/booth')}
+                className="absolute flex translate-x-[-50%] items-center gap-1.25"
                 style={{
-                  width: isSel ? 32 : 26,
-                  height: isSel ? 32 : 26,
-                  background: pinColor,
-                  color: numColor,
-                  fontSize: isSel ? 13 : 11,
-                  boxShadow: isSel
-                    ? 'inset 0 0 0 3px #fff, 0 6px 18px rgba(20,26,31,0.35)'
-                    : 'inset 0 0 0 2px #fff, 0 2px 8px rgba(20,26,31,0.25)',
+                  left: `${m.x}%`,
+                  top: `${m.y - 35}%`,
+                  flexDirection: labelRight ? 'row' : 'row-reverse',
+                  zIndex: isSel ? 5 : 1,
                 }}
               >
-                {m.id}
-                {isSel && (
-                  <div
-                    className="absolute -inset-2 -z-1 animate-[festi-pulse_2s_ease-out_infinite] rounded-full opacity-25"
-                    style={{ background: pinColor }}
-                  />
-                )}
-              </div>
-              <div className="flex items-center gap-1.25 whitespace-nowrap rounded-[9px] border border-[rgba(20,26,31,0.08)] bg-white px-2 py-1.25 text-[11px] font-bold tracking-[-0.2px] text-ink shadow-[0_3px_10px_rgba(20,26,31,0.18)] dark:border-white/10 dark:bg-[#1B3239]">
-                <span
-                  className="size-1.5 shrink-0 rounded-full"
-                  style={{ background: ws.color }}
-                />
-                {m.name}
-                <span
-                  className="text-[10px] font-extrabold"
-                  style={{ color: ws.color }}
+                <div
+                  className="relative flex shrink-0 items-center justify-center rounded-full font-extrabold tracking-[-0.3px]"
+                  style={{
+                    width: isSel ? 32 : 26,
+                    height: isSel ? 32 : 26,
+                    background: pinColor,
+                    color: numColor,
+                    fontSize: isSel ? 13 : 11,
+                    boxShadow: isSel
+                      ? 'inset 0 0 0 3px #fff, 0 6px 18px rgba(20,26,31,0.35)'
+                      : 'inset 0 0 0 2px #fff, 0 2px 8px rgba(20,26,31,0.25)',
+                  }}
                 >
-                  {ws.label}
-                </span>
-                {m.hot && (
-                  <span className="rounded bg-alert px-1 py-px text-[8px] font-extrabold tracking-[0.3px] text-white">
-                    HOT
+                  {m.id}
+                  {isSel && (
+                    <div
+                      className="absolute -inset-2 -z-1 animate-[festi-pulse_2s_ease-out_infinite] rounded-full opacity-25"
+                      style={{ background: pinColor }}
+                    />
+                  )}
+                </div>
+                <div className="flex items-center gap-1.25 whitespace-nowrap rounded-[9px] border border-[rgba(20,26,31,0.08)] bg-white px-2 py-1.25 text-[11px] font-bold tracking-[-0.2px] text-ink shadow-[0_3px_10px_rgba(20,26,31,0.18)] dark:border-white/10 dark:bg-[#1B3239]">
+                  <span
+                    className="size-1.5 shrink-0 rounded-full"
+                    style={{ background: ws.color }}
+                  />
+                  {m.name}
+                  <span
+                    className="text-[10px] font-extrabold"
+                    style={{ color: ws.color }}
+                  >
+                    {ws.label}
                   </span>
-                )}
-              </div>
-            </button>
-          )
-        })}
+                  {m.hot && (
+                    <span className="rounded bg-alert px-1 py-px text-[8px] font-extrabold tracking-[0.3px] text-white">
+                      HOT
+                    </span>
+                  )}
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
-      </div>{/* end zoomable layer */}
+      {/* end zoomable layer */}
 
       {/* Zoom buttons */}
       <div className="absolute right-3 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-1.5">
@@ -534,11 +557,17 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
           <div
             className="absolute inset-0 z-30 bg-[rgba(0,0,0,0.4)]"
             style={{ animation: 'festi-fade-in 0.18s ease both' }}
-            onClick={() => { setSearchOpen(false); setSearchQuery('') }}
+            onClick={() => {
+              setSearchOpen(false)
+              setSearchQuery('')
+            }}
           />
           <div
             className="absolute inset-x-0 top-0 z-40 bg-surface px-4 pt-13.5 pb-4 shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
-            style={{ animation: 'festi-page-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both' }}
+            style={{
+              animation:
+                'festi-page-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
+            }}
           >
             <div className="mt-1.5 flex items-center gap-2">
               <div className="flex flex-1 items-center gap-2 rounded-full border border-border bg-surface-alt px-3.5 py-2.5">
@@ -552,16 +581,28 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                   className="flex-1 bg-transparent text-sm font-medium text-ink outline-none placeholder:text-ink-40"
                 />
                 {searchQuery && (
-                  <button type="button" onClick={() => setSearchQuery('')} className="size-4 text-ink-40">
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="size-4 text-ink-40"
+                  >
                     <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
-                      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                      <path
+                        d="M4 4l8 8M12 4l-8 8"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </button>
                 )}
               </div>
               <button
                 type="button"
-                onClick={() => { setSearchOpen(false); setSearchQuery('') }}
+                onClick={() => {
+                  setSearchOpen(false)
+                  setSearchQuery('')
+                }}
                 className="text-sm font-bold text-ink-60"
               >
                 취소
@@ -570,7 +611,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
 
             <div className="mt-3 max-h-72 overflow-y-auto">
               {searchResults.length === 0 ? (
-                <div className="py-8 text-center text-sm text-ink-40">검색 결과가 없습니다</div>
+                <div className="py-8 text-center text-sm text-ink-40">
+                  검색 결과가 없습니다
+                </div>
               ) : (
                 <div className="flex flex-col gap-1">
                   {searchResults.map((m) => {
@@ -579,7 +622,11 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                       <button
                         key={m.id}
                         type="button"
-                        onClick={() => { setSearchOpen(false); setSearchQuery(''); navigate('/booth') }}
+                        onClick={() => {
+                          setSearchOpen(false)
+                          setSearchQuery('')
+                          navigate('/booth')
+                        }}
                         className="flex items-center gap-3 rounded-[14px] px-3 py-3 text-left transition-colors hover:bg-surface-alt active:bg-surface-alt"
                       >
                         <div
@@ -589,10 +636,17 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                           {m.id}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">{m.name}</div>
-                          <div className="mt-0.5 text-[11px] text-ink-60">{m.cat}</div>
+                          <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
+                            {m.name}
+                          </div>
+                          <div className="mt-0.5 text-[11px] text-ink-60">
+                            {m.cat}
+                          </div>
                         </div>
-                        <div className="text-[13px] font-extrabold" style={{ color: ws.color }}>
+                        <div
+                          className="text-[13px] font-extrabold"
+                          style={{ color: ws.color }}
+                        >
                           {ws.label}
                         </div>
                       </button>

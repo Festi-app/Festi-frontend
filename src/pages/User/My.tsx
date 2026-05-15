@@ -252,7 +252,10 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
           />
           <div
             className="absolute inset-x-0 bottom-0 z-40 rounded-t-[28px] bg-surface px-5 pt-4 pb-10 font-festi shadow-[0_-8px_40px_rgba(0,0,0,0.18)]"
-            style={{ animation: 'festi-sheet-up 0.28s cubic-bezier(0.32,0.72,0,1) both' }}
+            style={{
+              animation:
+                'festi-sheet-up 0.28s cubic-bezier(0.32,0.72,0,1) both',
+            }}
           >
             {/* Handle */}
             <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-border" />
@@ -267,7 +270,12 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
                 className="flex size-8 items-center justify-center rounded-full bg-surface-alt text-ink-60"
               >
                 <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
-                  <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  <path
+                    d="M3 3l10 10M13 3L3 13"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </button>
             </div>
@@ -275,7 +283,9 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
             <div className="overflow-hidden rounded-[20px] border border-border bg-bg">
               {/* 이름 - 읽기 전용 */}
               <div className="flex items-center gap-3 px-4 py-4">
-                <div className="w-18 text-[13px] font-semibold text-ink-60">이름</div>
+                <div className="w-18 text-[13px] font-semibold text-ink-60">
+                  이름
+                </div>
                 <div className="flex-1 text-[15px] font-bold tracking-[-0.3px] text-ink">
                   홍길동
                 </div>
@@ -285,7 +295,9 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
 
               {/* 전화번호 - 수정 가능 */}
               <div className="flex items-center gap-3 px-4 py-4">
-                <div className="w-18 text-[13px] font-semibold text-ink-60">전화번호</div>
+                <div className="w-18 text-[13px] font-semibold text-ink-60">
+                  전화번호
+                </div>
                 {editingPhone ? (
                   <input
                     type="tel"
@@ -311,7 +323,10 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => { setPhoneInput(phone); setEditingPhone(true) }}
+                    onClick={() => {
+                      setPhoneInput(phone)
+                      setEditingPhone(true)
+                    }}
                     className="rounded-full border border-border bg-surface-alt px-3 py-1.5 text-[12px] font-bold text-ink-80"
                   >
                     수정

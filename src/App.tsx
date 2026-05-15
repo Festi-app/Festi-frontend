@@ -11,7 +11,11 @@ import {
   MobileWaitingStatus,
   MobileWaitingDetail,
 } from './pages/User/Waiting'
-import { MobileBoothDetail, MobileFoodTrucks, MobileTruckDetail } from './pages/User/Detail'
+import {
+  MobileBoothDetail,
+  MobileFoodTrucks,
+  MobileTruckDetail,
+} from './pages/User/Detail'
 import { MobileHome } from './pages/User/Home'
 import { MobileMap } from './pages/User/Map'
 import { MobileMy } from './pages/User/My'
@@ -184,7 +188,14 @@ function MobileLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-bg md:ml-45 md:flex md:items-start md:justify-center md:px-6 md:py-10">
       <div className="relative mt-14 h-[calc(100dvh-3.5rem)] w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]">
-        <div key={key} className="h-full w-full" style={{ animation: 'festi-page-in 0.26s cubic-bezier(0.25,0.46,0.45,0.94) both' }}>
+        <div
+          key={key}
+          className="h-full w-full"
+          style={{
+            animation:
+              'festi-page-in 0.26s cubic-bezier(0.25,0.46,0.45,0.94) both',
+          }}
+        >
           {children}
         </div>
       </div>

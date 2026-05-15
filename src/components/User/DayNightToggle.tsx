@@ -33,7 +33,9 @@ export function DayNightToggle() {
           >
             <div className="size-4">{o.ico()}</div>
             {o.label}
-            <span className={`text-[11px] font-semibold ${on ? 'opacity-60' : 'opacity-80'}`}>
+            <span
+              className={`text-[11px] font-semibold ${on ? 'opacity-60' : 'opacity-80'}`}
+            >
               · {o.time}
             </span>
           </button>
