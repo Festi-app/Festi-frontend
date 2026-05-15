@@ -71,6 +71,13 @@ function AdminSidebar({ active }: { active: string; dark?: boolean }) {
       to: '/admin/trucks',
     },
     {
+      id: 'booth-requests',
+      label: '부스 신청 관리',
+      icon: I.user,
+      badge: null,
+      to: '/admin/booth-requests',
+    },
+    {
       id: 'notices',
       label: '공지/이벤트',
       icon: I.star,

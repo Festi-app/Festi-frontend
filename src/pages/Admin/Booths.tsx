@@ -4,6 +4,7 @@ import { FESTI_TOKENS, I, Pill } from '../../tokens'
 import { AdminShell, AdminTopBar, AdminBtn } from './Festival'
 import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import soongsilNightMap from '../../assets/soongsil-night-map.png'
+import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
@@ -703,6 +704,7 @@ function ConfigureSidebar({
 // ── Assign Sidebar ────────────────────────────────────────────────────────────
 
 function AssignSidebar({
+  orgs,
   permissions,
   selectedDay,
   selectedTime,
@@ -711,6 +713,7 @@ function AssignSidebar({
   onRemovePermission,
   onBack,
 }: {
+  orgs: OrgAccount[]
   permissions: PermissionEntry[]
   selectedDay: PermDay
   selectedTime: PermTime
@@ -719,7 +722,7 @@ function AssignSidebar({
   onRemovePermission: (id: string) => void
   onBack: () => void
 }) {
-  const slotOrgs = ORG_LIST.filter((o) =>
+  const slotOrgs = orgs.filter((o) =>
     o.applications.some((a) => a.day === selectedDay && a.time === selectedTime)
   )
 
@@ -898,6 +901,25 @@ function AssignSidebar({
 // ── AdminBooths ───────────────────────────────────────────────────────────────
 
 export function AdminBooths({ dark = false }: { dark?: boolean }) {
+  const storeAccounts = useBoothAdminStore((s) => s.accounts)
+  const setBoothLocation = useBoothAdminStore((s) => s.setBoothLocation)
+
+  // Merge hardcoded ORG_LIST with pending/approved booth admin accounts
+  const allOrgs: OrgAccount[] = [
+    ...ORG_LIST,
+    ...storeAccounts
+      .filter((a) => a.status !== 'rejected')
+      .map((a) => ({
+        id: a.id,
+        name: a.orgName,
+        type: (a.orgType === '동아리/소모임' ? '동아리' : '학생회') as OrgAccount['type'],
+        color: FESTI_TOKENS.mint,
+        applications: ([1, 2, 3] as PermDay[]).flatMap((d) =>
+          a.operatingTimes.map((t) => ({ day: d, time: t as PermTime }))
+        ),
+      })),
+  ]
+
   const [step, setStep] = useState<'configure' | 'assign'>('configure')
   const [mapMode, setMapMode] = useState<'주간' | '야간'>('주간')
   const activeZones = mapMode === '주간' ? ZONES : NIGHT_ZONES
@@ -958,7 +980,11 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
 
   function handlePermissionAssign(orgId: string, category: BoothCategory) {
     if (!assignModal) return
-    const org = ORG_LIST.find((o) => o.id === orgId)!
+    const org = allOrgs.find((o) => o.id === orgId)!
+    const zone = [...ZONES, ...NIGHT_ZONES].find((z) => z.id === assignModal.zoneId)
+    const zoneLabel = zone
+      ? `${zone.name} (${assignModal.sections.map((s) => s + 1).join(', ')}번)`
+      : assignModal.zoneId
     setPermissions((prev) => [
       ...prev,
       {
@@ -973,6 +999,10 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
         time: selectedTime,
       },
     ])
+    // If this org is a registered booth admin account, write location back to store
+    if (storeAccounts.some((a) => a.id === orgId)) {
+      setBoothLocation(orgId, selectedTime as '주간' | '야간', zoneLabel)
+    }
     setAssignModal(null)
     setNotice(`${org.name}에 권한을 부여했어요`)
   }
@@ -1034,6 +1064,7 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
           />
         ) : (
           <AssignSidebar
+            orgs={allOrgs}
             permissions={permissions}
             selectedDay={selectedDay}
             selectedTime={selectedTime}
@@ -1254,7 +1285,7 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
           sections={assignModal.sections}
           day={selectedDay}
           time={selectedTime}
-          orgs={ORG_LIST}
+          orgs={allOrgs}
           permissions={permissions}
           onClose={() => setAssignModal(null)}
           onAssign={handlePermissionAssign}

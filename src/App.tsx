@@ -6,6 +6,7 @@ import { create } from 'zustand'
 import { AdminBooths } from './pages/Admin/Booths'
 import { AdminFestival } from './pages/Admin/Festival'
 import { AdminFoodTrucks } from './pages/Admin/FoodTrucks'
+import { AdminBoothRequests } from './pages/Admin/BoothRequests'
 import {
   MobileWaitingRegister,
   MobileWaitingStatus,
@@ -82,6 +83,7 @@ const NAV_LINKS = [
   { to: '/admin/festival', label: '관리 · 축제 설정' },
   { to: '/admin/booths', label: '관리 · 부스 배치' },
 
+  { to: '/admin/booth-requests', label: '관리 · 부스 신청 관리' },
   { to: '/booth-admin/login', label: '부스관리자 · 로그인' },
   { to: '/booth-admin/register', label: '부스관리자 · 회원가입' },
   { to: '/booth-admin', label: '부스관리자 · 대시보드' },
@@ -280,6 +282,14 @@ function AdminFoodTrucksRoute() {
     </AdminLayout>
   )
 }
+function AdminBoothRequestsRoute() {
+  const { dark } = useUI()
+  return (
+    <AdminLayout>
+      <AdminBoothRequests dark={dark} />
+    </AdminLayout>
+  )
+}
 function BoothAdminLoginRoute() {
   return (
     <AdminLayout>
@@ -322,6 +332,7 @@ export default function App() {
         <Route path="/admin/festival" element={<AdminFestivalRoute />} />
         <Route path="/admin/booths" element={<AdminBoothsRoute />} />
         <Route path="/admin/trucks" element={<AdminFoodTrucksRoute />} />
+        <Route path="/admin/booth-requests" element={<AdminBoothRequestsRoute />} />
         <Route path="/booth-admin/login" element={<BoothAdminLoginRoute />} />
         <Route
           path="/booth-admin/register"

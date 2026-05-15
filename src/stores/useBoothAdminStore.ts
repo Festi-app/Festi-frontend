@@ -35,7 +35,9 @@ export interface BoothAdminAccount {
   dayCategory: BoothCategoryType | ''
   nightBoothName: string
   nightBoothDesc: string
-  status: 'pending' | 'approved'
+  status: 'pending' | 'approved' | 'rejected'
+  dayLocation?: string
+  nightLocation?: string
   dayDetailImage?: string
   nightMenus: NightMenuItem[]
   waitingList: WaitingEntry[]
@@ -68,6 +70,9 @@ interface BoothAdminState {
   callWaiting: (waitingId: string) => void
   completeWaiting: (waitingId: string) => void
   cancelWaiting: (waitingId: string) => void
+  setBoothLocation: (id: string, time: OperatingTime, location: string) => void
+  approveAccount: (id: string) => void
+  rejectAccount: (id: string) => void
 }
 
 const SEED_WAITING: WaitingEntry[] = [
@@ -143,6 +148,8 @@ export const useBoothAdminStore = create<BoothAdminState>((set, get) => ({
       nightBoothName: '해킹 주점',
       nightBoothDesc: '신나는 야간 주점입니다',
       status: 'approved',
+      dayLocation: 'A구역 3번',
+      nightLocation: 'N2구역 1번',
       nightMenus: [
         { id: 'm1', name: '생맥주', price: '3,000', desc: '시원한 생맥주' },
         { id: 'm2', name: '소주', price: '4,000', desc: '참이슬 한 병' },
@@ -247,6 +254,31 @@ export const useBoothAdminStore = create<BoothAdminState>((set, get) => ({
               ),
             }
           : a
+      ),
+    }))
+  },
+
+  setBoothLocation: (id, time, location) => {
+    const field = time === '주간' ? 'dayLocation' : 'nightLocation'
+    set((s) => ({
+      accounts: s.accounts.map((a) =>
+        a.id === id ? { ...a, [field]: location } : a
+      ),
+    }))
+  },
+
+  approveAccount: (id) => {
+    set((s) => ({
+      accounts: s.accounts.map((a) =>
+        a.id === id ? { ...a, status: 'approved' as const } : a
+      ),
+    }))
+  },
+
+  rejectAccount: (accountId) => {
+    set((s) => ({
+      accounts: s.accounts.map((a) =>
+        a.id === accountId ? { ...a, status: 'rejected' as const } : a
       ),
     }))
   },
