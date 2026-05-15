@@ -1,7 +1,166 @@
+import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
-import { SPOT_TOKENS, SPOT_FONT, tone, I, PhotoSlot, Pill } from '../../tokens'
+import { FESTI_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { AdminShell, AdminTopBar, AdminBtn } from './Festival'
-import { Chip } from './Booths'
+
+type QueueState = 'seated' | 'called' | 'waiting' | 'no-show'
+
+interface QueueEntry {
+  no: number
+  name: string
+  phone: string
+  size: number
+  state: QueueState
+  enter: string
+  wait: string
+  tone: string
+  highlight?: boolean
+}
+
+interface BoothWaitItem {
+  id: number
+  name: string
+  wait: number
+  tone: string
+}
+
+const BOOTHS: BoothWaitItem[] = [
+  { id: 16, name: '컴공과 칵테일 바', wait: 5, tone: 'rose' },
+  { id: 17, name: '경영대 호프 1관', wait: 12, tone: 'leaf' },
+  { id: 22, name: '의약학부 술집', wait: 3, tone: 'rose' },
+  { id: 24, name: '글로벌통상학과', wait: 2, tone: 'leaf' },
+  { id: 38, name: '체대 곱창집', wait: 8, tone: 'mint' },
+  { id: 47, name: '미디어부 라멘', wait: 0, tone: 'sun' },
+  { id: 53, name: '아랍어과 비빔', wait: 4, tone: 'coral' },
+]
+
+const INITIAL_QUEUE: QueueEntry[] = [
+  {
+    no: 30,
+    name: '김민준',
+    phone: '010-•••-2384',
+    size: 4,
+    state: 'seated',
+    enter: '20:42',
+    wait: '12분',
+    tone: 'rose',
+  },
+  {
+    no: 31,
+    name: '이서윤',
+    phone: '010-•••-7720',
+    size: 2,
+    state: 'seated',
+    enter: '20:48',
+    wait: '10분',
+    tone: 'mint',
+  },
+  {
+    no: 32,
+    name: '박지우',
+    phone: '010-•••-0114',
+    size: 6,
+    state: 'called',
+    enter: '20:55',
+    wait: '8분',
+    tone: 'coral',
+  },
+  {
+    no: 33,
+    name: '최도현',
+    phone: '010-•••-9904',
+    size: 3,
+    state: 'called',
+    enter: '21:02',
+    wait: '6분',
+    tone: 'sun',
+  },
+  {
+    no: 34,
+    name: '정시현',
+    phone: '010-•••-8821',
+    size: 4,
+    state: 'waiting',
+    enter: '21:14',
+    wait: '진행중',
+    tone: 'grape',
+    highlight: true,
+  },
+  {
+    no: 35,
+    name: '한지민',
+    phone: '010-•••-3340',
+    size: 2,
+    state: 'waiting',
+    enter: '21:18',
+    wait: '+4분',
+    tone: 'leaf',
+  },
+  {
+    no: 36,
+    name: '오태윤',
+    phone: '010-•••-5512',
+    size: 5,
+    state: 'waiting',
+    enter: '21:21',
+    wait: '+7분',
+    tone: 'rose',
+  },
+  {
+    no: 37,
+    name: '서윤아',
+    phone: '010-•••-1180',
+    size: 3,
+    state: 'waiting',
+    enter: '21:24',
+    wait: '+10분',
+    tone: 'mint',
+  },
+  {
+    no: 38,
+    name: '조하은',
+    phone: '010-•••-7755',
+    size: 4,
+    state: 'waiting',
+    enter: '21:27',
+    wait: '+14분',
+    tone: 'coral',
+  },
+  {
+    no: 29,
+    name: '문건우',
+    phone: '010-•••-2118',
+    size: 2,
+    state: 'no-show',
+    enter: '20:38',
+    wait: '미도착',
+    tone: 'sun',
+  },
+]
+
+const STATE_META: Record<
+  QueueState,
+  { label: string; color: string; ink: string }
+> = {
+  seated: {
+    label: '입장 완료',
+    color: 'var(--surface-alt)',
+    ink: 'var(--ink-60)',
+  },
+  called: { label: '호출중', color: FESTI_TOKENS.pop, ink: FESTI_TOKENS.ink },
+  waiting: {
+    label: '대기중',
+    color: FESTI_TOKENS.popSoft,
+    ink: FESTI_TOKENS.ink,
+  },
+  'no-show': { label: '미도착', color: '#F3D1D1', ink: '#7A2E2E' },
+}
+
+const FILTERS = ['전체', '대기중', '호출중', '입장 완료', '미도착'] as const
+
+function cn(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(' ')
+}
 
 // ── Row action button ─────────────────────────────────────────────────────────
 
@@ -9,589 +168,480 @@ export function RowBtn({
   children,
   primary,
   icon,
+  onClick,
 }: {
   children?: ReactNode
   primary?: boolean
   icon?: ReactElement
   dark?: boolean
+  onClick?: () => void
 }) {
-  const t = tone()
   return (
-    <div
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 4,
-        padding: children ? '6px 10px' : 6,
-        borderRadius: 9,
-        background: primary ? t.cta : t.surface,
-        color: primary ? t.ctaInk : t.ink80,
-        border: `1px solid ${primary ? t.cta : t.border}`,
-        fontSize: 12,
-        fontWeight: 700,
-        letterSpacing: -0.2,
-        whiteSpace: 'nowrap',
-      }}
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1 whitespace-nowrap rounded-[9px] border px-2.5 py-1.5 text-xs font-bold tracking-[-0.2px]',
+        !children && 'p-1.5',
+        primary
+          ? 'border-cta bg-cta text-cta-ink'
+          : 'border-border bg-surface text-ink-80'
+      )}
     >
-      {icon && <div style={{ width: 13, height: 13 }}>{icon}</div>}
+      {icon && <div className="size-3.25">{icon}</div>}
       {children}
-    </div>
+    </button>
   )
+}
+
+function FilterChip({
+  label,
+  badge,
+  active,
+  onClick,
+}: {
+  label: string
+  badge: string
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1.25 rounded-full border px-2.75 py-1.75 text-xs font-bold tracking-[-0.2px]',
+        active
+          ? 'border-cta bg-cta text-cta-ink'
+          : 'border-border bg-surface text-ink-80'
+      )}
+    >
+      {label}
+      <span
+        className={cn(
+          'rounded-full px-1.5 py-0.25 text-[10px]',
+          active ? 'bg-pop text-white' : 'bg-surface-alt text-ink-60'
+        )}
+      >
+        {badge}
+      </span>
+    </button>
+  )
+}
+
+function stateCount(queue: QueueEntry[], filter: string) {
+  if (filter === '대기중')
+    return queue.filter((q) => q.state === 'waiting').length
+  if (filter === '호출중')
+    return queue.filter((q) => q.state === 'called').length
+  if (filter === '입장 완료') {
+    return queue.filter((q) => q.state === 'seated').length
+  }
+  if (filter === '미도착')
+    return queue.filter((q) => q.state === 'no-show').length
+  return queue.length
 }
 
 // ── Screen: Waiting Management ────────────────────────────────────────────────
 
 export function AdminWaiting({ dark = false }: { dark?: boolean }) {
-  const t = tone()
+  const [notice, setNotice] = useState('컴공과 칵테일 바 (#16) · 2일차 야간')
+  const [selectedBoothId, setSelectedBoothId] = useState(16)
+  const [queueFilter, setQueueFilter] = useState('전체')
+  const [paused, setPaused] = useState(false)
+  const [queue, setQueue] = useState<QueueEntry[]>(INITIAL_QUEUE)
 
-  const queue = [
-    {
-      no: 30,
-      name: '김민준',
-      phone: '010-•••-2384',
-      size: 4,
-      state: 'seated',
-      enter: '20:42',
-      wait: '12분',
-      tone: 'rose',
-    },
-    {
-      no: 31,
-      name: '이서윤',
-      phone: '010-•••-7720',
-      size: 2,
-      state: 'seated',
-      enter: '20:48',
-      wait: '10분',
-      tone: 'mint',
-    },
-    {
-      no: 32,
-      name: '박지우',
-      phone: '010-•••-0114',
-      size: 6,
-      state: 'called',
-      enter: '20:55',
-      wait: '8분',
-      tone: 'coral',
-    },
-    {
-      no: 33,
-      name: '최도현',
-      phone: '010-•••-9904',
-      size: 3,
-      state: 'called',
-      enter: '21:02',
-      wait: '6분',
-      tone: 'sun',
-    },
-    {
-      no: 34,
-      name: '정시현',
-      phone: '010-•••-8821',
-      size: 4,
-      state: 'waiting',
-      enter: '21:14',
-      wait: '진행중',
-      tone: 'grape',
-      highlight: true,
-    },
-    {
-      no: 35,
-      name: '한지민',
-      phone: '010-•••-3340',
-      size: 2,
-      state: 'waiting',
-      enter: '21:18',
-      wait: '+4분',
-      tone: 'leaf',
-    },
-    {
-      no: 36,
-      name: '오태윤',
-      phone: '010-•••-5512',
-      size: 5,
-      state: 'waiting',
-      enter: '21:21',
-      wait: '+7분',
-      tone: 'rose',
-    },
-    {
-      no: 37,
-      name: '서윤아',
-      phone: '010-•••-1180',
-      size: 3,
-      state: 'waiting',
-      enter: '21:24',
-      wait: '+10분',
-      tone: 'mint',
-    },
-    {
-      no: 38,
-      name: '조하은',
-      phone: '010-•••-7755',
-      size: 4,
-      state: 'waiting',
-      enter: '21:27',
-      wait: '+14분',
-      tone: 'coral',
-    },
-    {
-      no: 29,
-      name: '문건우',
-      phone: '010-•••-2118',
-      size: 2,
-      state: 'no-show',
-      enter: '20:38',
-      wait: '미도착',
-      tone: 'sun',
-    },
-  ]
+  const filteredQueue = queue.filter((entry) => {
+    if (queueFilter === '대기중') return entry.state === 'waiting'
+    if (queueFilter === '호출중') return entry.state === 'called'
+    if (queueFilter === '입장 완료') return entry.state === 'seated'
+    if (queueFilter === '미도착') return entry.state === 'no-show'
+    return true
+  })
 
-  const stateMeta: Record<string, { l: string; c: string; fc: string }> = {
-    seated: { l: '입장 완료', c: t.surfaceAlt, fc: t.ink60 },
-    called: { l: '호출중', c: SPOT_TOKENS.pop, fc: SPOT_TOKENS.ink },
-    waiting: { l: '대기중', c: SPOT_TOKENS.popSoft, fc: SPOT_TOKENS.ink },
-    'no-show': { l: '미도착', c: '#F3D1D1', fc: '#7A2E2E' },
+  const updateQueueState = (no: number, state: QueueState, wait: string) => {
+    setQueue((current) =>
+      current.map((entry) =>
+        entry.no === no ? { ...entry, state, wait, highlight: true } : entry
+      )
+    )
   }
 
   return (
     <AdminShell active="waiting" dark={dark}>
       <AdminTopBar
         title="웨이팅 관리"
-        sub="컴공과 칵테일 바 (#16) · 2일차 야간 · 21:28 기준"
+        sub={`${notice} · ${paused ? '일시정지 중' : '운영중'}`}
         dark={dark}
         right={
           <>
-            <AdminBtn dark={dark} icon={I.bell(SPOT_TOKENS.ink60)}>
+            <AdminBtn
+              dark={dark}
+              icon={I.bell(FESTI_TOKENS.ink60)}
+              onClick={() => setNotice('전체 알림을 발송했어요')}
+            >
               전체 알림
             </AdminBtn>
-            <AdminBtn dark={dark} ghost icon={I.minus(SPOT_TOKENS.ink60)}>
-              일시정지
+            <AdminBtn
+              dark={dark}
+              ghost
+              icon={I.minus(FESTI_TOKENS.ink60)}
+              onClick={() => {
+                setPaused((current) => !current)
+                setNotice(
+                  paused
+                    ? '웨이팅 운영을 재개했어요'
+                    : '웨이팅 접수를 일시정지했어요'
+                )
+              }}
+            >
+              {paused ? '재개' : '일시정지'}
             </AdminBtn>
-            <AdminBtn dark={dark} primary icon={I.plus('#fff')}>
+            <AdminBtn
+              dark={dark}
+              primary
+              icon={I.plus('#fff')}
+              onClick={() => {
+                const nextNo = Math.max(...queue.map((entry) => entry.no)) + 1
+                setQueue((current) => [
+                  ...current,
+                  {
+                    no: nextNo,
+                    name: '현장 등록',
+                    phone: '010-•••-0000',
+                    size: 2,
+                    state: 'waiting',
+                    enter: '방금',
+                    wait: '진행중',
+                    tone: 'mint',
+                    highlight: true,
+                  },
+                ])
+                setNotice(`#${nextNo} 현장 대기를 등록했어요`)
+              }}
+            >
               현장 등록
             </AdminBtn>
           </>
         }
       />
 
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          minHeight: 0,
-          fontFamily: SPOT_FONT,
-        }}
-      >
-        {/* Booth selector sidebar */}
-        <div
-          style={{
-            width: 260,
-            borderRight: `1px solid ${t.border}`,
-            background: t.surface,
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '14px 0',
-          }}
-        >
-          <div
-            style={{
-              padding: '0 14px 8px',
-              fontSize: 11,
-              fontWeight: 700,
-              color: t.ink60,
-              letterSpacing: 0.4,
-            }}
-          >
+      <div className="flex min-h-0 flex-1 font-festi">
+        <aside className="flex w-65 shrink-0 flex-col border-r border-border bg-surface py-3.5">
+          <div className="px-3.5 pb-2 text-[11px] font-bold tracking-[0.4px] text-ink-60">
             웨이팅 운영 부스
           </div>
-          {[
-            {
-              id: 16,
-              name: '컴공과 칵테일 바',
-              total: 5,
-              wait: 5,
-              tone: 'rose',
-              on: true,
-            },
-            {
-              id: 17,
-              name: '경영대 호프 1관',
-              total: 12,
-              wait: 12,
-              tone: 'leaf',
-            },
-            { id: 22, name: '의약학부 술집', total: 3, wait: 3, tone: 'rose' },
-            { id: 24, name: '글로벌통상학과', total: 2, wait: 2, tone: 'leaf' },
-            { id: 38, name: '체대 곱창집', total: 8, wait: 8, tone: 'mint' },
-            { id: 47, name: '미디어부 라멘', total: 0, wait: 0, tone: 'sun' },
-            { id: 53, name: '아랍어과 비빔', total: 4, wait: 4, tone: 'coral' },
-          ].map((b, i) => (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '10px 14px',
-                background: b.on ? SPOT_TOKENS.coralSoft : 'transparent',
-                borderLeft: b.on
-                  ? `3px solid ${t.cta}`
-                  : '3px solid transparent',
-              }}
-            >
-              <div
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 9,
-                  overflow: 'hidden',
-                  flexShrink: 0,
-                }}
-              >
-                <PhotoSlot label="" tone={b.tone} radius={9} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: t.ink,
-                    letterSpacing: -0.2,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {b.name}
-                </div>
-                <div style={{ fontSize: 11, color: t.ink60 }}>#{b.id}</div>
-              </div>
-              <div
-                style={{
-                  background: b.wait > 0 ? SPOT_TOKENS.alert : t.surfaceAlt,
-                  color: b.wait > 0 ? '#fff' : t.ink60,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  padding: '3px 7px',
-                  borderRadius: 9999,
-                  minWidth: 22,
-                  textAlign: 'center',
-                }}
-              >
-                {b.wait}
-              </div>
-            </div>
-          ))}
-        </div>
 
-        {/* Main content */}
-        <div style={{ flex: 1, padding: 24, overflow: 'auto', minWidth: 0 }}>
-          {/* Stats */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4,1fr)',
-              gap: 12,
-              marginBottom: 18,
-            }}
-          >
+          {BOOTHS.map((booth) => {
+            const selected = booth.id === selectedBoothId
+            return (
+              <button
+                type="button"
+                key={booth.id}
+                onClick={() => {
+                  setSelectedBoothId(booth.id)
+                  setNotice(`${booth.name} (#${booth.id}) 웨이팅을 보고 있어요`)
+                }}
+                className={cn(
+                  'flex w-full items-center gap-2.5 border-y-0 border-r-0 py-2.5 pr-3.5 pl-3 text-left',
+                  selected
+                    ? 'border-l-3 border-l-cta bg-coral-soft'
+                    : 'border-l-3 border-l-transparent bg-transparent'
+                )}
+              >
+                <div className="size-8.5 shrink-0 overflow-hidden rounded-[9px]">
+                  <PhotoSlot label="" tone={booth.tone} radius={9} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[13px] font-bold tracking-[-0.2px] text-ink">
+                    {booth.name}
+                  </div>
+                  <div className="text-[11px] text-ink-60">#{booth.id}</div>
+                </div>
+                <div
+                  className={cn(
+                    'min-w-5.5 rounded-full px-1.75 py-0.75 text-center text-[11px] font-extrabold',
+                    booth.wait > 0
+                      ? 'bg-alert text-white'
+                      : 'bg-surface-alt text-ink-60'
+                  )}
+                >
+                  {booth.wait}
+                </div>
+              </button>
+            )
+          })}
+        </aside>
+
+        <main className="min-w-0 flex-1 overflow-auto p-6">
+          <div className="mb-4.5 grid grid-cols-4 gap-3">
             {[
               {
-                l: '대기중',
-                v: 5,
+                label: '대기중',
+                value: stateCount(queue, '대기중'),
                 sub: '오늘 누적 32팀',
-                c: SPOT_TOKENS.ink,
+                accent: 'bg-ink',
                 big: true,
               },
               {
-                l: '평균 대기 시간',
-                v: '14분',
+                label: '평균 대기 시간',
+                value: '14분',
                 sub: '직전 30분 기준',
-                c: SPOT_TOKENS.ink,
+                accent: 'bg-ink',
               },
               {
-                l: '입장 완료',
-                v: 27,
+                label: '입장 완료',
+                value: stateCount(queue, '입장 완료'),
                 sub: '회전율 양호',
-                c: SPOT_TOKENS.leaf,
+                accent: 'bg-leaf',
               },
-              { l: '미도착', v: 2, sub: '자동 취소 적용', c: SPOT_TOKENS.sun },
-            ].map((s, i) => (
+              {
+                label: '미도착',
+                value: stateCount(queue, '미도착'),
+                sub: '자동 취소 적용',
+                accent: 'bg-sun',
+              },
+            ].map((stat) => (
               <div
-                key={i}
-                style={{
-                  background: t.surface,
-                  borderRadius: 16,
-                  border: `1px solid ${t.border}`,
-                  padding: 16,
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}
+                key={stat.label}
+                className="relative overflow-hidden rounded-2xl border border-border bg-surface p-4"
               >
                 <div
-                  style={{
-                    position: 'absolute',
-                    right: -12,
-                    top: -12,
-                    width: 56,
-                    height: 56,
-                    borderRadius: '50%',
-                    background: s.c,
-                    opacity: 0.12,
-                  }}
+                  className={cn(
+                    'absolute -top-3 -right-3 size-14 rounded-full opacity-12',
+                    stat.accent
+                  )}
                 />
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: t.ink60,
-                    letterSpacing: -0.1,
-                  }}
-                >
-                  {s.l}
+                <div className="text-[11px] font-bold tracking-[-0.1px] text-ink-60">
+                  {stat.label}
                 </div>
                 <div
-                  style={{
-                    fontSize: s.big ? 36 : 26,
-                    fontWeight: 800,
-                    color: t.ink,
-                    letterSpacing: -1,
-                    lineHeight: 1.1,
-                    marginTop: 6,
-                  }}
+                  className={cn(
+                    'mt-1.5 leading-[1.1] font-extrabold tracking-[-1px] text-ink',
+                    stat.big ? 'text-4xl' : 'text-[26px]'
+                  )}
                 >
-                  {s.v}
+                  {stat.value}
                 </div>
-                <div style={{ fontSize: 11, color: t.ink60, marginTop: 4 }}>
-                  {s.sub}
-                </div>
+                <div className="mt-1 text-[11px] text-ink-60">{stat.sub}</div>
               </div>
             ))}
           </div>
 
-          {/* Filter bar */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              marginBottom: 12,
-            }}
-          >
-            <Chip dark={dark} label="전체" badge="10" active />
-            <Chip dark={dark} label="대기중" badge="5" />
-            <Chip dark={dark} label="호출중" badge="2" />
-            <Chip dark={dark} label="입장 완료" badge="2" />
-            <Chip dark={dark} label="미도착" badge="1" />
-            <div style={{ flex: 1 }} />
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '7px 11px',
-                borderRadius: 10,
-                background: t.surface,
-                border: `1px solid ${t.border}`,
-                fontSize: 12,
-                color: t.ink60,
-                fontWeight: 600,
-              }}
-            >
-              <div style={{ width: 13, height: 13 }}>{I.clock()}</div>
+          <div className="mb-3 flex items-center gap-2">
+            {FILTERS.map((filter) => (
+              <FilterChip
+                key={filter}
+                label={filter}
+                badge={String(stateCount(queue, filter))}
+                active={queueFilter === filter}
+                onClick={() => {
+                  setQueueFilter(filter)
+                  setNotice(`${filter} 목록을 보고 있어요`)
+                }}
+              />
+            ))}
+            <div className="flex-1" />
+            <div className="flex items-center gap-1.5 rounded-[10px] border border-border bg-surface px-2.75 py-1.75 text-xs font-semibold text-ink-60">
+              <div className="size-3.25">{I.clock()}</div>
               자동 호출 5분 미도착 시 취소
             </div>
           </div>
 
-          {/* Queue table */}
-          <div
-            style={{
-              background: t.surface,
-              borderRadius: 18,
-              border: `1px solid ${t.border}`,
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '54px 1.4fr 76px 96px 100px 100px 200px',
-                padding: '12px 18px',
-                gap: 12,
-                borderBottom: `1px solid ${t.border}`,
-                fontSize: 11,
-                fontWeight: 700,
-                color: t.ink60,
-                letterSpacing: 0.3,
-                textTransform: 'uppercase',
-                background: t.surfaceAlt,
-              }}
-            >
+          <div className="overflow-hidden rounded-[18px] border border-border bg-surface">
+            <div className="grid grid-cols-[54px_1.4fr_76px_96px_100px_100px_200px] gap-3 border-b border-border bg-surface-alt px-4.5 py-3 text-[11px] font-bold tracking-[0.3px] text-ink-60 uppercase">
               <div>대기번호</div>
               <div>고객 / 연락처</div>
               <div>인원</div>
               <div>등록 시각</div>
               <div>경과</div>
               <div>상태</div>
-              <div style={{ textAlign: 'right' }}>액션</div>
+              <div className="text-right">액션</div>
             </div>
-            {queue.map((q, i) => {
-              const sm = stateMeta[q.state] ?? stateMeta['waiting']
+
+            {filteredQueue.map((entry, index) => {
+              const meta = STATE_META[entry.state]
               return (
                 <div
-                  key={i}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns:
-                      '54px 1.4fr 76px 96px 100px 100px 200px',
-                    padding: '12px 18px',
-                    gap: 12,
-                    alignItems: 'center',
-                    background: q.highlight
-                      ? SPOT_TOKENS.coralSoft
-                      : i % 2 === 1
-                        ? t.bg
-                        : 'transparent',
-                    borderBottom:
-                      i < queue.length - 1 ? `1px solid ${t.border}` : 'none',
-                    borderLeft: q.highlight
-                      ? `3px solid ${t.cta}`
-                      : '3px solid transparent',
-                    marginLeft: q.highlight ? -3 : 0,
-                    fontSize: 13,
-                    color: t.ink,
-                  }}
+                  key={entry.no}
+                  className={cn(
+                    'grid grid-cols-[54px_1.4fr_76px_96px_100px_100px_200px] items-center gap-3 border-l-3 px-4.5 py-3 text-[13px] text-ink',
+                    index < filteredQueue.length - 1 &&
+                      'border-b border-border',
+                    entry.highlight
+                      ? 'border-l-cta bg-coral-soft'
+                      : index % 2 === 1
+                        ? 'border-l-transparent bg-bg'
+                        : 'border-l-transparent bg-transparent'
+                  )}
                 >
                   <div
-                    style={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: 10,
-                      background: q.state === 'waiting' ? t.cta : t.surfaceAlt,
-                      color: q.state === 'waiting' ? t.ctaInk : t.ink80,
-                      fontSize: 14,
-                      fontWeight: 800,
-                      letterSpacing: -0.4,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
+                    className={cn(
+                      'flex size-9.5 items-center justify-center rounded-[10px] text-sm font-extrabold tracking-[-0.4px]',
+                      entry.state === 'waiting'
+                        ? 'bg-cta text-cta-ink'
+                        : 'bg-surface-alt text-ink-80'
+                    )}
                   >
-                    {q.no}
+                    {entry.no}
                   </div>
-                  <div
-                    style={{ display: 'flex', alignItems: 'center', gap: 10 }}
-                  >
-                    <div
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <PhotoSlot label="" tone={q.tone} radius={14} />
+
+                  <div className="flex items-center gap-2.5">
+                    <div className="size-7 shrink-0 overflow-hidden rounded-full">
+                      <PhotoSlot label="" tone={entry.tone} radius={14} />
                     </div>
-                    <div>
-                      <div style={{ fontWeight: 700, letterSpacing: -0.2 }}>
-                        {q.name}
+                    <div className="min-w-0">
+                      <div className="truncate font-bold tracking-[-0.2px]">
+                        {entry.name}
                       </div>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          color: t.ink60,
-                          fontFamily: 'ui-monospace, monospace',
-                        }}
-                      >
-                        {q.phone}
+                      <div className="font-mono text-[11px] text-ink-60">
+                        {entry.phone}
                       </div>
                     </div>
                   </div>
-                  <div style={{ fontWeight: 700 }}>
-                    {q.size}
-                    <span style={{ fontSize: 11, color: t.ink60 }}>명</span>
+
+                  <div className="font-bold">
+                    {entry.size}
+                    <span className="text-[11px] text-ink-60">명</span>
+                  </div>
+                  <div className="font-mono text-xs text-ink-80">
+                    {entry.enter}
                   </div>
                   <div
-                    style={{
-                      fontSize: 12,
-                      color: t.ink80,
-                      fontFamily: 'ui-monospace, monospace',
-                    }}
+                    className={cn(
+                      'text-xs font-bold',
+                      entry.state === 'waiting' ? 'text-ink' : 'text-ink-60'
+                    )}
                   >
-                    {q.enter}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: q.state === 'waiting' ? SPOT_TOKENS.ink : t.ink60,
-                    }}
-                  >
-                    {q.wait}
+                    {entry.wait}
                   </div>
                   <div>
-                    <Pill color={sm.c} ink={sm.fc} style={{ fontSize: 11 }}>
-                      {q.state === 'called' && (
-                        <span
-                          style={{
-                            width: 5,
-                            height: 5,
-                            borderRadius: '50%',
-                            background: sm.fc,
-                            display: 'inline-block',
-                            marginRight: 4,
-                          }}
-                        />
+                    <Pill color={meta.color} ink={meta.ink}>
+                      {entry.state === 'called' && (
+                        <span className="mr-1 inline-block size-[5px] rounded-full bg-[#141A1F]" />
                       )}
-                      {sm.l}
+                      {meta.label}
                     </Pill>
                   </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: 6,
-                      justifyContent: 'flex-end',
-                    }}
-                  >
-                    {q.state === 'waiting' && (
+
+                  <div className="flex justify-end gap-1.5">
+                    {entry.state === 'waiting' && (
                       <>
-                        <RowBtn dark={dark} primary icon={I.call('#fff')}>
+                        <RowBtn
+                          dark={dark}
+                          primary
+                          icon={I.call('#fff')}
+                          onClick={() => {
+                            updateQueueState(entry.no, 'called', '호출중')
+                            setNotice(
+                              `#${entry.no} ${entry.name}님을 호출했어요`
+                            )
+                          }}
+                        >
                           호출
                         </RowBtn>
-                        <RowBtn dark={dark} icon={I.check(SPOT_TOKENS.ink60)}>
+                        <RowBtn
+                          dark={dark}
+                          icon={I.check(FESTI_TOKENS.ink60)}
+                          onClick={() => {
+                            updateQueueState(entry.no, 'seated', '입장 완료')
+                            setNotice(
+                              `#${entry.no} ${entry.name}님 입장을 완료했어요`
+                            )
+                          }}
+                        >
                           입장
                         </RowBtn>
-                        <RowBtn dark={dark} icon={I.dots(SPOT_TOKENS.ink60)} />
+                        <RowBtn
+                          dark={dark}
+                          icon={I.dots(FESTI_TOKENS.ink60)}
+                          onClick={() =>
+                            setNotice(`#${entry.no} 상세 메뉴를 열었어요`)
+                          }
+                        />
                       </>
                     )}
-                    {q.state === 'called' && (
+                    {entry.state === 'called' && (
                       <>
-                        <RowBtn dark={dark} primary icon={I.check('#fff')}>
+                        <RowBtn
+                          dark={dark}
+                          primary
+                          icon={I.check('#fff')}
+                          onClick={() => {
+                            updateQueueState(entry.no, 'seated', '입장 완료')
+                            setNotice(
+                              `#${entry.no} ${entry.name}님 입장을 완료했어요`
+                            )
+                          }}
+                        >
                           입장
                         </RowBtn>
-                        <RowBtn dark={dark} icon={I.call(SPOT_TOKENS.ink60)}>
+                        <RowBtn
+                          dark={dark}
+                          icon={I.call(FESTI_TOKENS.ink60)}
+                          onClick={() =>
+                            setNotice(
+                              `#${entry.no} ${entry.name}님을 재호출했어요`
+                            )
+                          }
+                        >
                           재호출
                         </RowBtn>
-                        <RowBtn dark={dark} icon={I.dots(SPOT_TOKENS.ink60)} />
+                        <RowBtn
+                          dark={dark}
+                          icon={I.dots(FESTI_TOKENS.ink60)}
+                          onClick={() =>
+                            setNotice(`#${entry.no} 상세 메뉴를 열었어요`)
+                          }
+                        />
                       </>
                     )}
-                    {q.state === 'seated' && (
+                    {entry.state === 'seated' && (
                       <>
-                        <RowBtn dark={dark} icon={I.check(SPOT_TOKENS.leaf)}>
+                        <RowBtn
+                          dark={dark}
+                          icon={I.check(FESTI_TOKENS.leaf)}
+                          onClick={() =>
+                            setNotice(
+                              `#${entry.no} 입장 완료 상태를 확인했어요`
+                            )
+                          }
+                        >
                           완료
                         </RowBtn>
-                        <RowBtn dark={dark} icon={I.dots(SPOT_TOKENS.ink60)} />
+                        <RowBtn
+                          dark={dark}
+                          icon={I.dots(FESTI_TOKENS.ink60)}
+                          onClick={() =>
+                            setNotice(`#${entry.no} 상세 메뉴를 열었어요`)
+                          }
+                        />
                       </>
                     )}
-                    {q.state === 'no-show' && (
+                    {entry.state === 'no-show' && (
                       <>
-                        <RowBtn dark={dark} icon={I.call(SPOT_TOKENS.ink60)}>
+                        <RowBtn
+                          dark={dark}
+                          icon={I.call(FESTI_TOKENS.ink60)}
+                          onClick={() => {
+                            updateQueueState(entry.no, 'called', '재호출')
+                            setNotice(
+                              `#${entry.no} ${entry.name}님을 재시도 호출했어요`
+                            )
+                          }}
+                        >
                           재시도
                         </RowBtn>
-                        <RowBtn dark={dark} icon={I.trash(SPOT_TOKENS.ink60)}>
+                        <RowBtn
+                          dark={dark}
+                          icon={I.trash(FESTI_TOKENS.ink60)}
+                          onClick={() => {
+                            setQueue((current) =>
+                              current.filter((item) => item.no !== entry.no)
+                            )
+                            setNotice(`#${entry.no} 대기를 삭제했어요`)
+                          }}
+                        >
                           삭제
                         </RowBtn>
                       </>
@@ -602,23 +652,25 @@ export function AdminWaiting({ dark = false }: { dark?: boolean }) {
             })}
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginTop: 14,
-              fontSize: 12,
-              color: t.ink60,
-            }}
-          >
-            <div>총 32건 중 1-10 · 다음 호출 예측 #35 (정시현 4명 다음)</div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <AdminBtn dark={dark} icon={I.chev(SPOT_TOKENS.ink60, 'l')} />
-              <AdminBtn dark={dark} icon={I.chev(SPOT_TOKENS.ink60, 'r')} />
+          <div className="mt-3.5 flex items-center justify-between text-xs text-ink-60">
+            <div>
+              총 {queue.length}건 중 1-{filteredQueue.length} · 다음 호출 예측
+              #35 (정시현 4명 다음)
+            </div>
+            <div className="flex gap-1.5">
+              <AdminBtn
+                dark={dark}
+                icon={I.chev(FESTI_TOKENS.ink60, 'l')}
+                onClick={() => setNotice('이전 페이지로 이동했어요')}
+              />
+              <AdminBtn
+                dark={dark}
+                icon={I.chev(FESTI_TOKENS.ink60, 'r')}
+                onClick={() => setNotice('다음 페이지로 이동했어요')}
+              />
             </div>
           </div>
-        </div>
+        </main>
       </div>
     </AdminShell>
   )

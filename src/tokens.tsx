@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactElement, ReactNode } from 'react'
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const SPOT_TOKENS = {
+export const FESTI_TOKENS = {
   mint: '#A9E5E7',
   mintDeep: '#6FC8CB',
   mintSoft: '#E6F2F3',
@@ -36,7 +36,7 @@ export const SPOT_TOKENS = {
   },
 }
 
-export const SPOT_FONT = `'Pretendard', 'Pretendard Variable', -apple-system, system-ui, sans-serif`
+export const FESTI_FONT = `'Pretendard', 'Pretendard Variable', -apple-system, system-ui, sans-serif`
 
 export interface ToneTheme {
   bg: string
@@ -59,28 +59,32 @@ export interface ToneTheme {
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function tone(): ToneTheme {
+  const dark =
+    typeof document !== 'undefined' &&
+    document.documentElement.classList.contains('dark')
+
   return {
-    bg: 'var(--bg)',
-    surface: 'var(--surface)',
-    surfaceAlt: 'var(--surface-alt)',
-    border: 'var(--border-color)',
-    ink: 'var(--ink)',
-    ink80: 'var(--ink-80)',
-    ink60: 'var(--ink-60)',
-    ink40: 'var(--ink-40)',
-    ink20: 'var(--ink-20)',
-    mint: SPOT_TOKENS.mint,
-    mintDeep: SPOT_TOKENS.mintDeep,
-    mintSoft: 'var(--mint-soft)',
-    cta: 'var(--cta)',
-    ctaInk: 'var(--cta-ink)',
-    chip: 'var(--chip)',
-    chipInk: 'var(--chip-ink)',
+    bg: dark ? '#0F1216' : '#F2F3F4',
+    surface: dark ? '#1A1E23' : '#FFFFFF',
+    surfaceAlt: dark ? '#252A30' : '#F1F7F8',
+    border: dark ? '#2F353B' : '#E6E9EC',
+    ink: dark ? '#F2F5F7' : '#141A1F',
+    ink80: dark ? '#CDD5DA' : '#2E363C',
+    ink60: dark ? '#8B939B' : '#5E676D',
+    ink40: dark ? '#5F676D' : '#8C949A',
+    ink20: dark ? '#3E454D' : '#C8CDD1',
+    mint: FESTI_TOKENS.mint,
+    mintDeep: FESTI_TOKENS.mintDeep,
+    mintSoft: dark ? '#1F3035' : '#E6F2F3',
+    cta: FESTI_TOKENS.coral,
+    ctaInk: '#FFFFFF',
+    chip: dark ? '#252A30' : '#F3F5F6',
+    chipInk: dark ? '#F2F5F7' : '#141A1F',
   }
 }
 
-// ── Spotter wordmark ──────────────────────────────────────────────
-export function SpotterMark({
+// ── Festiter wordmark ──────────────────────────────────────────────
+export function FestiterMark({
   size = 22,
   mono = false,
   color,
@@ -89,15 +93,15 @@ export function SpotterMark({
   mono?: boolean
   color?: string
 }): ReactElement {
-  const ink = color ?? SPOT_TOKENS.ink
-  const dot = mono ? ink : SPOT_TOKENS.pop
+  const ink = color ?? FESTI_TOKENS.ink
+  const dot = mono ? ink : FESTI_TOKENS.pop
   return (
     <div
       style={{
         display: 'inline-flex',
         alignItems: 'center',
         gap: size * 0.28,
-        fontFamily: SPOT_FONT,
+        fontFamily: FESTI_FONT,
         fontWeight: 800,
         fontSize: size,
         letterSpacing: -0.6,
@@ -110,7 +114,7 @@ export function SpotterMark({
           width: size * 0.95,
           height: size * 0.95,
           borderRadius: '50%',
-          background: SPOT_TOKENS.mint,
+          background: FESTI_TOKENS.mint,
           position: 'relative',
           display: 'inline-flex',
           alignItems: 'center',
@@ -127,7 +131,7 @@ export function SpotterMark({
           }}
         />
       </span>
-      <span>spotter</span>
+      <span>festi</span>
     </div>
   )
 }
@@ -512,15 +516,18 @@ export function PhotoSlot({
   tone: t = 'mint',
   radius = 16,
   style = {},
+  className,
 }: {
   label?: string
   ratio?: string
   tone?: string
   radius?: number
   style?: CSSProperties
+  className?: string
 }): ReactElement {
   return (
     <div
+      className={className}
       style={{
         aspectRatio: ratio,
         width: '100%',
@@ -544,16 +551,18 @@ export function PhotoSlot({
 // ── Pill / tag ────────────────────────────────────────────────────
 export function Pill({
   children,
-  color = SPOT_TOKENS.mintSoft,
-  ink = SPOT_TOKENS.ink,
+  color = FESTI_TOKENS.mintSoft,
+  ink = FESTI_TOKENS.ink,
   size = 'sm',
   style = {},
+  className,
 }: {
   children: ReactNode
   color?: string
   ink?: string
   size?: 'sm' | 'lg'
   style?: CSSProperties
+  className?: string
 }): ReactElement {
   const sz =
     size === 'lg'
@@ -561,6 +570,7 @@ export function Pill({
       : { fontSize: 12, padding: '4px 9px' }
   return (
     <span
+      className={className}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -568,7 +578,7 @@ export function Pill({
         background: color,
         color: ink,
         borderRadius: 9999,
-        fontFamily: SPOT_FONT,
+        fontFamily: FESTI_FONT,
         fontWeight: 600,
         ...sz,
         ...style,

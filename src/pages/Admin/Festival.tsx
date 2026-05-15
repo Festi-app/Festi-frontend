@@ -1,268 +1,173 @@
-import type { ReactNode, ReactElement } from 'react'
-import {
-  SPOT_TOKENS,
-  SPOT_FONT,
-  tone,
-  SpotterMark,
-  I,
-  PhotoSlot,
-  Pill,
-} from '../../tokens'
-import { Switch } from '../User/Waiting'
+import { useState } from 'react'
+import type { ReactElement, ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { FESTI_TOKENS, FestiterMark, I, PhotoSlot, Pill } from '../../tokens'
+
+function cn(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(' ')
+}
 
 // ── Shared admin chrome ───────────────────────────────────────────────────────
 
 export function AdminShell({
   active = 'booths',
   children,
-  dark = false,
 }: {
   active?: string
   children: ReactNode
   dark?: boolean
 }) {
-  const t = tone()
   return (
-    <div
-      style={{
-        display: 'flex',
-        width: '100%',
-        height: '100%',
-        background: t.bg,
-        fontFamily: SPOT_FONT,
-        color: t.ink,
-        overflow: 'hidden',
-      }}
-    >
-      <AdminSidebar active={active} dark={dark} />
-      <div
-        style={{
-          flex: 1,
-          minWidth: 0,
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        {children}
-      </div>
+    <div className="flex h-full w-full overflow-hidden bg-bg font-festi text-ink">
+      <AdminSidebar active={active} />
+      <div className="flex min-w-0 flex-1 flex-col">{children}</div>
     </div>
   )
 }
 
 function AdminSidebar({ active }: { active: string; dark?: boolean }) {
-  const t = tone()
+  const navigate = useNavigate()
   const items: Array<{
     id: string
-    l: string
-    ico: (c?: string) => ReactElement
-    n: number | null
+    label: string
+    icon: (c?: string) => ReactElement
+    badge: number | null
+    to: string
   }> = [
-    { id: 'home', l: '대시보드', ico: I.home, n: null },
-    { id: 'festival', l: '축제 설정', ico: I.settings, n: null },
-    { id: 'booths', l: '부스 배치', ico: I.map, n: 77 },
-    { id: 'menus', l: '메뉴/상품', ico: I.ticket, n: null },
-    { id: 'waiting', l: '웨이팅 관리', ico: I.bell, n: 14 },
-    { id: 'trucks', l: '푸드트럭', ico: I.truck, n: 11 },
-    { id: 'notices', l: '공지/이벤트', ico: I.star, n: null },
+    { id: 'home', label: '대시보드', icon: I.home, badge: null, to: '/home' },
+    {
+      id: 'festival',
+      label: '축제 설정',
+      icon: I.settings,
+      badge: null,
+      to: '/admin/festival',
+    },
+    {
+      id: 'booths',
+      label: '부스 배치',
+      icon: I.map,
+      badge: 77,
+      to: '/admin/booths',
+    },
+    {
+      id: 'menus',
+      label: '메뉴/상품',
+      icon: I.ticket,
+      badge: null,
+      to: '/admin/booths',
+    },
+    {
+      id: 'waiting',
+      label: '웨이팅 관리',
+      icon: I.bell,
+      badge: 14,
+      to: '/admin/waiting',
+    },
+    {
+      id: 'trucks',
+      label: '푸드트럭',
+      icon: I.truck,
+      badge: 11,
+      to: '/trucks',
+    },
+    {
+      id: 'notices',
+      label: '공지/이벤트',
+      icon: I.star,
+      badge: null,
+      to: '/admin/festival',
+    },
   ]
+
   return (
-    <div
-      style={{
-        width: 240,
-        height: '100%',
-        flexShrink: 0,
-        background: t.surface,
-        borderRight: `1px solid ${t.border}`,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '20px 14px',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '4px 8px',
-          marginBottom: 22,
-        }}
-      >
-        <SpotterMark size={20} />
-        <Pill
-          color={SPOT_TOKENS.alert}
-          ink="#fff"
-          style={{ fontSize: 9, letterSpacing: 0.5 }}
-        >
+    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-border bg-surface px-3.5 py-5">
+      <div className="mb-5.5 flex items-center gap-2 px-2 py-1">
+        <FestiterMark size={20} />
+        <span className="rounded-full bg-alert px-2.25 py-1 text-[9px] font-bold tracking-[0.5px] text-white">
           ADMIN
-        </Pill>
+        </span>
       </div>
 
-      <div
-        style={{
-          padding: '10px 12px',
-          background: t.surfaceAlt,
-          border: `1px solid ${t.border}`,
-          borderRadius: 14,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          marginBottom: 18,
-        }}
+      <button
+        type="button"
+        onClick={() => navigate('/admin/festival')}
+        className="mb-4.5 flex items-center gap-2 rounded-[14px] border border-border bg-surface-alt px-3 py-2.5 text-left"
       >
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 10,
-            background: SPOT_TOKENS.mint,
-            padding: 7,
-            color: SPOT_TOKENS.ink,
-          }}
-        >
+        <div className="size-8 rounded-[10px] bg-mint p-1.75 text-[#141A1F]">
           {I.star()}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              color: t.ink60,
-              letterSpacing: 0.5,
-            }}
-          >
+        <div className="min-w-0 flex-1">
+          <div className="text-[9px] font-bold tracking-[0.5px] text-ink-60">
             FESTIVAL
           </div>
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: t.ink,
-              letterSpacing: -0.2,
-            }}
-          >
+          <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">
             2026 봄축제
           </div>
         </div>
-        <div style={{ width: 14, height: 14, color: t.ink60 }}>
-          {I.chev(undefined, 'd')}
-        </div>
-      </div>
+        <div className="size-3.5 text-ink-60">{I.chev(undefined, 'd')}</div>
+      </button>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {items.map((it) => {
-          const on = it.id === active
+      <div className="flex flex-col gap-0.5">
+        {items.map((item) => {
+          const selected = item.id === active
           return (
-            <div
-              key={it.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '10px 12px',
-                borderRadius: 12,
-                background: on ? t.cta : 'transparent',
-                color: on ? t.ctaInk : t.ink80,
-                fontSize: 14,
-                fontWeight: on ? 700 : 600,
-                letterSpacing: -0.2,
-                cursor: 'pointer',
-              }}
+            <button
+              type="button"
+              key={item.id}
+              onClick={() => navigate(item.to)}
+              className={cn(
+                'flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm tracking-[-0.2px]',
+                selected
+                  ? 'bg-cta font-bold text-cta-ink'
+                  : 'font-semibold text-ink-80'
+              )}
             >
-              <div style={{ width: 18, height: 18 }}>
-                {it.ico(on ? '#fff' : t.ink60)}
+              <div className="size-4.5">
+                {item.icon(selected ? '#fff' : FESTI_TOKENS.ink60)}
               </div>
-              <div style={{ flex: 1 }}>{it.l}</div>
-              {it.n != null && (
+              <div className="flex-1">{item.label}</div>
+              {item.badge != null && (
                 <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    background: on ? SPOT_TOKENS.mint : t.surfaceAlt,
-                    color: on ? SPOT_TOKENS.ink : t.ink80,
-                    padding: '2px 7px',
-                    borderRadius: 9999,
-                  }}
+                  className={cn(
+                    'rounded-full px-1.75 py-0.5 text-[10px] font-bold',
+                    selected
+                      ? 'bg-mint text-[#141A1F]'
+                      : 'bg-surface-alt text-ink-80'
+                  )}
                 >
-                  {it.n}
+                  {item.badge}
                 </div>
               )}
-            </div>
+            </button>
           )
         })}
       </div>
 
-      <div style={{ flex: 1 }} />
+      <div className="flex-1" />
 
-      <div
-        style={{
-          padding: 12,
-          borderRadius: 14,
-          background: t.cta,
-          color: t.ctaInk,
-          marginBottom: 8,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: '50%',
-              background: SPOT_TOKENS.mint,
-              boxShadow: `0 0 0 3px ${SPOT_TOKENS.mint}33`,
-            }}
-          />
-          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.3 }}>
-            LIVE
-          </span>
+      <div className="mb-2 rounded-[14px] bg-cta p-3 text-cta-ink">
+        <div className="flex items-center gap-1.5">
+          <span className="size-1.75 rounded-full bg-mint shadow-[0_0_0_3px_rgba(169,229,231,0.2)]" />
+          <span className="text-[11px] font-bold tracking-[0.3px]">LIVE</span>
         </div>
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            marginTop: 6,
-            letterSpacing: -0.2,
-          }}
-        >
+        <div className="mt-1.5 text-[13px] font-bold tracking-[-0.2px]">
           2일차 · 야간 모드
         </div>
-        <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>
+        <div className="mt-0.5 text-[11px] opacity-70">
           20:14 · 1,243명 접속중
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '8px 10px',
-        }}
-      >
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            background: SPOT_TOKENS.pop,
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 12,
-            fontWeight: 800,
-          }}
-        >
+      <div className="flex items-center gap-2.5 px-2.5 py-2">
+        <div className="flex size-8 items-center justify-center rounded-full bg-pop text-xs font-extrabold text-white">
           김
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: t.ink }}>
-            김총학 매니저
-          </div>
-          <div style={{ fontSize: 10, color: t.ink60 }}>제 31대 총학생회</div>
+        <div className="min-w-0 flex-1">
+          <div className="text-xs font-bold text-ink">김총학 매니저</div>
+          <div className="text-[10px] text-ink-60">제 31대 총학생회</div>
         </div>
       </div>
-    </div>
+    </aside>
   )
 }
 
@@ -276,39 +181,16 @@ export function AdminTopBar({
   dark?: boolean
   right?: ReactNode
 }) {
-  const t = tone()
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '18px 28px',
-        borderBottom: `1px solid ${t.border}`,
-        background: t.surface,
-      }}
-    >
+    <header className="flex items-center justify-between border-b border-border bg-surface px-7 py-4.5">
       <div>
-        <div
-          style={{
-            fontSize: 22,
-            fontWeight: 800,
-            color: t.ink,
-            letterSpacing: -0.5,
-          }}
-        >
+        <div className="text-[22px] font-extrabold tracking-[-0.5px] text-ink">
           {title}
         </div>
-        {sub && (
-          <div style={{ fontSize: 12, color: t.ink60, marginTop: 2 }}>
-            {sub}
-          </div>
-        )}
+        {sub && <div className="mt-0.5 text-xs text-ink-60">{sub}</div>}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {right}
-      </div>
-    </div>
+      <div className="flex items-center gap-2">{right}</div>
+    </header>
   )
 }
 
@@ -317,35 +199,31 @@ export function AdminBtn({
   primary,
   ghost,
   icon,
+  onClick,
 }: {
   children?: ReactNode
   primary?: boolean
   ghost?: boolean
   dark?: boolean
   icon?: ReactElement
+  onClick?: () => void
 }) {
-  const t = tone()
   return (
-    <div
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '9px 14px',
-        borderRadius: 12,
-        background: primary ? t.cta : ghost ? 'transparent' : t.surface,
-        color: primary ? t.ctaInk : t.ink80,
-        border: `1px solid ${primary ? t.cta : t.border}`,
-        fontSize: 13,
-        fontWeight: 700,
-        letterSpacing: -0.2,
-        cursor: 'pointer',
-        whiteSpace: 'nowrap',
-      }}
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border px-3.5 py-2.25 text-[13px] font-bold tracking-[-0.2px]',
+        primary
+          ? 'border-cta bg-cta text-cta-ink'
+          : ghost
+            ? 'border-border bg-transparent text-ink-80'
+            : 'border-border bg-surface text-ink-80'
+      )}
     >
-      {icon && <div style={{ width: 14, height: 14 }}>{icon}</div>}
+      {icon && <div className="size-3.5">{icon}</div>}
       {children}
-    </div>
+    </button>
   )
 }
 
@@ -361,40 +239,18 @@ function Card({
   children: ReactNode
   dark?: boolean
 }) {
-  const t = tone()
   return (
-    <div
-      style={{
-        background: t.surface,
-        borderRadius: 18,
-        border: `1px solid ${t.border}`,
-        padding: 18,
-      }}
-    >
+    <section className="rounded-[18px] border border-border bg-surface p-4.5">
       {(title || right) && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 14,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 15,
-              fontWeight: 800,
-              color: t.ink,
-              letterSpacing: -0.3,
-            }}
-          >
+        <div className="mb-3.5 flex items-center justify-between">
+          <div className="text-[15px] font-extrabold tracking-[-0.3px] text-ink">
             {title}
           </div>
           {right}
         </div>
       )}
       {children}
-    </div>
+    </section>
   )
 }
 
@@ -406,18 +262,9 @@ function Field({
   children: ReactNode
   dark?: boolean
 }) {
-  const t = tone()
   return (
-    <div style={{ marginBottom: 12 }}>
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          color: t.ink60,
-          letterSpacing: -0.1,
-          marginBottom: 6,
-        }}
-      >
+    <div className="mb-3">
+      <div className="mb-1.5 text-[11px] font-bold tracking-[-0.1px] text-ink-60">
         {label}
       </div>
       {children}
@@ -427,75 +274,18 @@ function Field({
 
 function TextInput({
   value,
+  placeholder,
   icon,
 }: {
   value: string
   dark?: boolean
   icon?: ReactElement
+  placeholder?: string
 }) {
-  const t = tone()
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '10px 12px',
-        borderRadius: 12,
-        background: t.bg,
-        border: `1px solid ${t.border}`,
-        fontSize: 13,
-        fontWeight: 600,
-        color: t.ink,
-        letterSpacing: -0.2,
-      }}
-    >
-      {icon && <div style={{ width: 14, height: 14 }}>{icon}</div>}
-      <div style={{ flex: 1 }}>{value}</div>
-    </div>
-  )
-}
-
-function ToggleRow({
-  title,
-  sub,
-  on,
-  last,
-}: {
-  title: string
-  sub?: string
-  on?: boolean
-  dark?: boolean
-  last?: boolean
-}) {
-  const t = tone()
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '10px 0',
-        borderBottom: last ? 'none' : `1px solid ${t.border}`,
-      }}
-    >
-      <div style={{ flex: 1 }}>
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: t.ink,
-            letterSpacing: -0.2,
-          }}
-        >
-          {title}
-        </div>
-        {sub && (
-          <div style={{ fontSize: 11, color: t.ink60, marginTop: 2 }}>
-            {sub}
-          </div>
-        )}
-      </div>
-      <Switch on={!!on} />
+    <div className="flex items-center gap-2 rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] font-semibold tracking-[-0.2px] text-ink">
+      {icon && <div className="size-3.5">{icon}</div>}
+      <input className="flex-1" placeholder={placeholder} value={value} />
     </div>
   )
 }
@@ -504,40 +294,40 @@ function TimeRow({
   ico,
   label,
   range,
+  selected = false,
 }: {
   ico: () => ReactElement
   label: string
   range: string
   dark?: boolean
+  selected?: boolean
 }) {
-  const t = tone()
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div className="flex items-center gap-2">
       <div
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 8,
-          background: t.surface,
-          padding: 6,
-          color: t.ink60,
-          border: `1px solid ${t.border}`,
-        }}
+        className={cn(
+          'size-7 rounded-lg border p-1.5',
+          selected
+            ? 'border-[rgba(20,26,31,0.12)] bg-[rgba(20,26,31,0.08)] text-[#5E676D]'
+            : 'border-border bg-surface text-ink-60'
+        )}
       >
         {ico()}
       </div>
       <div>
-        <div style={{ fontSize: 10, color: t.ink60, fontWeight: 600 }}>
+        <div
+          className={cn(
+            'text-[10px] font-semibold',
+            selected ? 'text-[#5E676D]' : 'text-ink-60'
+          )}
+        >
           {label}
         </div>
         <div
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: t.ink,
-            letterSpacing: -0.2,
-            fontFamily: 'ui-monospace, "SF Mono", monospace',
-          }}
+          className={cn(
+            'font-mono text-[13px] font-bold tracking-[-0.2px]',
+            selected ? 'text-[#141A1F]' : 'text-ink'
+          )}
         >
           {range}
         </div>
@@ -549,35 +339,81 @@ function TimeRow({
 // ── Screen: Festival Settings ─────────────────────────────────────────────────
 
 export function AdminFestival({ dark = false }: { dark?: boolean }) {
-  const t = tone()
+  const [notice, setNotice] = useState('기본 정보와 일정, 운영 시간을 관리해요')
+  const [selectedDay, setSelectedDay] = useState('2일차')
+  const [days, setDays] = useState([
+    {
+      d: '1일차',
+      date: '05.20 수',
+      day: '11:00 — 17:00',
+      night: '17:00 — 22:00',
+      booths: 58,
+    },
+    {
+      d: '2일차',
+      date: '05.21 목',
+      day: '11:00 — 17:00',
+      night: '17:00 — 23:00',
+      booths: 77,
+    },
+    {
+      d: '3일차',
+      date: '05.22 금',
+      day: '11:00 — 16:00',
+      night: '16:00 — 21:00',
+      booths: 64,
+    },
+  ])
+  const [toggles, setToggles] = useState({
+    public: true,
+    waiting: true,
+    trucks: true,
+    congestion: false,
+  })
+
+  const toggleSetting = (key: keyof typeof toggles) => {
+    setToggles((current) => ({ ...current, [key]: !current[key] }))
+    setNotice('공개 설정이 변경됐어요')
+  }
+
   return (
     <AdminShell active="festival" dark={dark}>
       <AdminTopBar
         title="축제 설정"
-        sub="기본 정보와 일정, 운영 시간을 관리해요"
+        sub={notice}
         dark={dark}
         right={
           <>
-            <AdminBtn dark={dark} ghost>
+            <AdminBtn
+              dark={dark}
+              ghost
+              onClick={() => {
+                setToggles({
+                  public: true,
+                  waiting: true,
+                  trucks: true,
+                  congestion: false,
+                })
+                setSelectedDay('2일차')
+                setNotice('변경사항을 취소했어요')
+              }}
+            >
               변경사항 취소
             </AdminBtn>
-            <AdminBtn dark={dark} primary icon={I.check('#fff')}>
+            <AdminBtn
+              dark={dark}
+              primary
+              icon={I.check('#fff')}
+              onClick={() => setNotice('저장 완료 · 사용자 화면에 반영됐어요')}
+            >
               저장
             </AdminBtn>
           </>
         }
       />
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1.4fr 1fr',
-          gap: 20,
-          padding: 24,
-          overflow: 'auto',
-        }}
-      >
-        {/* LEFT */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+      <div className="grid grid-cols-[1.4fr_1fr] gap-5 overflow-auto p-6">
+        <div className="flex flex-col gap-4">
           <Card dark={dark} title="기본 정보">
             <Field label="축제명" dark={dark}>
               <TextInput value="2026 숭실대학교 봄축제" dark={dark} />
@@ -585,25 +421,19 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
             <Field label="부제 / 슬로건" dark={dark}>
               <TextInput value="비상 飛上 — 다시, 봄" dark={dark} />
             </Field>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 12,
-              }}
-            >
+            <div className="grid grid-cols-2 gap-3">
               <Field label="시작일" dark={dark}>
                 <TextInput
                   value="2026.05.20 (수)"
                   dark={dark}
-                  icon={I.clock(SPOT_TOKENS.ink60)}
+                  icon={I.clock(FESTI_TOKENS.ink60)}
                 />
               </Field>
               <Field label="종료일" dark={dark}>
                 <TextInput
                   value="2026.05.22 (금)"
                   dark={dark}
-                  icon={I.clock(SPOT_TOKENS.ink60)}
+                  icon={I.clock(FESTI_TOKENS.ink60)}
                 />
               </Field>
             </div>
@@ -613,199 +443,197 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
             dark={dark}
             title="일자별 운영 시간"
             right={
-              <AdminBtn dark={dark} ghost icon={I.plus(SPOT_TOKENS.ink60)}>
+              <AdminBtn
+                dark={dark}
+                ghost
+                icon={I.plus(FESTI_TOKENS.ink60)}
+                onClick={() => {
+                  const next = days.length + 1
+                  const label = `${next}일차`
+                  setDays((current) => [
+                    ...current,
+                    {
+                      d: label,
+                      date: `05.${19 + next} ${next % 2 ? '금' : '목'}`,
+                      day: '11:00 — 17:00',
+                      night: '17:00 — 22:00',
+                      booths: 0,
+                    },
+                  ])
+                  setSelectedDay(label)
+                  setNotice(`${label} 운영 시간을 추가했어요`)
+                }}
+              >
                 일차 추가
               </AdminBtn>
             }
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[
-                {
-                  d: '1일차',
-                  date: '05.20 수',
-                  day: '11:00 — 17:00',
-                  night: '17:00 — 22:00',
-                  booths: 58,
-                },
-                {
-                  d: '2일차',
-                  date: '05.21 목',
-                  day: '11:00 — 17:00',
-                  night: '17:00 — 23:00',
-                  booths: 77,
-                  current: true,
-                },
-                {
-                  d: '3일차',
-                  date: '05.22 금',
-                  day: '11:00 — 16:00',
-                  night: '16:00 — 21:00',
-                  booths: 64,
-                },
-              ].map((d, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '92px 1fr 1fr 80px 28px',
-                    gap: 12,
-                    alignItems: 'center',
-                    padding: 12,
-                    borderRadius: 14,
-                    background: d.current
-                      ? SPOT_TOKENS.coralSoft
-                      : t.surfaceAlt,
-                    border: `1px solid ${d.current ? SPOT_TOKENS.coral : t.border}`,
-                  }}
-                >
-                  <div>
+            <div className="flex flex-col gap-2.5">
+              {days.map((day) => {
+                const selected = day.d === selectedDay
+                return (
+                  <button
+                    type="button"
+                    key={day.d}
+                    onClick={() => {
+                      setSelectedDay(day.d)
+                      setNotice(`${day.d} 운영 시간을 선택했어요`)
+                    }}
+                    className={cn(
+                      'grid grid-cols-[92px_1fr_1fr_80px_28px] items-center gap-3 rounded-[14px] border p-3 text-left',
+                      selected
+                        ? 'border-coral bg-coral-soft text-[#141A1F]'
+                        : 'border-border bg-surface-alt text-ink'
+                    )}
+                  >
+                    <div>
+                      <div
+                        className={cn(
+                          'text-sm font-extrabold tracking-[-0.3px]',
+                          selected ? 'text-[#141A1F]' : 'text-ink'
+                        )}
+                      >
+                        {day.d}
+                      </div>
+                      <div
+                        className={cn(
+                          'mt-0.5 text-[11px]',
+                          selected ? 'text-[#5E676D]' : 'text-ink-60'
+                        )}
+                      >
+                        {day.date}
+                      </div>
+                    </div>
+                    <TimeRow
+                      ico={I.sun}
+                      label="주간"
+                      range={day.day}
+                      dark={dark}
+                      selected={selected}
+                    />
+                    <TimeRow
+                      ico={I.moon}
+                      label="야간"
+                      range={day.night}
+                      dark={dark}
+                      selected={selected}
+                    />
+                    <div className="text-right">
+                      <div
+                        className={cn(
+                          'text-sm font-extrabold',
+                          selected ? 'text-[#141A1F]' : 'text-ink'
+                        )}
+                      >
+                        {day.booths}
+                      </div>
+                      <div
+                        className={cn(
+                          'text-[10px]',
+                          selected ? 'text-[#5E676D]' : 'text-ink-60'
+                        )}
+                      >
+                        부스
+                      </div>
+                    </div>
                     <div
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 800,
-                        color: t.ink,
-                        letterSpacing: -0.3,
-                      }}
+                      className={cn(
+                        'size-4.5',
+                        selected ? 'text-[#5E676D]' : 'text-ink-40'
+                      )}
                     >
-                      {d.d}
+                      {I.dots()}
                     </div>
-                    <div style={{ fontSize: 11, color: t.ink60, marginTop: 2 }}>
-                      {d.date}
-                    </div>
-                  </div>
-                  <TimeRow ico={I.sun} label="주간" range={d.day} dark={dark} />
-                  <TimeRow
-                    ico={I.moon}
-                    label="야간"
-                    range={d.night}
-                    dark={dark}
-                  />
-                  <div style={{ textAlign: 'right' }}>
-                    <div
-                      style={{ fontSize: 14, fontWeight: 800, color: t.ink }}
-                    >
-                      {d.booths}
-                    </div>
-                    <div style={{ fontSize: 10, color: t.ink60 }}>부스</div>
-                  </div>
-                  <div style={{ width: 18, height: 18, color: t.ink40 }}>
-                    {I.dots()}
-                  </div>
-                </div>
-              ))}
+                  </button>
+                )
+              })}
             </div>
           </Card>
 
           <Card dark={dark} title="공개 설정">
-            <ToggleRow
-              dark={dark}
-              title="사용자 앱에 공개"
-              sub="비공개 시 사용자는 시작 전 안내 화면을 봐요"
-              on
-            />
-            <ToggleRow
-              dark={dark}
-              title="웨이팅 시스템 활성화"
-              sub="야간 부스는 별도로 설정 가능"
-              on
-            />
-            <ToggleRow
-              dark={dark}
-              title="푸드트럭 별도 카테고리"
-              sub="홈에 푸드트럭 섹션 노출"
-              on
-            />
-            <ToggleRow
-              dark={dark}
-              title="실시간 혼잡도 표시"
-              sub="ML 추정치 기준"
-              last
-            />
+            {[
+              {
+                key: 'public',
+                title: '사용자 앱에 공개',
+                sub: '비공개 시 사용자는 시작 전 안내 화면을 봐요',
+              },
+              {
+                key: 'waiting',
+                title: '웨이팅 시스템 활성화',
+                sub: '야간 부스는 별도로 설정 가능',
+              },
+              {
+                key: 'trucks',
+                title: '푸드트럭 별도 카테고리',
+                sub: '홈에 푸드트럭 섹션 노출',
+              },
+              {
+                key: 'congestion',
+                title: '실시간 혼잡도 표시',
+                sub: 'ML 추정치 기준',
+              },
+            ].map((row, index, rows) => {
+              const key = row.key as keyof typeof toggles
+              return (
+                <div
+                  key={row.key}
+                  className={cn(
+                    'flex items-center py-2.5',
+                    index < rows.length - 1 && 'border-b border-border'
+                  )}
+                >
+                  <div className="flex-1">
+                    <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">
+                      {row.title}
+                    </div>
+                    <div className="mt-0.5 text-[11px] text-ink-60">
+                      {row.sub}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleSetting(key)}
+                    className={cn(
+                      'flex h-6.5 w-10.5 items-center rounded-full p-0.5',
+                      toggles[key]
+                        ? 'justify-end bg-pop'
+                        : 'justify-start bg-[#D3DBDE]'
+                    )}
+                  >
+                    <span className="size-5.5 rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.2)]" />
+                  </button>
+                </div>
+              )
+            })}
           </Card>
         </div>
 
-        {/* RIGHT */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Card dark={dark} title="브랜드 컬러">
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4,1fr)',
-                gap: 8,
-              }}
-            >
-              {[
-                { l: '메인', c: SPOT_TOKENS.mint, on: true },
-                { l: '장착', c: SPOT_TOKENS.pop },
-                { l: '강조', c: SPOT_TOKENS.sun },
-                { l: '잉크', c: SPOT_TOKENS.ink },
-              ].map((x, i) => (
-                <div
-                  key={i}
-                  style={{
-                    borderRadius: 12,
-                    padding: 8,
-                    border: `2px solid ${x.on ? t.cta : t.border}`,
-                  }}
-                >
-                  <div
-                    style={{
-                      height: 44,
-                      borderRadius: 8,
-                      background: x.c,
-                      marginBottom: 6,
-                    }}
-                  />
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: t.ink,
-                      letterSpacing: -0.2,
-                    }}
-                  >
-                    {x.l}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 9,
-                      fontFamily: 'ui-monospace, monospace',
-                      color: t.ink60,
-                    }}
-                  >
-                    {x.c}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-
+        <div className="flex flex-col gap-4">
           <Card dark={dark} title="배너 이미지">
-            <div style={{ position: 'relative' }}>
+            <div className="relative">
               <PhotoSlot
                 label="hero banner · 1920×720"
                 tone="mint"
                 ratio="16/6"
                 radius={12}
               />
-              <div
-                style={{
-                  position: 'absolute',
-                  right: 8,
-                  bottom: 8,
-                  display: 'flex',
-                  gap: 6,
-                }}
-              >
-                <Pill color="rgba(255,255,255,0.92)" ink={SPOT_TOKENS.ink}>
-                  변경
-                </Pill>
-                <Pill color="rgba(255,255,255,0.92)" ink={SPOT_TOKENS.ink}>
-                  편집
-                </Pill>
+              <div className="absolute right-2 bottom-2 flex gap-1.5">
+                {['변경', '편집'].map((label) => (
+                  <button
+                    type="button"
+                    key={label}
+                    onClick={() =>
+                      setNotice(`배너 이미지 ${label}을 선택했어요`)
+                    }
+                  >
+                    <Pill color="rgba(255,255,255,0.92)" ink={FESTI_TOKENS.ink}>
+                      {label}
+                    </Pill>
+                  </button>
+                ))}
               </div>
             </div>
-            <div style={{ fontSize: 11, color: t.ink60, marginTop: 8 }}>
+            <div className="mt-2 text-[11px] text-ink-60">
               메인 홈 상단과 알림 카드에 표시됩니다.
             </div>
           </Card>
@@ -814,61 +642,46 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
             dark={dark}
             title="권한 관리"
             right={
-              <AdminBtn dark={dark} ghost icon={I.plus(SPOT_TOKENS.ink60)}>
+              <AdminBtn
+                dark={dark}
+                ghost
+                icon={I.plus(FESTI_TOKENS.ink60)}
+                onClick={() => setNotice('새 관리자 초대를 준비했어요')}
+              >
                 초대
               </AdminBtn>
             }
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className="flex flex-col gap-1.5">
               {[
-                { n: '김총학', r: '최고관리자', c: SPOT_TOKENS.ink },
-                { n: '박운영', r: '부스 관리자', c: SPOT_TOKENS.grape },
-                { n: '이미디어', r: '컨텐츠 편집자', c: SPOT_TOKENS.leaf },
-              ].map((p, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: 10,
-                    borderRadius: 12,
-                    background: t.surfaceAlt,
-                  }}
+                { name: '김총학', role: '최고관리자', avatar: 'bg-[#141A1F]' },
+                { name: '박운영', role: '부스 관리자', avatar: 'bg-grape' },
+                { name: '이미디어', role: '컨텐츠 편집자', avatar: 'bg-leaf' },
+              ].map((person) => (
+                <button
+                  type="button"
+                  key={person.name}
+                  onClick={() =>
+                    setNotice(`${person.name} 권한 메뉴를 열었어요`)
+                  }
+                  className="flex items-center gap-2.5 rounded-xl bg-surface-alt p-2.5 text-left"
                 >
                   <div
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: '50%',
-                      background: p.c,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#fff',
-                      fontSize: 11,
-                      fontWeight: 800,
-                    }}
+                    className={cn(
+                      'flex size-7.5 items-center justify-center rounded-full text-[11px] font-extrabold text-white',
+                      person.avatar
+                    )}
                   >
-                    {p.n[0]}
+                    {person.name[0]}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: t.ink,
-                        letterSpacing: -0.2,
-                      }}
-                    >
-                      {p.n}
+                  <div className="flex-1">
+                    <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">
+                      {person.name}
                     </div>
-                    <div style={{ fontSize: 11, color: t.ink60 }}>{p.r}</div>
+                    <div className="text-[11px] text-ink-60">{person.role}</div>
                   </div>
-                  <div style={{ width: 16, height: 16, color: t.ink40 }}>
-                    {I.dots()}
-                  </div>
-                </div>
+                  <div className="size-4 text-ink-40">{I.dots()}</div>
+                </button>
               ))}
             </div>
           </Card>

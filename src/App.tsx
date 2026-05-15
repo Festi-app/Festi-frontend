@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom'
 import { create } from 'zustand'
-import { SPOT_TOKENS, SPOT_FONT } from './tokens'
 
 import { AdminBooths } from './pages/Admin/Booths'
 import { AdminFestival } from './pages/Admin/Festival'
@@ -14,21 +13,22 @@ import {
 import { MobileBoothDetail, MobileFoodTrucks } from './pages/User/Detail'
 import { MobileHome } from './pages/User/Home'
 import { MobileMap } from './pages/User/Map'
+import { MobileMy } from './pages/User/My'
+import { useDayNightStore } from './stores/useDayNightStore'
 
 // ── Global UI state ───────────────────────────────────────────────────────
 
 interface UIState {
   dark: boolean
-  period: 'day' | 'night'
   setDark: (v: boolean) => void
-  setPeriod: (v: 'day' | 'night') => void
 }
 
 const useUI = create<UIState>((set) => ({
   dark: false,
-  period: 'day',
-  setDark: (dark) => set({ dark }),
-  setPeriod: (period) => set({ period }),
+  setDark: (dark) => {
+    document.documentElement.classList.toggle('dark', dark)
+    set({ dark })
+  },
 }))
 
 // ── Dark mode class sync ──────────────────────────────────────────────────
@@ -44,37 +44,23 @@ function DarkSync(): null {
 // ── Dev toolbar ───────────────────────────────────────────────────────────
 
 function DevToolbar() {
-  const { dark, period, setDark, setPeriod } = useUI()
+  const { dark, setDark } = useUI()
+  const { isDay, toggleDayNight } = useDayNightStore()
   return (
-    <div
-      className="fixed top-3 right-3 z-[9999] flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border backdrop-blur-xl"
-      style={{
-        background: dark ? 'rgba(26,30,35,0.92)' : 'rgba(255,255,255,0.92)',
-        borderColor: 'var(--border-color)',
-        fontFamily: SPOT_FONT,
-      }}
-    >
+    <div className="fixed top-3 right-3 z-9999 flex items-center gap-1.5 rounded-xl border border-border bg-white/90 px-2.5 py-1.5 font-festi backdrop-blur-xl dark:bg-[#1A1E23]/90">
       <button
         onClick={() => setDark(!dark)}
-        className="rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer border"
-        style={{
-          borderColor: 'var(--border-color)',
-          background: dark ? SPOT_TOKENS.coral : 'var(--surface)',
-          color: dark ? '#fff' : 'var(--ink)',
-        }}
+        className={`cursor-pointer rounded-lg border border-border px-2.5 py-1 text-xs font-semibold ${
+          dark ? 'bg-coral text-white' : 'bg-surface text-ink'
+        }`}
       >
         {dark ? '다크' : '라이트'}
       </button>
       <button
-        onClick={() => setPeriod(period === 'day' ? 'night' : 'day')}
-        className="rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer border"
-        style={{
-          borderColor: 'var(--border-color)',
-          background: 'var(--surface)',
-          color: 'var(--ink)',
-        }}
+        onClick={toggleDayNight}
+        className="cursor-pointer rounded-lg border border-border bg-surface px-2.5 py-1 text-xs font-semibold text-ink"
       >
-        {period === 'day' ? '주간' : '야간'}
+        {isDay ? '주간' : '야간'}
       </button>
     </div>
   )
@@ -89,6 +75,7 @@ const NAV_LINKS = [
   { to: '/trucks', label: '푸드트럭' },
   { to: '/waiting/register', label: '웨이팅 등록' },
   { to: '/waiting', label: '내 웨이팅' },
+  { to: '/me', label: '마이 · 즐겨찾기' },
   { to: '/admin/festival', label: '관리 · 축제 설정' },
   { to: '/admin/booths', label: '관리 · 부스 배치' },
   { to: '/admin/waiting', label: '관리 · 웨이팅 관리' },
@@ -99,34 +86,21 @@ function Nav() {
   return (
     <>
       {/* Desktop sidebar */}
-      <nav
-        className="hidden md:flex fixed top-0 left-0 bottom-0 w-[180px] flex-col gap-0.5 py-4 px-2.5 overflow-y-auto z-50"
-        style={{
-          background: 'var(--surface)',
-          borderRight: '1px solid var(--border-color)',
-          fontFamily: SPOT_FONT,
-        }}
-      >
-        <div
-          className="text-[10px] font-bold tracking-wider px-2 pb-2.5"
-          style={{ color: 'var(--ink-60)' }}
-        >
-          SPOTTER
+      <nav className="fixed top-0 bottom-0 left-0 z-50 hidden w-45 flex-col gap-0.5 overflow-y-auto border-r border-border bg-surface px-2.5 py-4 font-festi md:flex">
+        <div className="px-2 pb-2.5 text-[10px] font-bold tracking-wider text-ink-60">
+          Festi
         </div>
         {NAV_LINKS.map((l) => (
           <NavLink
             key={l.to}
             to={l.to}
-            style={({ isActive }) => ({
-              display: 'block',
-              padding: '8px 10px',
-              borderRadius: 8,
-              textDecoration: 'none',
-              fontSize: 12,
-              background: isActive ? SPOT_TOKENS.mint : 'transparent',
-              color: isActive ? SPOT_TOKENS.ink : 'var(--ink-60)',
-              fontWeight: isActive ? 700 : 500,
-            })}
+            className={({ isActive }) =>
+              `block rounded-lg px-2.5 py-2 text-xs no-underline ${
+                isActive
+                  ? 'bg-mint font-bold text-[#141A1F]'
+                  : 'font-medium text-ink-60'
+              }`
+            }
           >
             {l.label}
           </NavLink>
@@ -134,30 +108,14 @@ function Nav() {
       </nav>
 
       {/* Mobile top bar */}
-      <div
-        className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center px-4 h-14"
-        style={{
-          background: 'var(--surface)',
-          borderBottom: '1px solid var(--border-color)',
-          fontFamily: SPOT_FONT,
-        }}
-      >
-        <span
-          className="text-[11px] font-bold tracking-wider"
-          style={{ color: 'var(--ink-60)' }}
-        >
-          SPOTTER
+      <div className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center border-b border-border bg-surface px-4 font-festi md:hidden">
+        <span className="text-[11px] font-bold tracking-wider text-ink-60">
+          Festi
         </span>
         <div className="flex-1" />
         <button
           onClick={() => setOpen((o) => !o)}
-          className="w-9 h-9 flex items-center justify-center"
-          style={{
-            color: 'var(--ink)',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-          }}
+          className="flex h-9 w-9 cursor-pointer items-center justify-center text-ink"
         >
           <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
             <line
@@ -193,25 +151,19 @@ function Nav() {
 
       {/* Mobile dropdown */}
       {open && (
-        <div
-          className="md:hidden fixed top-14 left-0 right-0 z-50 py-2 px-3 shadow-xl"
-          style={{
-            background: 'var(--surface)',
-            borderBottom: '1px solid var(--border-color)',
-            fontFamily: SPOT_FONT,
-          }}
-        >
+        <div className="fixed top-14 right-0 left-0 z-50 border-b border-border bg-surface px-3 py-2 font-festi shadow-xl md:hidden">
           {NAV_LINKS.map((l) => (
             <NavLink
               key={l.to}
               to={l.to}
               onClick={() => setOpen(false)}
-              className="block px-3 py-2.5 rounded-lg text-sm no-underline"
-              style={({ isActive }) => ({
-                background: isActive ? SPOT_TOKENS.mint : 'transparent',
-                color: isActive ? SPOT_TOKENS.ink : 'var(--ink-60)',
-                fontWeight: isActive ? 700 : 500,
-              })}
+              className={({ isActive }) =>
+                `block rounded-lg px-3 py-2.5 text-sm no-underline ${
+                  isActive
+                    ? 'bg-mint font-bold text-[#141A1F]'
+                    : 'font-medium text-ink-60'
+                }`
+              }
             >
               {l.label}
             </NavLink>
@@ -226,11 +178,8 @@ function Nav() {
 
 function MobileLayout({ children }: { children: ReactNode }) {
   return (
-    <div
-      className="md:ml-45 min-h-screen md:flex md:items-start md:justify-center md:py-10 md:px-6"
-      style={{ background: 'var(--bg)' }}
-    >
-      <div className="w-full overflow-hidden relative mt-14 h-[calc(100dvh-3.5rem)] md:mt-0 md:h-211 md:w-97.5 md:rounded-3xl md:shrink-0 md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]">
+    <div className="min-h-screen bg-bg md:ml-45 md:flex md:items-start md:justify-center md:px-6 md:py-10">
+      <div className="relative mt-14 h-[calc(100dvh-3.5rem)] w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]">
         {children}
       </div>
     </div>
@@ -239,30 +188,25 @@ function MobileLayout({ children }: { children: ReactNode }) {
 
 function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div
-      className="md:ml-45 min-h-screen pt-14 md:pt-0"
-      style={{ background: 'var(--bg)' }}
-    >
-      {children}
-    </div>
+    <div className="min-h-screen bg-bg pt-14 md:ml-45 md:pt-0">{children}</div>
   )
 }
 
 // ── Route components ──────────────────────────────────────────────────────
 
 function HomeRoute() {
-  const { dark, period } = useUI()
+  const { dark } = useUI()
   return (
     <MobileLayout>
-      <MobileHome dark={dark} period={period} />
+      <MobileHome dark={dark} />
     </MobileLayout>
   )
 }
 function MapRoute() {
-  const { dark, period } = useUI()
+  const { dark } = useUI()
   return (
     <MobileLayout>
-      <MobileMap dark={dark} period={period} />
+      <MobileMap dark={dark} />
     </MobileLayout>
   )
 }
@@ -295,6 +239,14 @@ function WaitingStatusRoute() {
   return (
     <MobileLayout>
       <MobileWaitingStatus dark={dark} />
+    </MobileLayout>
+  )
+}
+function MyRoute() {
+  const { dark } = useUI()
+  return (
+    <MobileLayout>
+      <MobileMy dark={dark} />
     </MobileLayout>
   )
 }
@@ -339,6 +291,7 @@ export default function App() {
         <Route path="/trucks" element={<TrucksRoute />} />
         <Route path="/waiting/register" element={<WaitingRegisterRoute />} />
         <Route path="/waiting" element={<WaitingStatusRoute />} />
+        <Route path="/me" element={<MyRoute />} />
         <Route path="/admin/festival" element={<AdminFestivalRoute />} />
         <Route path="/admin/booths" element={<AdminBoothsRoute />} />
         <Route path="/admin/waiting" element={<AdminWaitingRoute />} />
