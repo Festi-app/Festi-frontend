@@ -1,0 +1,224 @@
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { FestiTabBar } from '../../components/User/Navbar'
+import { FESTI_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
+
+const FAVORITES = [
+  {
+    id: 16,
+    name: '컴공과 칵테일 바',
+    category: '야간 주점',
+    area: '베어드홀 동측',
+    wait: 7,
+    eta: '22분',
+    open: true,
+    tone: 'rose',
+    tagColor: FESTI_TOKENS.alert,
+  },
+  {
+    id: 38,
+    name: '체대 곱창집',
+    category: '야식',
+    area: '진리관 앞',
+    wait: 3,
+    eta: '12분',
+    open: true,
+    tone: 'mint',
+    tagColor: FESTI_TOKENS.mint,
+  },
+  {
+    id: 47,
+    name: '미디어부 라멘',
+    category: '면류',
+    area: '학생회관 옆',
+    wait: 5,
+    eta: '18분',
+    open: true,
+    tone: 'sun',
+    tagColor: FESTI_TOKENS.sun,
+  },
+  {
+    id: 64,
+    name: '도쿄 타코야끼',
+    category: '푸드트럭',
+    area: '한경직 #64',
+    wait: 2,
+    eta: '8분',
+    open: false,
+    tone: 'coral',
+    tagColor: FESTI_TOKENS.coral,
+  },
+]
+
+export function MobileMy({ dark = false }: { dark?: boolean }) {
+  const navigate = useNavigate()
+  const [filter, setFilter] = useState('전체')
+  const muted = dark ? '#8B939B' : '#5E676D'
+  const surfaceAlt = dark ? '#252A30' : '#F1F7F8'
+  const ink80 = dark ? '#CDD5DA' : '#2E363C'
+  const filteredFavorites = useMemo(
+    () =>
+      FAVORITES.filter((booth) => {
+        if (filter === '운영중') return booth.open
+        if (filter === '주점') return booth.category.includes('주점')
+        if (filter === '푸드트럭') return booth.category === '푸드트럭'
+        return true
+      }),
+    [filter]
+  )
+
+  return (
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
+      <div className="shrink-0 border-b border-border bg-surface px-5 pt-13.5 pb-5">
+        <div className="mt-1.5 flex items-center justify-between">
+          <div>
+            <div className="text-[11px] font-bold tracking-[0.3px] text-ink-60">
+              MY FESTI
+            </div>
+            <div className="mt-1 text-[26px] font-extrabold tracking-[-0.7px] text-ink">
+              즐겨찾기
+            </div>
+          </div>
+          <div className="flex size-10 items-center justify-center rounded-full bg-surface-alt text-ink-80">
+            <div className="size-5">{I.user()}</div>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-3 rounded-2xl bg-surface-alt py-3">
+          {[
+            { label: '저장', value: `${FAVORITES.length}` },
+            {
+              label: '운영중',
+              value: `${FAVORITES.filter((b) => b.open).length}`,
+            },
+            { label: '최단 대기', value: '2팀' },
+          ].map((s, i) => (
+            <div
+              key={s.label}
+              className={`text-center ${i < 2 ? 'border-r border-border' : ''}`}
+            >
+              <div className="text-[11px] font-semibold text-ink-60">
+                {s.label}
+              </div>
+              <div className="mt-1 text-[18px] font-extrabold tracking-[-0.4px] text-ink">
+                {s.value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-3.5 flex gap-1.5 overflow-x-auto">
+          {['전체', '운영중', '주점', '푸드트럭'].map((chip) => (
+            <button
+              type="button"
+              key={chip}
+              onClick={() => setFilter(chip)}
+              className={`whitespace-nowrap rounded-full border px-3 py-2 text-[13px] font-bold tracking-[-0.2px] ${
+                chip === filter
+                  ? 'border-cta bg-cta text-cta-ink'
+                  : 'border-border bg-surface text-ink-80'
+              }`}
+            >
+              {chip}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-32">
+        <div className="mb-3 flex items-end justify-between">
+          <div>
+            <div className="text-[17px] font-extrabold tracking-[-0.4px] text-ink">
+              저장한 부스
+            </div>
+            <div className="mt-0.5 text-xs text-ink-60">
+              웨이팅 상황을 빠르게 확인하세요
+            </div>
+          </div>
+          <div className="text-xs font-semibold text-ink-60">최근 업데이트</div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {filteredFavorites.map((booth) => (
+            <button
+              type="button"
+              key={booth.id}
+              onClick={() => navigate('/booth')}
+              className={`w-full overflow-hidden rounded-[20px] border border-border bg-surface text-left ${
+                booth.open ? 'opacity-100' : 'opacity-65'
+              }`}
+            >
+              <div className="flex gap-3 p-3">
+                <div className="relative size-20 shrink-0 overflow-hidden rounded-[16px]">
+                  <PhotoSlot label="" tone={booth.tone} radius={16} />
+                  <div className="absolute top-2 left-2 rounded-full bg-[rgba(15,42,51,0.82)] px-2 py-0.75 text-[10px] font-extrabold text-white">
+                    #{booth.id}
+                  </div>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <Pill color={booth.tagColor} ink={FESTI_TOKENS.ink}>
+                      {booth.category}
+                    </Pill>
+                    <Pill
+                      color="transparent"
+                      ink={muted}
+                      style={{ padding: 0 }}
+                    >
+                      {booth.area}
+                    </Pill>
+                  </div>
+
+                  <div className="mt-1.5 flex items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[15px] font-extrabold tracking-[-0.3px] text-ink">
+                        {booth.name}
+                      </div>
+                      <div className="mt-1 text-[11px] font-semibold text-ink-60">
+                        {booth.open ? '운영중' : '준비중'} · 예상 {booth.eta}
+                      </div>
+                    </div>
+                    <div className="size-4.5 shrink-0 text-alert">
+                      {I.star(FESTI_TOKENS.alert, FESTI_TOKENS.alert)}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between rounded-xl bg-surface-alt px-3 py-2">
+                    <div className="text-[11px] font-semibold text-ink-60">
+                      현재 대기
+                    </div>
+                    <div
+                      className={`text-[13px] font-extrabold ${
+                        booth.wait <= 2 ? 'text-pop' : 'text-alert'
+                      }`}
+                    >
+                      {booth.wait === 0 ? '바로 입장' : `${booth.wait}팀`}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div
+          className="mt-4 rounded-[18px] border border-border p-4"
+          style={{ background: surfaceAlt, color: ink80 }}
+        >
+          <div className="flex items-center gap-2">
+            <div className="size-4 text-pop">{I.bell()}</div>
+            <div className="text-[13px] font-bold tracking-[-0.2px]">
+              즐겨찾기 알림
+            </div>
+          </div>
+          <div className="mt-1.5 text-xs leading-normal text-ink-60">
+            저장한 부스의 대기팀이 3팀 이하가 되면 알림을 받을 수 있어요.
+          </div>
+        </div>
+      </div>
+
+      <FestiTabBar active="me" dark={dark} />
+    </div>
+  )
+}

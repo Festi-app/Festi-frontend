@@ -18,7 +18,21 @@
   --color-rose-soft: #fcdde5;
   --color-coral: #00c6e0;
   --color-coral-soft: #ccf4fa;
-  --font-spot:
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-border: var(--border-color);
+  --color-ink: var(--ink);
+  --color-ink-80: var(--ink-80);
+  --color-ink-60: var(--ink-60);
+  --color-ink-40: var(--ink-40);
+  --color-ink-20: var(--ink-20);
+  --color-mint-soft: var(--mint-soft);
+  --color-cta: var(--cta);
+  --color-cta-ink: var(--cta-ink);
+  --color-chip: var(--chip);
+  --color-chip-ink: var(--chip-ink);
+  --font-festi:
     'Pretendard', 'Pretendard Variable', -apple-system, system-ui, sans-serif;
 }
 
@@ -61,7 +75,7 @@ body {
   margin: 0;
   padding: 0;
   overscroll-behavior: none;
-  font-family: var(--font-spot);
+  font-family: var(--font-festi);
   background: var(--bg);
   color: var(--ink);
 }

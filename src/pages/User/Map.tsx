@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import type { ReactElement } from 'react'
-import { SPOT_TOKENS, SPOT_FONT, tone, I, Pill } from '../../tokens'
-import { SpotTabBar } from './Home'
+import { useNavigate } from 'react-router-dom'
+import { FESTI_TOKENS, I, Pill } from '../../tokens'
+
 import soongsilMap from '../../assets/soongsil-map.png'
+import { FestiTabBar } from '../../components/User/Navbar'
+import { useDayNightStore } from '../../stores/useDayNightStore'
 
 // ── Stat cell ─────────────────────────────────────────────────────────────────
 
@@ -17,32 +21,16 @@ export function Stat({
   color?: string
   dark?: boolean
 }) {
-  const t = tone()
   return (
-    <div style={{ flex: 1, textAlign: 'center' }}>
-      <div
-        style={{
-          fontSize: 10,
-          color: t.ink60,
-          fontWeight: 600,
-          marginBottom: 2,
-        }}
-      >
+    <div className="flex-1 text-center">
+      <div className="mb-0.5 text-[10px] font-semibold text-ink-60">
         {label}
       </div>
       <div
-        style={{
-          fontSize: 15,
-          fontWeight: 800,
-          color: color || t.ink,
-          letterSpacing: -0.3,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 4,
-        }}
+        className="flex items-center justify-center gap-1 text-[15px] font-extrabold tracking-[-0.3px] text-ink"
+        style={color ? { color } : undefined}
       >
-        {icon && <div style={{ width: 13, height: 13 }}>{icon}</div>}
+        {icon && <div className="size-3.25">{icon}</div>}
         {value}
       </div>
     </div>
@@ -51,15 +39,10 @@ export function Stat({
 
 // ── Screen: Map ───────────────────────────────────────────────────────────────
 
-export function MobileMap({
-  dark = false,
-  period = 'day',
-}: {
-  dark?: boolean
-  period?: string
-}) {
-  const t = tone()
-  const isDay = period === 'day'
+export function MobileMap({ dark = false }: { dark?: boolean }) {
+  const navigate = useNavigate()
+  const { isDay, setIsDay } = useDayNightStore()
+  const [selectedFestivalDay, setSelectedFestivalDay] = useState('2일차')
 
   const markers = [
     {
@@ -187,64 +170,36 @@ export function MobileMap({
 
   const typeColor = (type: string) =>
     type === 'truck'
-      ? SPOT_TOKENS.sun
+      ? FESTI_TOKENS.sun
       : type === 'night'
-        ? SPOT_TOKENS.alert
+        ? FESTI_TOKENS.alert
         : type === 'special'
-          ? SPOT_TOKENS.grape
-          : SPOT_TOKENS.pop
+          ? FESTI_TOKENS.grape
+          : FESTI_TOKENS.pop
 
   const waitStatus = (w: number) => {
-    if (w === 0) return { color: SPOT_TOKENS.pop, label: '바로 입장' }
-    if (w <= 2) return { color: SPOT_TOKENS.pop, label: `${w}팀` }
-    return { color: SPOT_TOKENS.alert, label: `${w}팀` }
+    if (w === 0) return { color: FESTI_TOKENS.pop, label: '바로 입장' }
+    if (w <= 2) return { color: FESTI_TOKENS.pop, label: `${w}팀` }
+    return { color: FESTI_TOKENS.alert, label: `${w}팀` }
   }
 
   return (
-    <div
-      style={{
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-        background: dark ? '#0B1A1F' : '#E8F4F5',
-        fontFamily: SPOT_FONT,
-        overflow: 'hidden',
-      }}
-    >
+    <div className="relative h-full w-full overflow-hidden bg-[#E8F4F5] font-festi dark:bg-[#0B1A1F]">
       {/* Map image */}
       <div
+        className="absolute inset-0 bg-cover bg-center"
         style={{
-          position: 'absolute',
-          inset: 0,
           backgroundImage: `url(${soongsilMap})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
           filter: dark
             ? 'brightness(0.45) saturate(0.5)'
             : 'brightness(1.05) saturate(0.6)',
           opacity: dark ? 0.9 : 0.7,
         }}
       />
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: dark
-            ? 'linear-gradient(180deg, rgba(11,26,31,0.35) 0%, rgba(11,26,31,0.55) 100%)'
-            : 'linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.55) 100%)',
-        }}
-      />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.3)_0%,rgba(255,255,255,0.55)_100%)] dark:bg-[linear-gradient(180deg,rgba(11,26,31,0.35)_0%,rgba(11,26,31,0.55)_100%)]" />
 
       {/* Markers layer */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 178,
-          left: 0,
-          right: 0,
-          bottom: 230,
-        }}
-      >
+      <div className="absolute top-44.5 right-0 bottom-57.5 left-0">
         {markers.map((m) => {
           const visible =
             (isDay &&
@@ -256,108 +211,62 @@ export function MobileMap({
                 m.type === 'truck' ||
                 m.type === 'special'))
           if (!visible) return null
+
           const isSel = m.id === selectedId && !isDay
           const pinColor = typeColor(m.type)
           const numColor =
             m.type === 'night' || m.type === 'truck' || m.type === 'day'
               ? '#fff'
-              : SPOT_TOKENS.ink
+              : FESTI_TOKENS.ink
           const labelRight = m.x < 50
           const ws = waitStatus(m.wait)
+
           return (
             <div
               key={m.id}
+              className="absolute flex translate-x-[-50%] items-center gap-1.25"
               style={{
-                position: 'absolute',
                 left: `${m.x}%`,
                 top: `${m.y - 35}%`,
-                transform: 'translate(-50%, 0)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
                 flexDirection: labelRight ? 'row' : 'row-reverse',
                 zIndex: isSel ? 5 : 1,
               }}
             >
               <div
+                className="relative flex shrink-0 items-center justify-center rounded-full font-extrabold tracking-[-0.3px]"
                 style={{
                   width: isSel ? 32 : 26,
                   height: isSel ? 32 : 26,
-                  borderRadius: '50%',
                   background: pinColor,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
                   color: numColor,
                   fontSize: isSel ? 13 : 11,
-                  fontWeight: 800,
                   boxShadow: isSel
-                    ? `inset 0 0 0 3px #fff, 0 6px 18px rgba(20,26,31,0.35)`
-                    : `inset 0 0 0 2px #fff, 0 2px 8px rgba(20,26,31,0.25)`,
-                  flexShrink: 0,
-                  position: 'relative',
-                  letterSpacing: -0.3,
+                    ? 'inset 0 0 0 3px #fff, 0 6px 18px rgba(20,26,31,0.35)'
+                    : 'inset 0 0 0 2px #fff, 0 2px 8px rgba(20,26,31,0.25)',
                 }}
               >
                 {m.id}
                 {isSel && (
                   <div
-                    style={{
-                      position: 'absolute',
-                      inset: -8,
-                      borderRadius: '50%',
-                      background: pinColor,
-                      opacity: 0.25,
-                      zIndex: -1,
-                      animation: 'spot-pulse 2s ease-out infinite',
-                    }}
+                    className="absolute -inset-2 -z-1 animate-[festi-pulse_2s_ease-out_infinite] rounded-full opacity-25"
+                    style={{ background: pinColor }}
                   />
                 )}
               </div>
-              <div
-                style={{
-                  background: dark ? '#1B3239' : '#fff',
-                  padding: '5px 8px 5px 7px',
-                  borderRadius: 9,
-                  border: `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(20,26,31,0.08)'}`,
-                  boxShadow: '0 3px 10px rgba(20,26,31,0.18)',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: t.ink,
-                  letterSpacing: -0.2,
-                  whiteSpace: 'nowrap',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5,
-                }}
-              >
+              <div className="flex items-center gap-1.25 whitespace-nowrap rounded-[9px] border border-[rgba(20,26,31,0.08)] bg-white px-2 py-1.25 text-[11px] font-bold tracking-[-0.2px] text-ink shadow-[0_3px_10px_rgba(20,26,31,0.18)] dark:border-white/10 dark:bg-[#1B3239]">
                 <span
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    background: ws.color,
-                    flexShrink: 0,
-                  }}
+                  className="size-1.5 shrink-0 rounded-full"
+                  style={{ background: ws.color }}
                 />
                 {m.name}
                 <span
-                  style={{ color: ws.color, fontSize: 10, fontWeight: 800 }}
+                  className="text-[10px] font-extrabold"
+                  style={{ color: ws.color }}
                 >
                   {ws.label}
                 </span>
                 {m.hot && (
-                  <span
-                    style={{
-                      background: SPOT_TOKENS.alert,
-                      color: '#fff',
-                      fontSize: 8,
-                      fontWeight: 800,
-                      padding: '1px 4px',
-                      borderRadius: 4,
-                      letterSpacing: 0.3,
-                    }}
-                  >
+                  <span className="rounded bg-alert px-1 py-px text-[8px] font-extrabold tracking-[0.3px] text-white">
                     HOT
                   </span>
                 )}
@@ -368,383 +277,167 @@ export function MobileMap({
       </div>
 
       {/* Top header */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 10,
-          padding: '54px 16px 14px',
-          background: `linear-gradient(180deg, ${dark ? 'rgba(11,26,31,0.97)' : 'rgba(255,255,255,0.97)'} 0%, ${dark ? 'rgba(11,26,31,0)' : 'rgba(255,255,255,0)'} 100%)`,
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            marginTop: 6,
-            marginBottom: 10,
-          }}
-        >
-          <div
-            style={{
-              background: dark ? 'rgba(255,255,255,0.06)' : '#fff',
-              border: `1px solid ${t.border}`,
-              borderRadius: 9999,
-              padding: '10px 14px',
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              boxShadow: SPOT_TOKENS.shadow.card,
-            }}
+      <div className="absolute inset-x-0 top-0 z-10 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(255,255,255,0)_100%)] px-4 pt-13.5 pb-3.5 dark:bg-[linear-gradient(180deg,rgba(11,26,31,0.97)_0%,rgba(11,26,31,0)_100%)]">
+        <div className="mt-1.5 mb-2.5 flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => navigate('/booth')}
+            className="flex flex-1 items-center gap-2 rounded-full border border-border bg-white px-3.5 py-2.5 text-left shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)] dark:bg-white/5"
           >
-            <div style={{ width: 18, height: 18, color: t.ink60 }}>
-              {I.search()}
-            </div>
-            <div style={{ fontSize: 14, color: t.ink60, fontWeight: 500 }}>
+            <div className="size-4.5 text-ink-60">{I.search()}</div>
+            <div className="text-sm font-medium text-ink-60">
               부스 번호 또는 이름
             </div>
-          </div>
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: '50%',
-              background: t.cta,
-              color: t.ctaInk,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: SPOT_TOKENS.shadow.card,
-            }}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/trucks')}
+            className="flex size-11 items-center justify-center rounded-full bg-cta text-cta-ink shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)]"
           >
-            <div style={{ width: 20, height: 20 }}>{I.list()}</div>
-          </div>
+            <div className="size-5">{I.list()}</div>
+          </button>
         </div>
 
         {/* Day/Night + day-N chips */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div
-            style={{
-              background: dark ? 'rgba(19,38,45,0.95)' : '#fff',
-              border: `1px solid ${t.border}`,
-              borderRadius: 9999,
-              padding: 3,
-              display: 'flex',
-              boxShadow: SPOT_TOKENS.shadow.card,
-            }}
-          >
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-full border border-border bg-white p-0.75 shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)] dark:bg-[#13262D]/95">
             {[
-              { id: 'day', label: '주간', ico: I.sun, color: SPOT_TOKENS.pop },
+              { id: 'day', label: '주간', ico: I.sun, color: FESTI_TOKENS.pop },
               {
                 id: 'night',
                 label: '야간',
                 ico: I.moon,
-                color: SPOT_TOKENS.alert,
+                color: FESTI_TOKENS.alert,
               },
             ].map((o) => {
               const on = (o.id === 'day') === isDay
               return (
-                <div
+                <button
+                  type="button"
                   key={o.id}
-                  style={{
-                    padding: '8px 14px',
-                    borderRadius: 9999,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    background: on ? o.color : 'transparent',
-                    color: on ? '#fff' : t.ink60,
-                    fontWeight: 700,
-                    fontSize: 13,
-                    letterSpacing: -0.2,
-                  }}
+                  onClick={() => setIsDay(o.id === 'day')}
+                  className={`flex items-center gap-1.25 rounded-full px-3.5 py-2 text-[13px] font-bold tracking-[-0.2px] ${
+                    on ? 'text-white' : 'text-ink-60'
+                  }`}
+                  style={on ? { background: o.color } : undefined}
                 >
-                  <div style={{ width: 14, height: 14 }}>{o.ico()}</div>
+                  <div className="size-3.5">{o.ico()}</div>
                   {o.label}
-                </div>
+                </button>
               )
             })}
           </div>
-          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', flex: 1 }}>
-            {['2일차', '1일차', '3일차'].map((d, i) => (
-              <div
+          <div className="flex flex-1 gap-1.5 overflow-x-auto">
+            {['2일차', '1일차', '3일차'].map((d) => (
+              <button
+                type="button"
+                onClick={() => setSelectedFestivalDay(d)}
                 key={d}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 9999,
-                  background:
-                    i === 0
-                      ? t.cta
-                      : dark
-                        ? 'rgba(255,255,255,0.06)'
-                        : 'rgba(255,255,255,0.85)',
-                  color: i === 0 ? t.ctaInk : t.ink80,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: -0.2,
-                  border: `1px solid ${i === 0 ? t.cta : t.border}`,
-                  whiteSpace: 'nowrap',
-                }}
+                className={`whitespace-nowrap rounded-full border px-3 py-2 text-[13px] font-bold tracking-[-0.2px] ${
+                  selectedFestivalDay === d
+                    ? 'border-cta bg-cta text-cta-ink'
+                    : 'border-border bg-white/85 text-ink-80 dark:bg-white/5'
+                }`}
               >
                 {d}
-              </div>
+              </button>
             ))}
           </div>
         </div>
       </div>
 
       {/* Compact legend */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 160,
-          right: 12,
-          zIndex: 5,
-          background: dark ? 'rgba(19,38,45,0.95)' : 'rgba(255,255,255,0.95)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderRadius: 12,
-          padding: '8px 10px',
-          boxShadow: SPOT_TOKENS.shadow.card,
-          border: `1px solid ${t.border}`,
-          fontSize: 11,
-          fontWeight: 700,
-          color: t.ink80,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 5,
-        }}
-      >
+      <div className="absolute top-40 right-3 z-5 flex flex-col gap-1.25 rounded-xl border border-border bg-white/95 px-2.5 py-2 text-[11px] font-bold text-ink-80 shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)] backdrop-blur-md dark:bg-[#13262D]/95">
         {[
           isDay
-            ? { c: SPOT_TOKENS.pop, l: '주간 부스' }
-            : { c: SPOT_TOKENS.alert, l: '야간 주점' },
-          { c: SPOT_TOKENS.sun, l: '푸드트럭' },
-          { c: SPOT_TOKENS.grape, l: '안내·본부' },
+            ? { c: FESTI_TOKENS.pop, l: '주간 부스' }
+            : { c: FESTI_TOKENS.alert, l: '야간 주점' },
+          { c: FESTI_TOKENS.sun, l: '푸드트럭' },
+          { c: FESTI_TOKENS.grape, l: '안내·본부' },
         ].map((x) => (
-          <div
-            key={x.l}
-            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-          >
+          <div key={x.l} className="flex items-center gap-1.5">
             <div
-              style={{
-                width: 9,
-                height: 9,
-                borderRadius: '50%',
-                background: x.c,
-                boxShadow: 'inset 0 0 0 1.5px #fff',
-              }}
+              className="size-2.25 rounded-full shadow-[inset_0_0_0_1.5px_#fff]"
+              style={{ background: x.c }}
             />
             {x.l}
           </div>
         ))}
-        <div
-          style={{
-            borderTop: `1px solid ${t.border}`,
-            paddingTop: 5,
-            marginTop: 1,
-            fontSize: 10,
-            fontWeight: 600,
-            color: t.ink60,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              marginBottom: 3,
-            }}
-          >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: SPOT_TOKENS.pop,
-              }}
-            />
-            여유 / 0–2팀
+        <div className="mt-px border-t border-border pt-1.25 text-[10px] font-semibold text-ink-60">
+          <div className="mb-0.75 flex items-center gap-1.25">
+            <span className="size-1.5 rounded-full bg-pop" />
+            여유 / 0-2팀
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: SPOT_TOKENS.alert,
-              }}
-            />
+          <div className="flex items-center gap-1.25">
+            <span className="size-1.5 rounded-full bg-alert" />
             대기 / 3팀+
           </div>
         </div>
       </div>
 
-      {/* Bottom sheet — selected booth */}
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 10,
-          background: t.surface,
-          borderRadius: '24px 24px 0 0',
-          padding: '10px 18px 100px',
-          boxShadow: '0 -8px 32px rgba(15,42,51,0.18)',
-          borderTop: `1px solid ${t.border}`,
-        }}
-      >
-        <div
-          style={{
-            width: 36,
-            height: 4,
-            background: t.ink20,
-            borderRadius: 9999,
-            margin: '0 auto 12px',
-          }}
-        />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: '50%',
-              background: SPOT_TOKENS.alert,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontSize: 15,
-              fontWeight: 800,
-              flexShrink: 0,
-              boxShadow: 'inset 0 0 0 3px #fff, 0 4px 12px rgba(255,90,90,0.4)',
-            }}
-          >
+      {/* Bottom sheet - selected booth */}
+      <div className="absolute inset-x-0 bottom-0 z-10 rounded-t-3xl border-t border-border bg-surface px-4.5 pt-2.5 pb-25 shadow-[0_-8px_32px_rgba(15,42,51,0.18)]">
+        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-ink-20" />
+        <div className="flex items-center gap-2.75">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-alert text-[15px] font-extrabold text-white shadow-[inset_0_0_0_3px_#fff,0_4px_12px_rgba(255,90,90,0.4)]">
             16
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                marginBottom: 2,
-              }}
-            >
+          <div className="min-w-0 flex-1">
+            <div className="mb-0.5 flex items-center gap-1.25">
               <Pill
-                color={SPOT_TOKENS.alertSoft}
-                ink={SPOT_TOKENS.alert}
+                color={FESTI_TOKENS.alertSoft}
+                ink={FESTI_TOKENS.alert}
                 style={{ fontSize: 10 }}
               >
                 야간 · 주점
               </Pill>
-              <span style={{ fontSize: 10, color: t.ink60, fontWeight: 600 }}>
+              <span className="text-[10px] font-semibold text-ink-60">
                 베어드홀 동측
               </span>
             </div>
-            <div
-              style={{
-                fontSize: 16,
-                fontWeight: 800,
-                color: t.ink,
-                letterSpacing: -0.3,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
+            <div className="overflow-hidden text-ellipsis whitespace-nowrap text-base font-extrabold tracking-[-0.3px] text-ink">
               컴공과 칵테일 바
             </div>
           </div>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            gap: 6,
-            marginTop: 10,
-            padding: 8,
-            borderRadius: 12,
-            background: t.surfaceAlt,
-          }}
-        >
+        <div className="mt-2.5 flex gap-1.5 rounded-xl bg-surface-alt p-2">
           <Stat
             label="대기"
             value="7팀"
-            color={SPOT_TOKENS.alert}
+            color={FESTI_TOKENS.alert}
             dark={dark}
           />
-          <div style={{ width: 1, background: t.border }} />
+          <div className="w-px bg-border" />
           <Stat label="예상" value="22분" dark={dark} />
-          <div style={{ width: 1, background: t.border }} />
-          <Stat
-            label="평점"
-            value="4.8"
-            dark={dark}
-            icon={I.star(SPOT_TOKENS.sun, SPOT_TOKENS.sun)}
-          />
+          <div className="w-px bg-border" />
         </div>
 
-        <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-          <div
-            style={{
-              flex: 1,
-              padding: '12px',
-              borderRadius: 14,
-              background: t.surfaceAlt,
-              color: t.ink,
-              fontSize: 13,
-              fontWeight: 700,
-              textAlign: 'center',
-              border: `1px solid ${t.border}`,
-            }}
+        <div className="mt-2.5 flex gap-1.5">
+          <button
+            type="button"
+            onClick={() => navigate('/booth')}
+            className="flex-1 rounded-[14px] border border-border bg-surface-alt p-3 text-center text-[13px] font-bold text-ink"
           >
             상세보기
-          </div>
-          <div
-            style={{
-              flex: 2,
-              padding: '12px',
-              borderRadius: 14,
-              background: t.cta,
-              color: t.ctaInk,
-              fontSize: 14,
-              fontWeight: 800,
-              textAlign: 'center',
-              boxShadow: SPOT_TOKENS.shadow.hit,
-              letterSpacing: -0.3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-            }}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/waiting/register')}
+            className="flex flex-2 items-center justify-center gap-1.5 rounded-[14px] bg-cta p-3 text-center text-sm font-extrabold tracking-[-0.3px] text-cta-ink shadow-[0_8px_22px_rgba(0,198,224,0.4)]"
           >
             웨이팅 걸기
-            <span
-              style={{
-                background: SPOT_TOKENS.alert,
-                color: '#fff',
-                fontSize: 11,
-                fontWeight: 800,
-                padding: '2px 7px',
-                borderRadius: 9999,
-              }}
-            >
+            <span className="rounded-full bg-alert px-1.75 py-0.5 text-[11px] font-extrabold text-white">
               7팀
             </span>
-          </div>
+          </button>
         </div>
       </div>
 
-      <SpotTabBar active="map" dark={dark} />
+      <FestiTabBar active="map" dark={dark} />
 
       <style>{`
-        @keyframes spot-pulse {
+        @keyframes festi-pulse {
           0%   { transform: scale(0.7); opacity: 0.55; }
           80%  { transform: scale(2.6); opacity: 0; }
           100% { transform: scale(2.6); opacity: 0; }

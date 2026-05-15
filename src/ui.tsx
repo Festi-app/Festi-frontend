@@ -1,9 +1,9 @@
 import type { CSSProperties, ReactElement, ReactNode } from 'react'
-import { SPOT_TOKENS, SPOT_FONT } from './tokens'
+import { FESTI_TOKENS, FESTI_FONT } from './tokens'
 
-// ── Spotter wordmark ──────────────────────────────────────────────────────────
+// ── Festiter wordmark ──────────────────────────────────────────────────────────
 
-export function SpotterMark({
+export function FestiterMark({
   size = 22,
   mono = false,
   color,
@@ -12,15 +12,15 @@ export function SpotterMark({
   mono?: boolean
   color?: string
 }): ReactElement {
-  const ink = color ?? SPOT_TOKENS.ink
-  const dot = mono ? ink : SPOT_TOKENS.pop
+  const ink = color ?? FESTI_TOKENS.ink
+  const dot = mono ? ink : FESTI_TOKENS.pop
   return (
     <div
       style={{
         display: 'inline-flex',
         alignItems: 'center',
         gap: size * 0.28,
-        fontFamily: SPOT_FONT,
+        fontFamily: FESTI_FONT,
         fontWeight: 800,
         fontSize: size,
         letterSpacing: -0.6,
@@ -33,7 +33,7 @@ export function SpotterMark({
           width: size * 0.95,
           height: size * 0.95,
           borderRadius: '50%',
-          background: SPOT_TOKENS.mint,
+          background: FESTI_TOKENS.mint,
           position: 'relative',
           display: 'inline-flex',
           alignItems: 'center',
@@ -50,7 +50,7 @@ export function SpotterMark({
           }}
         />
       </span>
-      <span>spotter</span>
+      <span>festi</span>
     </div>
   )
 }
@@ -106,8 +106,8 @@ export function PhotoSlot({
 
 export function Pill({
   children,
-  color = SPOT_TOKENS.mintSoft,
-  ink = SPOT_TOKENS.ink,
+  color = FESTI_TOKENS.mintSoft,
+  ink = FESTI_TOKENS.ink,
   size = 'sm',
   style = {},
 }: {
@@ -130,7 +130,7 @@ export function Pill({
         background: color,
         color: ink,
         borderRadius: 9999,
-        fontFamily: SPOT_FONT,
+        fontFamily: FESTI_FONT,
         fontWeight: 600,
         ...sz,
         ...style,
