@@ -61,7 +61,6 @@ function PendingScreen({
               { label: '유형', value: account.orgType },
               { label: '운영 시간', value: account.operatingTimes.join(' · ') },
               { label: '대표자', value: account.representativeName },
-              { label: '학번', value: account.studentId },
             ].map(({ label, value }) => (
               <div key={label} className="flex justify-between text-[13px]">
                 <span className="text-ink-60">{label}</span>

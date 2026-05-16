@@ -1,10 +1,12 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { DayNightToggle } from '../../components/User/DayNightToggle'
 import { FESTI_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { AppHeader } from '../../components/User/ScreenHeader'
 import { useDayNightStore } from '../../stores/useDayNightStore'
+import { SectionHeader } from '../../components/User/SectionHeader'
+import { WaitingCarousel } from '../../components/User/WaitingCarousel'
 
 const SEARCH_ITEMS = [
   {
@@ -89,58 +91,6 @@ const SEARCH_ITEMS = [
   },
 ]
 
-// ── Top status bar color wash ─────────────────────────────────────────────────
-
-export function FestiStatusWash({
-  color = '#A9E5E7',
-  height = 58,
-}: {
-  color?: string
-  height?: number
-}) {
-  return (
-    <div
-      className="absolute inset-x-0 top-0 z-1"
-      style={{ height, background: color }}
-    />
-  )
-}
-
-// ── Section header ────────────────────────────────────────────────────────────
-
-export function SectionHeader({
-  title,
-  sub,
-  more = false,
-  onMore,
-}: {
-  title: string
-  sub: string
-  dark?: boolean
-  more?: boolean
-  onMore?: () => void
-}) {
-  return (
-    <div className="mb-3 flex items-end justify-between px-5">
-      <div>
-        <div className="text-lg font-extrabold tracking-[-0.5px] text-ink">
-          {title}
-        </div>
-        <div className="mt-0.5 text-xs text-ink-60">{sub}</div>
-      </div>
-      {more && (
-        <button
-          type="button"
-          onClick={onMore}
-          className="flex items-center gap-0.5 text-[13px] font-semibold text-ink-60"
-        >
-          전체 <div className="size-3">{I.chev(undefined, 'r')}</div>
-        </button>
-      )}
-    </div>
-  )
-}
-
 // ── Timetable data ────────────────────────────────────────────────────────────
 
 type Slot = {
@@ -222,125 +172,6 @@ const TIMETABLE: Record<number, Slot[]> = {
 const NOW_MIN = 17 * 60 + 45
 const CURRENT_DAY = 2
 
-// ── Waiting carousel ─────────────────────────────────────────────────────────
-
-const WAITING_COLORS = [
-  { bg: '#00C6E0', shadow: 'rgba(0,198,224,0.4)', text: '#fff' },
-  { bg: '#A78BFA', shadow: 'rgba(167,139,250,0.4)', text: '#fff' },
-  { bg: '#F472B6', shadow: 'rgba(244,114,182,0.4)', text: '#fff' },
-]
-
-const ACTIVE_WAITINGS = [
-  { id: 1, boothNo: 34, boothName: '경영대 주점', ahead: 4, colorIdx: 0 },
-  { id: 2, boothNo: 16, boothName: '컴공과 칵테일 바', ahead: 1, colorIdx: 1 },
-  { id: 3, boothNo: 47, boothName: '미디어부 라멘', ahead: 7, colorIdx: 2 },
-]
-
-function WaitingCarousel({
-  navigate,
-}: {
-  navigate: ReturnType<typeof useNavigate>
-}) {
-  const [activeIdx, setActiveIdx] = useState(0)
-  const scrollRef = useRef<HTMLDivElement>(null)
-
-  function handleScroll() {
-    const el = scrollRef.current
-    if (!el) return
-    const idx = Math.round(el.scrollLeft / el.clientWidth)
-    setActiveIdx(idx)
-  }
-
-  if (ACTIVE_WAITINGS.length === 0) return null
-
-  return (
-    <div className="mb-5.5">
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        style={{
-          display: 'flex',
-          overflowX: 'auto',
-          scrollSnapType: 'x mandatory',
-          scrollbarWidth: 'none',
-          WebkitOverflowScrolling: 'touch',
-        }}
-      >
-        {ACTIVE_WAITINGS.map((w) => {
-          const c = WAITING_COLORS[w.colorIdx % WAITING_COLORS.length]
-          return (
-            <div
-              key={w.id}
-              style={{
-                flex: '0 0 100%',
-                scrollSnapAlign: 'start',
-                paddingLeft: 20,
-                paddingRight: 20,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => navigate('/waiting/detail')}
-                className="relative flex w-full items-center gap-3.5 overflow-hidden rounded-[20px] p-4 text-left transition-transform duration-100 active:scale-[0.98]"
-                style={{
-                  background: c.bg,
-                  color: c.text,
-                  boxShadow: `0 8px 22px ${c.shadow}`,
-                }}
-              >
-                <div className="absolute -top-7.5 -right-7.5 size-30 rounded-full bg-white/10" />
-                <div className="flex size-12 shrink-0 items-center justify-center rounded-[14px] bg-white/20 font-festi text-lg font-extrabold text-white">
-                  {w.boothNo}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="mb-0.5 text-[11px] font-semibold opacity-75">
-                    웨이팅 진행 중
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[15px] font-bold tracking-[-0.3px]">
-                    {w.ahead <= 3 && (
-                      <span
-                        className="inline-block size-1.5 shrink-0 rounded-full bg-white"
-                        style={{
-                          animation: 'festi-ping 1.4s ease-in-out infinite',
-                        }}
-                      />
-                    )}
-                    {w.boothName} · 앞에 {w.ahead}팀
-                  </div>
-                </div>
-                <div
-                  className="rounded-full bg-white px-3.5 py-2 text-[13px] font-extrabold"
-                  style={{ color: c.bg }}
-                >
-                  현황
-                </div>
-              </button>
-            </div>
-          )
-        })}
-      </div>
-
-      {ACTIVE_WAITINGS.length > 1 && (
-        <div className="mt-2.5 flex justify-center gap-1.5">
-          {ACTIVE_WAITINGS.map((w, i) => (
-            <div
-              key={i}
-              className="rounded-full transition-all duration-200"
-              style={{
-                width: i === activeIdx ? 16 : 6,
-                height: 6,
-                background:
-                  WAITING_COLORS[w.colorIdx % WAITING_COLORS.length].bg,
-                opacity: i === activeIdx ? 1 : 0.3,
-              }}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ── Screen: Home ─────────────────────────────────────────────────────────────
 
 export function MobileHome({ dark = false }: { dark?: boolean }) {
@@ -406,7 +237,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
         </div>
         <div className="pt-4.5">
           {/* Live waiting strip */}
-          <WaitingCarousel navigate={navigate} />
+          <WaitingCarousel />
 
           {/* 지금 바로 입장 가능 */}
           <SectionHeader
@@ -530,7 +361,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                 </svg>
               </button>
               {dayDropdownOpen && (
-                <div className="absolute right-0 top-full z-20 mt-1.5 min-w-[96px] overflow-hidden rounded-[14px] border border-border bg-white shadow-[0_4px_20px_rgba(20,26,31,0.15)] dark:bg-[#1A1E23]">
+                <div className="absolute right-0 top-full z-20 mt-1.5 min-w-24 overflow-hidden rounded-[14px] border border-border bg-white shadow-[0_4px_20px_rgba(20,26,31,0.15)] dark:bg-[#1A1E23]">
                   {[1, 2, 3].map((d) => (
                     <button
                       type="button"
@@ -595,7 +426,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                     return (
                       <div
                         key={i}
-                        className={`flex items-center gap-3.5 px-4 ${i < slots.length - 1 ? 'border-b border-border' : ''} ${isNow ? 'bg-pop/[0.04]' : ''}`}
+                        className={`flex items-center gap-3.5 px-4 ${i < slots.length - 1 ? 'border-b border-border' : ''} ${isNow ? 'bg-pop/4' : ''}`}
                         style={{ height: ROW_H }}
                       >
                         <div

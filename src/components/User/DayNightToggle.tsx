@@ -22,7 +22,7 @@ export function DayNightToggle({ fullWidth = false }: { fullWidth?: boolean }) {
             type="button"
             key={o.id}
             onClick={() => setIsDay(o.id === 'day')}
-            className={`flex items-center gap-1.25 rounded-full px-3.5 py-2 text-[13px] font-bold tracking-[-0.2px] transition-colors ${
+            className={`flex items-center gap-1.25 rounded-full px-3.5 py-2 text-[13px] font-bold tracking-[-0.2px] ${
               fullWidth ? 'flex-1 justify-center' : ''
             } ${on ? 'text-white' : 'text-ink-60'}`}
             style={on ? { background: o.grad } : undefined}

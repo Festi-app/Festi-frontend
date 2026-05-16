@@ -252,7 +252,9 @@ function MobileLayout({ children }: { children: ReactNode }) {
 
 function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-bg pt-14 md:ml-45 md:pt-0">{children}</div>
+    <div className="h-screen overflow-hidden bg-bg pt-14 md:ml-45 md:pt-0">
+      {children}
+    </div>
   )
 }
 

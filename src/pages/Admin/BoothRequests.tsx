@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AdminShell, AdminTopBar, AdminBtn } from './Festival'
+import {
+  AdminShell,
+  AdminTopBar,
+  AdminBtn,
+} from '../../components/Admin/Chrome'
 import {
   useBoothAdminStore,
   type BoothAdminAccount,
@@ -69,8 +73,7 @@ function AccountCard({
             </span>
           </div>
           <div className="mt-0.5 text-xs text-ink-60">
-            {account.orgType} · {account.representativeName} ·{' '}
-            {account.studentId}
+            {account.orgType} · {account.representativeName} · {account.id}
           </div>
         </div>
         <div className="shrink-0 text-[11px] text-ink-40">
@@ -106,7 +109,7 @@ function AccountCard({
             </span>
             <button
               type="button"
-              onClick={() => navigate('/admin/booths')}
+              onClick={() => navigate('/admin/booths?step=assign')}
               className="flex items-center gap-1 rounded-lg border border-border bg-surface px-2.5 py-1 text-[11px] font-bold text-ink-60 hover:text-ink"
             >
               <span className="size-3">{I.map()}</span>

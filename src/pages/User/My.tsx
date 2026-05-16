@@ -167,7 +167,7 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
               }`}
             >
               <div className="flex gap-3 p-3">
-                <div className="relative size-20 shrink-0 overflow-hidden rounded-[16px]">
+                <div className="relative size-20 shrink-0 overflow-hidden rounded-2xl">
                   <PhotoSlot label="" tone={booth.tone} radius={16} />
                   <div className="absolute top-2 left-2 rounded-full bg-[rgba(15,42,51,0.82)] px-2 py-0.75 text-[10px] font-extrabold text-white">
                     #{booth.id}

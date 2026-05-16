@@ -12,12 +12,12 @@ export function BoothAdminLogin() {
   const justRegistered = searchParams.get('registered') === '1'
   const login = useBoothAdminStore((s) => s.login)
 
-  const [studentId, setStudentId] = useState('')
+  const [orgName, setOrgName] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
 
   function handleLogin() {
-    const ok = login(studentId, password)
+    const ok = login(orgName, password)
     if (ok) {
       navigate('/booth-admin')
     } else {
@@ -47,16 +47,16 @@ export function BoothAdminLogin() {
           <div className="flex flex-col gap-4">
             <div>
               <div className="mb-1.5 text-[12px] font-bold text-ink-60">
-                학번
+                단체명
               </div>
               <input
                 type="text"
-                value={studentId}
+                value={orgName}
                 onChange={(e) => {
-                  setStudentId(e.target.value)
+                  setOrgName(e.target.value)
                   setError(false)
                 }}
-                placeholder="학번을 입력하세요"
+                placeholder="단체명을 입력하세요"
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
               />
@@ -80,14 +80,14 @@ export function BoothAdminLogin() {
 
             {error && (
               <div className="rounded-lg bg-alert/10 px-3 py-2 text-[12px] font-semibold text-alert">
-                학번 또는 비밀번호가 올바르지 않아요
+                단체명 또는 비밀번호가 올바르지 않아요
               </div>
             )}
 
             <button
               type="button"
               onClick={handleLogin}
-              disabled={!studentId.trim() || !password}
+              disabled={!orgName.trim() || !password}
               className={cn(
                 'rounded-xl py-3 text-[14px] font-extrabold text-white transition-opacity',
                 'bg-cta disabled:opacity-40'
@@ -98,8 +98,9 @@ export function BoothAdminLogin() {
           </div>
 
           <div className="mt-4 text-center text-[11px] text-ink-40">
-            데모 계정: 학번 <strong className="text-ink-60">20210001</strong> /
-            비밀번호 <strong className="text-ink-60">1234</strong>
+            데모 계정: 단체명{' '}
+            <strong className="text-ink-60">컴퓨터학부</strong> / 비밀번호{' '}
+            <strong className="text-ink-60">1234</strong>
           </div>
         </div>
 
