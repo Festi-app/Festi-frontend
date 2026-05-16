@@ -51,7 +51,8 @@ export function NoticeSheet({ onClose }: { onClose: () => void }) {
         className="absolute inset-x-0 bottom-0 z-40 flex flex-col rounded-t-[24px] bg-surface pb-10"
         style={{
           maxHeight: '70%',
-          animation: 'festi-sheet-up 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both',
+          animation:
+            'festi-sheet-up 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both',
         }}
       >
         <div className="flex items-center justify-between px-5 pt-5 pb-4">
@@ -86,7 +87,9 @@ export function NoticeSheet({ onClose }: { onClose: () => void }) {
                 <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
                   {n.title}
                 </div>
-                <span className="shrink-0 text-[11px] text-ink-40">{n.date}</span>
+                <span className="shrink-0 text-[11px] text-ink-40">
+                  {n.date}
+                </span>
               </div>
               <div className="mt-1 text-[12px] leading-relaxed text-ink-60">
                 {n.body}

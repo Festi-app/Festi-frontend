@@ -9,7 +9,6 @@ import { SectionHeader } from '../../components/User/SectionHeader'
 import { WaitingCarousel } from '../../components/User/WaitingCarousel'
 import { NoticeSheet } from '../../components/User/NoticeSheet'
 
-
 // ── Timetable data ────────────────────────────────────────────────────────────
 
 type Slot = {
@@ -448,7 +447,6 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
       </div>{' '}
       {/* scroll body */}
       <FestiTabBar active="home" dark={dark} />
-
       {noticeOpen && <NoticeSheet onClose={() => setNoticeOpen(false)} />}
     </div>
   )

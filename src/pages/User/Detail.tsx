@@ -163,7 +163,6 @@ export function MobileBoothDetail({ dark = false }: { dark?: boolean }) {
             </div>
           ))}
         </div>
-
       </div>
 
       {/* Sticky CTA */}

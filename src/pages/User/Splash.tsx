@@ -17,7 +17,7 @@ export function MobileSplash({ dark = false }: { dark?: boolean }) {
 
   const bg = dark
     ? `linear-gradient(160deg, #1F3035 0%, #0F1216 60%)`
-    : `linear-gradient(160deg, ${FESTI_TOKENS.mintSoft} 0%, #fff 60%)`
+    : `linear-gradient(160deg, ${FESTI_TOKENS.mint} 0%, #fff 65%)`
   const wordmarkColor = dark ? '#F2F5F7' : FESTI_TOKENS.ink
 
   return (
