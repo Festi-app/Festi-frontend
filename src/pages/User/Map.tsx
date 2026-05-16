@@ -431,14 +431,17 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
             style={{
               backgroundImage: `url(${soongsilDayMap})`,
               backgroundSize: '100% 100%',
-              filter: 'brightness(1.05) saturate(0.6)',
-              opacity: 0.75,
+              ...(dark
+                ? {}
+                : { filter: 'brightness(1.05) saturate(0.6)', opacity: 0.75 }),
             }}
           />
           {/* 엣지 페이드 */}
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[8%] bg-[linear-gradient(180deg,#E8F4F5_0%,transparent_100%)] dark:bg-[linear-gradient(180deg,#0B1A1F_0%,transparent_100%)]" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[8%] bg-[linear-gradient(0deg,#E8F4F5_0%,transparent_100%)] dark:bg-[linear-gradient(0deg,#0B1A1F_0%,transparent_100%)]" />
-          <div className="pointer-events-none absolute inset-0 bg-[rgba(232,244,245,0.18)] dark:bg-[rgba(11,26,31,0.22)]" />
+          {!dark && (
+            <div className="pointer-events-none absolute inset-0 bg-[rgba(232,244,245,0.18)]" />
+          )}
 
           {/* Markers — left/top % 이 이미지 좌표와 1:1 대응 */}
           {markers.map((m) => {
@@ -606,7 +609,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
             <button
               type="button"
               onClick={() => setDayDropdownOpen((v) => !v)}
-              className="flex items-center gap-1 whitespace-nowrap rounded-full border border-cta bg-cta px-3 py-2 text-[13px] font-bold tracking-[-0.2px] text-cta-ink"
+              className="flex items-center gap-1 whitespace-nowrap rounded-full border border-border bg-white/80 px-3 py-2 text-[13px] font-bold tracking-[-0.2px] text-ink shadow-[0_1px_8px_rgba(20,26,31,0.10)] backdrop-blur-sm dark:border-white/30 dark:bg-white/15 dark:text-white"
             >
               {selectedFestivalDay}
               <svg
@@ -639,7 +642,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                       setDayDropdownOpen(false)
                     }}
                     className={`block w-full px-4 py-2.5 text-left text-[13px] font-bold tracking-[-0.2px] ${
-                      selectedFestivalDay === d ? 'text-cta' : 'text-ink'
+                      selectedFestivalDay === d ? 'font-extrabold text-ink' : 'text-ink'
                     }`}
                   >
                     {d}
