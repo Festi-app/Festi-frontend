@@ -5,7 +5,8 @@ import { create } from 'zustand'
 
 import { AdminBooths } from './pages/Admin/Booths'
 import { AdminFestival } from './pages/Admin/Festival'
-import { AdminWaiting } from './pages/Admin/Waiting'
+import { AdminFoodTrucks } from './pages/Admin/FoodTrucks'
+import { AdminBoothRequests } from './pages/Admin/BoothRequests'
 import {
   MobileWaitingRegister,
   MobileWaitingStatus,
@@ -19,6 +20,9 @@ import {
 import { MobileHome } from './pages/User/Home'
 import { MobileMap } from './pages/User/Map'
 import { MobileMy } from './pages/User/My'
+import { BoothAdminLogin } from './pages/BoothAdmin/Login'
+import { BoothAdminRegister } from './pages/BoothAdmin/Register'
+import { BoothAdminDashboard } from './pages/BoothAdmin/Dashboard'
 import { useDayNightStore } from './stores/useDayNightStore'
 
 // ── Global UI state ───────────────────────────────────────────────────────
@@ -85,7 +89,11 @@ const NAV_LINKS = [
   { to: '/me', label: '마이 · 즐겨찾기' },
   { to: '/admin/festival', label: '관리 · 축제 설정' },
   { to: '/admin/booths', label: '관리 · 부스 배치' },
-  { to: '/admin/waiting', label: '관리 · 웨이팅 관리' },
+
+  { to: '/admin/booth-requests', label: '관리 · 부스 신청 관리' },
+  { to: '/booth-admin/login', label: '부스관리자 · 로그인' },
+  { to: '/booth-admin/register', label: '부스관리자 · 회원가입' },
+  { to: '/booth-admin', label: '부스관리자 · 대시보드' },
 ]
 
 function Nav() {
@@ -298,11 +306,40 @@ function AdminBoothsRoute() {
     </AdminLayout>
   )
 }
-function AdminWaitingRoute() {
+
+function AdminFoodTrucksRoute() {
+  return (
+    <AdminLayout>
+      <AdminFoodTrucks />
+    </AdminLayout>
+  )
+}
+function AdminBoothRequestsRoute() {
   const { dark } = useUI()
   return (
     <AdminLayout>
-      <AdminWaiting dark={dark} />
+      <AdminBoothRequests dark={dark} />
+    </AdminLayout>
+  )
+}
+function BoothAdminLoginRoute() {
+  return (
+    <AdminLayout>
+      <BoothAdminLogin />
+    </AdminLayout>
+  )
+}
+function BoothAdminRegisterRoute() {
+  return (
+    <AdminLayout>
+      <BoothAdminRegister />
+    </AdminLayout>
+  )
+}
+function BoothAdminDashboardRoute() {
+  return (
+    <AdminLayout>
+      <BoothAdminDashboard />
     </AdminLayout>
   )
 }
@@ -328,7 +365,17 @@ export default function App() {
         <Route path="/me" element={<MyRoute />} />
         <Route path="/admin/festival" element={<AdminFestivalRoute />} />
         <Route path="/admin/booths" element={<AdminBoothsRoute />} />
-        <Route path="/admin/waiting" element={<AdminWaitingRoute />} />
+        <Route path="/admin/trucks" element={<AdminFoodTrucksRoute />} />
+        <Route
+          path="/admin/booth-requests"
+          element={<AdminBoothRequestsRoute />}
+        />
+        <Route path="/booth-admin/login" element={<BoothAdminLoginRoute />} />
+        <Route
+          path="/booth-admin/register"
+          element={<BoothAdminRegisterRoute />}
+        />
+        <Route path="/booth-admin" element={<BoothAdminDashboardRoute />} />
       </Routes>
     </>
   )

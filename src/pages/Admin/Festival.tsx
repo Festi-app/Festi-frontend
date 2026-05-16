@@ -68,7 +68,14 @@ function AdminSidebar({ active }: { active: string; dark?: boolean }) {
       label: '푸드트럭',
       icon: I.truck,
       badge: 11,
-      to: '/trucks',
+      to: '/admin/trucks',
+    },
+    {
+      id: 'booth-requests',
+      label: '부스 신청 관리',
+      icon: I.user,
+      badge: null,
+      to: '/admin/booth-requests',
     },
     {
       id: 'notices',
@@ -364,17 +371,6 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
       booths: 64,
     },
   ])
-  const [toggles, setToggles] = useState({
-    public: true,
-    waiting: true,
-    trucks: true,
-    congestion: false,
-  })
-
-  const toggleSetting = (key: keyof typeof toggles) => {
-    setToggles((current) => ({ ...current, [key]: !current[key] }))
-    setNotice('공개 설정이 변경됐어요')
-  }
 
   return (
     <AdminShell active="festival" dark={dark}>
@@ -388,12 +384,6 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
               dark={dark}
               ghost
               onClick={() => {
-                setToggles({
-                  public: true,
-                  waiting: true,
-                  trucks: true,
-                  congestion: false,
-                })
                 setSelectedDay('2일차')
                 setNotice('변경사항을 취소했어요')
               }}
@@ -548,63 +538,6 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                 )
               })}
             </div>
-          </Card>
-
-          <Card dark={dark} title="공개 설정">
-            {[
-              {
-                key: 'public',
-                title: '사용자 앱에 공개',
-                sub: '비공개 시 사용자는 시작 전 안내 화면을 봐요',
-              },
-              {
-                key: 'waiting',
-                title: '웨이팅 시스템 활성화',
-                sub: '야간 부스는 별도로 설정 가능',
-              },
-              {
-                key: 'trucks',
-                title: '푸드트럭 별도 카테고리',
-                sub: '홈에 푸드트럭 섹션 노출',
-              },
-              {
-                key: 'congestion',
-                title: '실시간 혼잡도 표시',
-                sub: 'ML 추정치 기준',
-              },
-            ].map((row, index, rows) => {
-              const key = row.key as keyof typeof toggles
-              return (
-                <div
-                  key={row.key}
-                  className={cn(
-                    'flex items-center py-2.5',
-                    index < rows.length - 1 && 'border-b border-border'
-                  )}
-                >
-                  <div className="flex-1">
-                    <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">
-                      {row.title}
-                    </div>
-                    <div className="mt-0.5 text-[11px] text-ink-60">
-                      {row.sub}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => toggleSetting(key)}
-                    className={cn(
-                      'flex h-6.5 w-10.5 items-center rounded-full p-0.5',
-                      toggles[key]
-                        ? 'justify-end bg-pop'
-                        : 'justify-start bg-[#D3DBDE]'
-                    )}
-                  >
-                    <span className="size-5.5 rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.2)]" />
-                  </button>
-                </div>
-              )
-            })}
           </Card>
         </div>
 

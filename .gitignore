@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+.vite
 
 # Original prototype (not part of this project)
 Festi-frontend/

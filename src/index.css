@@ -32,7 +32,7 @@
   --color-cta-ink: var(--cta-ink);
   --color-chip: var(--chip);
   --color-chip-ink: var(--chip-ink);
-  --font-festi:
+  --font-spot:
     'Pretendard', 'Pretendard Variable', -apple-system, system-ui, sans-serif;
 }
 
@@ -114,7 +114,7 @@ body {
   margin: 0;
   padding: 0;
   overscroll-behavior: none;
-  font-family: var(--font-festi);
+  font-family: var(--font-spot);
   background: var(--bg);
   color: var(--ink);
 }

@@ -2,7 +2,9 @@ import { useState, useRef, useEffect } from 'react'
 import type { ReactElement } from 'react'
 import { FESTI_TOKENS, I, Pill } from '../../tokens'
 import { AdminShell, AdminTopBar, AdminBtn } from './Festival'
-import soongsilMap from '../../assets/soongsil-map.png'
+import soongsilDayMap from '../../assets/soongsil-day-map.png'
+import soongsilNightMap from '../../assets/soongsil-night-map.png'
+import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
@@ -13,14 +15,24 @@ function cn(...classes: Array<string | false | null | undefined>) {
 interface ZoneDef {
   id: string
   name: string
-  start: number
-  end: number
+  defaultCount: number
   dir: 'row' | 'column'
   color: string
   left: string
   top: string
   width: string
   height: string
+}
+
+type PermDay = 1 | 2 | 3
+type PermTime = '주간' | '야간'
+type BoothCategory = '정보' | '체험' | '마켓' | '활동'
+
+const CATEGORY_COLORS: Record<BoothCategory, string> = {
+  정보: FESTI_TOKENS.coral,
+  체험: FESTI_TOKENS.grape,
+  마켓: FESTI_TOKENS.sun,
+  활동: FESTI_TOKENS.pop,
 }
 
 interface PermissionEntry {
@@ -30,6 +42,9 @@ interface PermissionEntry {
   orgId: string
   orgName: string
   color: string
+  category: BoothCategory
+  day: PermDay
+  time: PermTime
 }
 
 interface OrgAccount {
@@ -37,16 +52,17 @@ interface OrgAccount {
   name: string
   type: '동아리' | '학생회' | '부서'
   color: string
+  applications: Array<{ day: PermDay; time: PermTime }>
 }
 
 // ── Zone & Org constants ──────────────────────────────────────────────────────
 
+// 주간 지도 (1072 × 998)
 const ZONES: ZoneDef[] = [
   {
     id: 'A',
     name: '진리관 앞',
-    start: 1,
-    end: 14,
+    defaultCount: 14,
     dir: 'row',
     color: FESTI_TOKENS.mint,
     left: '24%',
@@ -57,8 +73,7 @@ const ZONES: ZoneDef[] = [
   {
     id: 'B',
     name: '중앙 가로줄',
-    start: 15,
-    end: 26,
+    defaultCount: 12,
     dir: 'row',
     color: FESTI_TOKENS.coral,
     left: '28%',
@@ -69,8 +84,7 @@ const ZONES: ZoneDef[] = [
   {
     id: 'C',
     name: '동측 세로줄',
-    start: 27,
-    end: 42,
+    defaultCount: 16,
     dir: 'column',
     color: FESTI_TOKENS.mint,
     left: '76%',
@@ -81,8 +95,7 @@ const ZONES: ZoneDef[] = [
   {
     id: 'D',
     name: '외측 세로줄',
-    start: 43,
-    end: 58,
+    defaultCount: 16,
     dir: 'column',
     color: FESTI_TOKENS.sun,
     left: '83.5%',
@@ -93,8 +106,7 @@ const ZONES: ZoneDef[] = [
   {
     id: 'E',
     name: '하단 가로줄',
-    start: 59,
-    end: 70,
+    defaultCount: 12,
     dir: 'row',
     color: FESTI_TOKENS.coral,
     left: '28%',
@@ -105,8 +117,7 @@ const ZONES: ZoneDef[] = [
   {
     id: 'F',
     name: '서측 세로줄',
-    start: 71,
-    end: 76,
+    defaultCount: 6,
     dir: 'column',
     color: FESTI_TOKENS.mint,
     left: '23%',
@@ -117,8 +128,7 @@ const ZONES: ZoneDef[] = [
   {
     id: 'G',
     name: '시계탑',
-    start: 77,
-    end: 77,
+    defaultCount: 1,
     dir: 'row',
     color: FESTI_TOKENS.grape,
     left: '22%',
@@ -128,29 +138,182 @@ const ZONES: ZoneDef[] = [
   },
 ]
 
+// 야간 지도 (1430 × 846)
+const NIGHT_ZONES: ZoneDef[] = [
+  {
+    id: 'N1',
+    name: '베어드홀 앞',
+    defaultCount: 4,
+    dir: 'row',
+    color: FESTI_TOKENS.mint,
+    left: '18%',
+    top: '55%',
+    width: '12%',
+    height: '8%',
+  },
+  {
+    id: 'N2',
+    name: '형남공학관 앞',
+    defaultCount: 6,
+    dir: 'row',
+    color: FESTI_TOKENS.coral,
+    left: '15.5%',
+    top: '70%',
+    width: '19%',
+    height: '8%',
+  },
+  {
+    id: 'N3',
+    name: '중앙광장 서측',
+    defaultCount: 3,
+    dir: 'column',
+    color: FESTI_TOKENS.sun,
+    left: '36.5%',
+    top: '43%',
+    width: '6%',
+    height: '23%',
+  },
+  {
+    id: 'N4',
+    name: '중앙광장 하단',
+    defaultCount: 6,
+    dir: 'row',
+    color: FESTI_TOKENS.coral,
+    left: '43%',
+    top: '64%',
+    width: '23%',
+    height: '7%',
+  },
+  {
+    id: 'N5',
+    name: '백마상 위',
+    defaultCount: 6,
+    dir: 'row',
+    color: FESTI_TOKENS.mint,
+    left: '42.5%',
+    top: '37%',
+    width: '21%',
+    height: '8%',
+  },
+  {
+    id: 'N6',
+    name: '진리관 앞',
+    defaultCount: 4,
+    dir: 'column',
+    color: FESTI_TOKENS.grape,
+    left: '50%',
+    top: '6.5%',
+    width: '8%',
+    height: '19%',
+  },
+  {
+    id: 'N7',
+    name: '조만식·신양관 사이',
+    defaultCount: 4,
+    dir: 'column',
+    color: FESTI_TOKENS.rose,
+    left: '64.5%',
+    top: '17%',
+    width: '6.5%',
+    height: '18%',
+  },
+  {
+    id: 'N8',
+    name: '웨스트민스터홀 앞',
+    defaultCount: 4,
+    dir: 'row',
+    color: FESTI_TOKENS.leaf,
+    left: '76%',
+    top: '16.5%',
+    width: '11%',
+    height: '12%',
+  },
+  {
+    id: 'N9',
+    name: '신양관 옆',
+    defaultCount: 4,
+    dir: 'row',
+    color: FESTI_TOKENS.pop,
+    left: '63%',
+    top: '42%',
+    width: '8%',
+    height: '22%',
+  },
+]
+
 const ORG_LIST: OrgAccount[] = [
-  { id: 'org1', name: '컴퓨터학부', type: '동아리', color: FESTI_TOKENS.coral },
+  {
+    id: 'org1',
+    name: '컴퓨터학부',
+    type: '동아리',
+    color: FESTI_TOKENS.coral,
+    applications: [
+      { day: 1, time: '주간' },
+      { day: 2, time: '야간' },
+    ],
+  },
   {
     id: 'org2',
     name: '경영대학생회',
     type: '학생회',
     color: FESTI_TOKENS.mint,
+    applications: [
+      { day: 1, time: '주간' },
+      { day: 1, time: '야간' },
+      { day: 3, time: '주간' },
+    ],
   },
-  { id: 'org3', name: '사범대학생회', type: '학생회', color: FESTI_TOKENS.sun },
-  { id: 'org4', name: '의약학부', type: '동아리', color: FESTI_TOKENS.grape },
+  {
+    id: 'org3',
+    name: '사범대학생회',
+    type: '학생회',
+    color: FESTI_TOKENS.sun,
+    applications: [
+      { day: 2, time: '주간' },
+      { day: 3, time: '야간' },
+    ],
+  },
+  {
+    id: 'org4',
+    name: '의약학부',
+    type: '동아리',
+    color: FESTI_TOKENS.grape,
+    applications: [
+      { day: 1, time: '야간' },
+      { day: 2, time: '주간' },
+    ],
+  },
   {
     id: 'org5',
     name: '법과대학생회',
     type: '학생회',
     color: FESTI_TOKENS.rose,
+    applications: [
+      { day: 2, time: '주간' },
+      { day: 2, time: '야간' },
+      { day: 3, time: '주간' },
+    ],
   },
   {
     id: 'org6',
     name: '글로벌통상학과',
     type: '동아리',
     color: FESTI_TOKENS.leaf,
+    applications: [
+      { day: 3, time: '주간' },
+      { day: 3, time: '야간' },
+    ],
   },
-  { id: 'org7', name: '미디어학부', type: '동아리', color: FESTI_TOKENS.pop },
+  {
+    id: 'org7',
+    name: '미디어학부',
+    type: '동아리',
+    color: FESTI_TOKENS.pop,
+    applications: [
+      { day: 1, time: '주간' },
+      { day: 3, time: '야간' },
+    ],
+  },
 ]
 
 function selectionShadow(
@@ -260,6 +423,8 @@ export function Chip({
 function PermissionModal({
   zoneId,
   sections,
+  day,
+  time,
   orgs,
   permissions,
   onClose,
@@ -267,14 +432,21 @@ function PermissionModal({
 }: {
   zoneId: string
   sections: number[]
+  day: PermDay
+  time: PermTime
   orgs: OrgAccount[]
   permissions: PermissionEntry[]
   onClose: () => void
-  onAssign: (orgId: string) => void
+  onAssign: (orgId: string, category: BoothCategory) => void
 }) {
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null)
-  const zone = ZONES.find((z) => z.id === zoneId)!
-  const sectionNums = sections.map((s) => zone.start + s)
+  const [selectedCategory, setSelectedCategory] =
+    useState<BoothCategory | null>(null)
+  const zone = [...ZONES, ...NIGHT_ZONES].find((z) => z.id === zoneId)!
+  const sectionNums = sections.map((s) => s + 1)
+  const filteredOrgs = orgs.filter((o) =>
+    o.applications.some((a) => a.day === day && a.time === time)
+  )
 
   return (
     <div
@@ -297,7 +469,7 @@ function PermissionModal({
               권한 부여
             </div>
             <div className="mt-0.5 text-xs text-ink-60">
-              {zone.name} · {sectionNums.length}개 섹션 선택됨
+              {zone.name} · {day}일차 {time} · {sectionNums.length}개 섹션
               {sectionNums.length <= 6 && ` (${sectionNums.join(', ')}번)`}
             </div>
           </div>
@@ -310,54 +482,90 @@ function PermissionModal({
           </button>
         </div>
 
+        {/* category selector */}
+        <div className="border-b border-border px-4 py-3">
+          <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
+            부스 유형
+          </div>
+          <div className="grid grid-cols-4 gap-1.5">
+            {(Object.keys(CATEGORY_COLORS) as BoothCategory[]).map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={cn(
+                  'rounded-xl py-2 text-[12px] font-bold transition-all',
+                  selectedCategory === cat ? 'text-white' : 'text-ink-60'
+                )}
+                style={
+                  selectedCategory === cat
+                    ? { background: CATEGORY_COLORS[cat] }
+                    : { background: `${CATEGORY_COLORS[cat]}22` }
+                }
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* org list */}
         <div className="flex-1 overflow-y-auto px-4 py-3">
           <div className="mb-2.5 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
-            부스 관리자 선택
+            {day}일차 {time} 신청 부스 관리자
           </div>
-          <div className="flex flex-col gap-1.5">
-            {orgs.map((org) => {
-              const alreadyHas = permissions.some(
-                (p) => p.orgId === org.id && p.zoneId === zoneId
-              )
-              return (
-                <button
-                  key={org.id}
-                  type="button"
-                  onClick={() => setSelectedOrgId(org.id)}
-                  className={cn(
-                    'flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-all',
-                    selectedOrgId === org.id
-                      ? 'border-transparent'
-                      : 'border-border'
-                  )}
-                  style={
-                    selectedOrgId === org.id
-                      ? { background: `${org.color}22`, borderColor: org.color }
-                      : {}
-                  }
-                >
-                  <div
-                    className="size-3 shrink-0 rounded-full"
-                    style={{ background: org.color }}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[13px] font-bold text-ink">
-                      {org.name}
-                    </div>
-                    {alreadyHas && (
-                      <div className="text-[10px] text-ink-60">
-                        이미 이 구역에 섹션 보유
-                      </div>
+          {filteredOrgs.length === 0 ? (
+            <div className="py-6 text-center text-[12px] text-ink-40">
+              해당 일자·시간으로 신청한 부스가 없어요
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              {filteredOrgs.map((org) => {
+                const alreadyHas = permissions.some(
+                  (p) => p.orgId === org.id && p.zoneId === zoneId
+                )
+                return (
+                  <button
+                    key={org.id}
+                    type="button"
+                    onClick={() => setSelectedOrgId(org.id)}
+                    className={cn(
+                      'flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-all',
+                      selectedOrgId === org.id
+                        ? 'border-transparent'
+                        : 'border-border'
                     )}
-                  </div>
-                  <Pill color={`${org.color}22`} ink={org.color}>
-                    {org.type}
-                  </Pill>
-                </button>
-              )
-            })}
-          </div>
+                    style={
+                      selectedOrgId === org.id
+                        ? {
+                            background: `${org.color}22`,
+                            borderColor: org.color,
+                          }
+                        : {}
+                    }
+                  >
+                    <div
+                      className="size-3 shrink-0 rounded-full"
+                      style={{ background: org.color }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[13px] font-bold text-ink">
+                        {org.name}
+                      </div>
+                      {alreadyHas && (
+                        <div className="text-[10px] text-ink-60">
+                          이미 이 구역에 섹션 보유
+                        </div>
+                      )}
+                    </div>
+                    <Pill color={`${org.color}22`} ink={org.color}>
+                      {org.type}
+                    </Pill>
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* footer */}
@@ -371,8 +579,12 @@ function PermissionModal({
           </button>
           <button
             type="button"
-            onClick={() => selectedOrgId && onAssign(selectedOrgId)}
-            disabled={!selectedOrgId}
+            onClick={() =>
+              selectedOrgId &&
+              selectedCategory &&
+              onAssign(selectedOrgId, selectedCategory)
+            }
+            disabled={!selectedOrgId || !selectedCategory}
             className="flex-1 rounded-xl bg-coral py-3 text-sm font-extrabold text-white disabled:opacity-40"
           >
             권한 부여
@@ -388,15 +600,18 @@ function PermissionModal({
 function ConfigureSidebar({
   zoneDivisions,
   setZoneDivisions,
+  mapMode,
   onSave,
 }: {
   zoneDivisions: Record<string, number>
   setZoneDivisions: (
     fn: (prev: Record<string, number>) => Record<string, number>
   ) => void
+  mapMode: '주간' | '야간'
   onSave: () => void
 }) {
-  const total = Object.values(zoneDivisions).reduce((a, b) => a + b, 0)
+  const zones = mapMode === '주간' ? ZONES : NIGHT_ZONES
+  const total = zones.reduce((a, z) => a + zoneDivisions[z.id], 0)
 
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-surface">
@@ -408,8 +623,7 @@ function ConfigureSidebar({
       </div>
 
       <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto p-4">
-        {ZONES.map((zone) => {
-          const max = zone.end - zone.start + 1
+        {zones.map((zone) => {
           const val = zoneDivisions[zone.id]
           return (
             <div key={zone.id} className="rounded-xl border border-border p-3">
@@ -421,9 +635,7 @@ function ConfigureSidebar({
                 <span className="flex-1 text-[13px] font-extrabold text-ink">
                   {zone.name}
                 </span>
-                <span className="text-[11px] text-ink-40">
-                  {zone.start}–{zone.end}
-                </span>
+                <span className="text-[11px] text-ink-40">구역 {zone.id}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[12px] text-ink-60">섹션 수</span>
@@ -440,15 +652,25 @@ function ConfigureSidebar({
                   >
                     −
                   </button>
-                  <span className="w-7 text-center text-[14px] font-extrabold text-ink">
-                    {val}
-                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={val}
+                    onChange={(e) => {
+                      const n = parseInt(e.target.value, 10)
+                      if (!isNaN(n) && n >= 1)
+                        setZoneDivisions((prev) => ({ ...prev, [zone.id]: n }))
+                      else if (e.target.value === '')
+                        setZoneDivisions((prev) => ({ ...prev, [zone.id]: 0 }))
+                    }}
+                    className="w-9 rounded-lg border border-ink-20 bg-transparent text-center text-[13px] font-extrabold text-ink focus:border-cta focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
                   <button
                     type="button"
                     onClick={() =>
                       setZoneDivisions((prev) => ({
                         ...prev,
-                        [zone.id]: Math.min(max, prev[zone.id] + 1),
+                        [zone.id]: prev[zone.id] + 1,
                       }))
                     }
                     className="flex size-6 items-center justify-center rounded-lg border border-ink-20 text-base leading-none text-ink-60"
@@ -456,21 +678,6 @@ function ConfigureSidebar({
                     +
                   </button>
                 </div>
-              </div>
-              <div
-                className="mt-2 h-1.5 overflow-hidden rounded-full"
-                style={{ background: `${zone.color}33` }}
-              >
-                <div
-                  className="h-1.5 rounded-full transition-all duration-150"
-                  style={{
-                    background: zone.color,
-                    width: `${(val / max) * 100}%`,
-                  }}
-                />
-              </div>
-              <div className="mt-1 text-right text-[10px] text-ink-40">
-                최대 {max}개
               </div>
             </div>
           )
@@ -497,14 +704,28 @@ function ConfigureSidebar({
 // ── Assign Sidebar ────────────────────────────────────────────────────────────
 
 function AssignSidebar({
+  orgs,
   permissions,
+  selectedDay,
+  selectedTime,
+  onDayChange,
+  onTimeChange,
   onRemovePermission,
   onBack,
 }: {
+  orgs: OrgAccount[]
   permissions: PermissionEntry[]
+  selectedDay: PermDay
+  selectedTime: PermTime
+  onDayChange: (d: PermDay) => void
+  onTimeChange: (t: PermTime) => void
   onRemovePermission: (id: string) => void
   onBack: () => void
 }) {
+  const slotOrgs = orgs.filter((o) =>
+    o.applications.some((a) => a.day === selectedDay && a.time === selectedTime)
+  )
+
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-surface">
       <div className="border-b border-border px-5 py-4">
@@ -519,49 +740,101 @@ function AssignSidebar({
           부스 권한 부여
         </div>
         <div className="mt-0.5 text-[11px] text-ink-60">
-          지도에서 드래그해 구역을 선택하세요
+          일자·시간 선택 후 구역을 드래그하세요
         </div>
       </div>
 
-      {/* Registered orgs */}
+      {/* Day + Time selector */}
       <div className="border-b border-border px-4 py-3">
         <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
-          등록된 부스 관리자
+          일자 선택
         </div>
-        <div className="flex flex-col gap-1">
-          {ORG_LIST.map((org) => {
-            const assigned = permissions
-              .filter((p) => p.orgId === org.id)
-              .reduce((sum, p) => sum + p.sections.length, 0)
-            return (
-              <div
-                key={org.id}
-                className={cn(
-                  'flex items-center gap-2 rounded-lg px-2.5 py-1.5',
-                  assigned === 0 && 'bg-surface-alt'
-                )}
-                style={
-                  assigned > 0 ? { background: `${org.color}15` } : undefined
-                }
-              >
+        <div className="mb-3 flex gap-1">
+          {([1, 2, 3] as PermDay[]).map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => onDayChange(d)}
+              className={cn(
+                'flex-1 rounded-lg py-1.5 text-[12px] font-bold transition-colors',
+                selectedDay === d
+                  ? 'bg-cta text-white'
+                  : 'bg-surface-alt text-ink-60'
+              )}
+            >
+              {d}일차
+            </button>
+          ))}
+        </div>
+        <div className="mb-1 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
+          시간 선택
+        </div>
+        <div className="flex gap-1">
+          {(['주간', '야간'] as PermTime[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => onTimeChange(t)}
+              className={cn(
+                'flex-1 rounded-lg py-1.5 text-[12px] font-bold transition-colors',
+                selectedTime === t
+                  ? 'bg-cta text-white'
+                  : 'bg-surface-alt text-ink-60'
+              )}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Orgs for this slot */}
+      <div className="border-b border-border px-4 py-3">
+        <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
+          {selectedDay}일차 {selectedTime} 신청 ({slotOrgs.length}개)
+        </div>
+        {slotOrgs.length === 0 ? (
+          <div className="py-2 text-center text-[11px] text-ink-40">
+            신청 부스 없음
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {slotOrgs.map((org) => {
+              const assigned = permissions
+                .filter(
+                  (p) =>
+                    p.orgId === org.id &&
+                    p.day === selectedDay &&
+                    p.time === selectedTime
+                )
+                .reduce((sum, p) => sum + p.sections.length, 0)
+              return (
                 <div
-                  className="size-2 shrink-0 rounded-full"
-                  style={{ background: org.color }}
-                />
-                <span className="flex-1 truncate text-[12px] font-bold text-ink">
-                  {org.name}
-                </span>
-                {assigned > 0 ? (
-                  <Pill color={`${org.color}22`} ink={org.color}>
-                    {assigned}칸
-                  </Pill>
-                ) : (
-                  <span className="text-[10px] text-ink-40">미배정</span>
-                )}
-              </div>
-            )
-          })}
-        </div>
+                  key={org.id}
+                  className="flex items-center gap-2 rounded-lg px-2.5 py-1.5"
+                  style={{
+                    background: assigned > 0 ? `${org.color}15` : undefined,
+                  }}
+                >
+                  <div
+                    className="size-2 shrink-0 rounded-full"
+                    style={{ background: org.color }}
+                  />
+                  <span className="flex-1 truncate text-[12px] font-bold text-ink">
+                    {org.name}
+                  </span>
+                  {assigned > 0 ? (
+                    <Pill color={`${org.color}22`} ink={org.color}>
+                      {assigned}칸
+                    </Pill>
+                  ) : (
+                    <span className="text-[10px] text-ink-40">미배정</span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Assigned permissions */}
@@ -570,7 +843,7 @@ function AssignSidebar({
           <div className="py-8 text-center text-[12px] text-ink-40">
             아직 권한이 부여된 부스가 없어요
             <br />
-            지도에서 구역을 드래그해보세요
+            구역을 드래그해보세요
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -578,7 +851,9 @@ function AssignSidebar({
               배정 목록 ({permissions.length}건)
             </div>
             {permissions.map((p) => {
-              const zone = ZONES.find((z) => z.id === p.zoneId)!
+              const zone = [...ZONES, ...NIGHT_ZONES].find(
+                (z) => z.id === p.zoneId
+              )!
               return (
                 <div key={p.id} className="rounded-xl border border-border p-3">
                   <div className="flex items-start gap-2">
@@ -587,11 +862,20 @@ function AssignSidebar({
                       style={{ background: p.color }}
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-[13px] font-bold text-ink">
-                        {p.orgName}
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate text-[13px] font-bold text-ink">
+                          {p.orgName}
+                        </span>
+                        <span
+                          className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-white"
+                          style={{ background: CATEGORY_COLORS[p.category] }}
+                        >
+                          {p.category}
+                        </span>
                       </div>
                       <div className="mt-0.5 text-[11px] text-ink-60">
-                        {zone.name} · {p.sections.length}개 섹션
+                        {zone.name} · {p.day}일차 {p.time} · {p.sections.length}
+                        개 섹션
                       </div>
                     </div>
                     <button
@@ -617,9 +901,35 @@ function AssignSidebar({
 // ── AdminBooths ───────────────────────────────────────────────────────────────
 
 export function AdminBooths({ dark = false }: { dark?: boolean }) {
+  const storeAccounts = useBoothAdminStore((s) => s.accounts)
+  const setBoothLocation = useBoothAdminStore((s) => s.setBoothLocation)
+
+  // Merge hardcoded ORG_LIST with pending/approved booth admin accounts
+  const allOrgs: OrgAccount[] = [
+    ...ORG_LIST,
+    ...storeAccounts
+      .filter((a) => a.status !== 'rejected')
+      .map((a) => ({
+        id: a.id,
+        name: a.orgName,
+        type: (a.orgType === '동아리/소모임'
+          ? '동아리'
+          : '학생회') as OrgAccount['type'],
+        color: FESTI_TOKENS.mint,
+        applications: ([1, 2, 3] as PermDay[]).flatMap((d) =>
+          a.operatingTimes.map((t) => ({ day: d, time: t as PermTime }))
+        ),
+      })),
+  ]
+
   const [step, setStep] = useState<'configure' | 'assign'>('configure')
+  const [mapMode, setMapMode] = useState<'주간' | '야간'>('주간')
+  const activeZones = mapMode === '주간' ? ZONES : NIGHT_ZONES
   const [zoneDivisions, setZoneDivisions] = useState<Record<string, number>>(
-    () => Object.fromEntries(ZONES.map((z) => [z.id, z.end - z.start + 1]))
+    () =>
+      Object.fromEntries(
+        [...ZONES, ...NIGHT_ZONES].map((z) => [z.id, z.defaultCount])
+      )
   )
   const [permissions, setPermissions] = useState<PermissionEntry[]>([])
   const [dragState, setDragState] = useState<{
@@ -636,6 +946,8 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
     zoneId: string
     sections: number[]
   } | null>(null)
+  const [selectedDay, setSelectedDay] = useState<PermDay>(1)
+  const [selectedTime, setSelectedTime] = useState<PermTime>('주간')
   const [notice, setNotice] = useState('구역별 섹션 개수를 설정하고 저장하세요')
 
   function handleMapMouseUp() {
@@ -668,9 +980,15 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
     })
   }
 
-  function handlePermissionAssign(orgId: string) {
+  function handlePermissionAssign(orgId: string, category: BoothCategory) {
     if (!assignModal) return
-    const org = ORG_LIST.find((o) => o.id === orgId)!
+    const org = allOrgs.find((o) => o.id === orgId)!
+    const zone = [...ZONES, ...NIGHT_ZONES].find(
+      (z) => z.id === assignModal.zoneId
+    )
+    const zoneLabel = zone
+      ? `${zone.name} (${assignModal.sections.map((s) => s + 1).join(', ')}번)`
+      : assignModal.zoneId
     setPermissions((prev) => [
       ...prev,
       {
@@ -679,9 +997,16 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
         sections: assignModal.sections,
         orgId,
         orgName: org.name,
-        color: org.color,
+        color: CATEGORY_COLORS[category],
+        category,
+        day: selectedDay,
+        time: selectedTime,
       },
     ])
+    // If this org is a registered booth admin account, write location back to store
+    if (storeAccounts.some((a) => a.id === orgId)) {
+      setBoothLocation(orgId, selectedTime as '주간' | '야간', zoneLabel)
+    }
     setAssignModal(null)
     setNotice(`${org.name}에 권한을 부여했어요`)
   }
@@ -735,6 +1060,7 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
           <ConfigureSidebar
             zoneDivisions={zoneDivisions}
             setZoneDivisions={setZoneDivisions}
+            mapMode={mapMode}
             onSave={() => {
               setStep('assign')
               setNotice('지도에서 구역을 드래그해 권한을 부여하세요')
@@ -742,7 +1068,12 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
           />
         ) : (
           <AssignSidebar
+            orgs={allOrgs}
             permissions={permissions}
+            selectedDay={selectedDay}
+            selectedTime={selectedTime}
+            onDayChange={setSelectedDay}
+            onTimeChange={setSelectedTime}
             onRemovePermission={(id) =>
               setPermissions((prev) => prev.filter((p) => p.id !== id))
             }
@@ -755,28 +1086,46 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
 
         {/* ── Map ── */}
         <main
-          className="flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-[#E8F4F5] dark:bg-[#0B1A1F]"
+          className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-[#E8F4F5] dark:bg-[#0B1A1F]"
           onMouseUp={handleMapMouseUp}
           onMouseLeave={handleMapMouseUp}
         >
+          {/* Map mode toggle */}
+          <div className="absolute top-3 left-3 z-10 flex gap-1">
+            {(['주간', '야간'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMapMode(m)}
+                className={cn(
+                  'rounded-lg px-3 py-1.5 text-[12px] font-bold shadow-sm transition-colors',
+                  mapMode === m
+                    ? 'bg-cta text-white'
+                    : 'bg-surface/85 text-ink backdrop-blur-sm'
+                )}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+
           {/* Wrapper = exact image aspect ratio. h-full fills main, width auto-calculated. */}
           <div
             className={cn('relative h-full min-h-0 transition-transform')}
-            style={{ aspectRatio: '1072 / 998', maxWidth: '100%' }}
+            style={{
+              aspectRatio: mapMode === '주간' ? '1072 / 998' : '1430 / 846',
+              maxWidth: '100%',
+            }}
           >
             <img
-              src={soongsilMap}
+              src={mapMode === '주간' ? soongsilDayMap : soongsilNightMap}
               alt=""
               className="h-full w-full dark:brightness-[0.6] dark:saturate-[0.8]"
             />
 
             {/* ── Zone overlays ── */}
-            {ZONES.map((zone) => {
-              // configure: admin-set section count  /  assign: original full cell count
-              const divisions =
-                step === 'configure'
-                  ? zoneDivisions[zone.id]
-                  : zone.end - zone.start + 1
+            {activeZones.map((zone) => {
+              const divisions = zoneDivisions[zone.id]
               return (
                 <div
                   key={zone.id}
@@ -887,7 +1236,7 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
                             : undefined
                         }
                       >
-                        {zone.start + idx}
+                        {idx + 1}
                         {perm && (
                           <div className="absolute bottom-0.5 right-0.5 size-1 rounded-full bg-white/70" />
                         )}
@@ -899,7 +1248,7 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
             })}
 
             {/* ── Zone labels ── */}
-            {ZONES.map((zone) => (
+            {activeZones.map((zone) => (
               <div
                 key={`label-${zone.id}`}
                 className="pointer-events-none absolute z-5"
@@ -938,7 +1287,9 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
         <PermissionModal
           zoneId={assignModal.zoneId}
           sections={assignModal.sections}
-          orgs={ORG_LIST}
+          day={selectedDay}
+          time={selectedTime}
+          orgs={allOrgs}
           permissions={permissions}
           onClose={() => setAssignModal(null)}
           onAssign={handlePermissionAssign}
