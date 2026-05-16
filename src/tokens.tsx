@@ -1,5 +1,9 @@
 import type { CSSProperties, ReactElement, ReactNode } from 'react'
 
+export const DAY_GRADIENT = 'linear-gradient(135deg, #1DB862 0%, #22C36A 100%)'
+export const NIGHT_GRADIENT =
+  'linear-gradient(135deg, #E84040 0%, #FF6B6B 100%)'
+
 // eslint-disable-next-line react-refresh/only-export-components
 export const FESTI_TOKENS = {
   mint: '#A9E5E7',

@@ -14,6 +14,7 @@ const FAVORITES = [
     open: true,
     tone: 'rose',
     tagColor: FESTI_TOKENS.alert,
+    tagInk: '#FFFFFF',
   },
   {
     id: 38,
@@ -25,6 +26,7 @@ const FAVORITES = [
     open: true,
     tone: 'mint',
     tagColor: FESTI_TOKENS.mint,
+    tagInk: FESTI_TOKENS.ink,
   },
   {
     id: 47,
@@ -36,6 +38,7 @@ const FAVORITES = [
     open: true,
     tone: 'sun',
     tagColor: FESTI_TOKENS.sun,
+    tagInk: FESTI_TOKENS.ink,
   },
   {
     id: 64,
@@ -47,6 +50,7 @@ const FAVORITES = [
     open: false,
     tone: 'coral',
     tagColor: FESTI_TOKENS.coral,
+    tagInk: FESTI_TOKENS.ink,
   },
 ]
 
@@ -178,7 +182,7 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <Pill color={booth.tagColor} ink={FESTI_TOKENS.ink}>
+                    <Pill color={booth.tagColor} ink={booth.tagInk}>
                       {booth.category}
                     </Pill>
                     <Pill
