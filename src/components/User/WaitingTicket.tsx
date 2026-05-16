@@ -68,10 +68,11 @@ export function WaitingTicketCard({
             ink={FESTI_TOKENS.mint}
             style={{ fontSize: 11 }}
           >
-            <span className="mr-1 inline-block size-1.5 animate-[festi-blink_1.6s_ease-in-out_infinite] rounded-full bg-mint" />
-            LIVE · 진행중
+            {aheadTeams <= 3 && (
+              <span className="mr-1 inline-block size-1.5 animate-[festi-blink_1.6s_ease-in-out_infinite] rounded-full bg-mint" />
+            )}
+            대기번호
           </Pill>
-          <div className="text-[11px] font-semibold opacity-70">대기번호</div>
         </div>
 
         <div className="mt-4 flex items-baseline gap-3">

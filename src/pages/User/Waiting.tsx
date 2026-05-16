@@ -1,9 +1,14 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, FestiterMark, I, PhotoSlot, Pill } from '../../tokens'
+import { FESTI_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { FestiTabBar } from '../../components/User/Navbar'
-import { ScreenHeader, SubHeader } from '../../components/User/ScreenHeader'
+import {
+  AppHeader,
+  PageTitle,
+  ScreenHeader,
+  SubHeader,
+} from '../../components/User/ScreenHeader'
 import { WaitingTicketCard } from '../../components/User/WaitingTicket'
 
 // ── Field label ───────────────────────────────────────────────────────────────
@@ -229,23 +234,17 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const [activeWaiting, setActiveWaiting] = useState(true)
   const [confirmCancel, setConfirmCancel] = useState(false)
-  const markColor = dark ? '#F2F5F7' : '#141A1F'
   const ink60 = dark ? '#8B939B' : '#5E676D'
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-bg font-festi">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
       {/* Header */}
-      <div className="px-5 pt-13.5 pb-3.5">
-        <div className="mt-1.5 mb-1 flex items-center gap-2">
-          <FestiterMark size={18} color={markColor} />
-          <div className="flex-1" />
-        </div>
-        <div className="text-[26px] font-extrabold tracking-[-0.7px] text-ink">
-          내 웨이팅
-        </div>
+      <div className="shrink-0 px-5 pt-13.5 pb-3.5">
+        <AppHeader dark={dark} className="mt-1.5 mb-1" />
+        <PageTitle>내 웨이팅</PageTitle>
       </div>
 
-      <div className="h-[calc(100%-100px)] overflow-auto px-5 pt-1 pb-27.5">
+      <div className="min-h-0 flex-1 overflow-auto px-5 pt-1 pb-27.5">
         {/* Main ticket card */}
         {activeWaiting && (
           <WaitingTicketCard
@@ -257,7 +256,7 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
             waitNo={34}
             callNo={30}
             progressPct={60}
-            aheadTeams={4}
+            aheadTeams={2}
             etaMin={14}
             onCancel={() => setConfirmCancel(true)}
           />
@@ -278,9 +277,16 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
           </div>
         </div>
 
-        <SubHeader title="다른 웨이팅" right="2건" />
+        <SubHeader title="다른 웨이팅" right="4건" />
         <div className="flex flex-col gap-2.5">
           {[
+            {
+              n: 16,
+              name: '컴공과 칵테일 바',
+              wait: 2,
+              sub: '앞에 2팀 · ~7분',
+              tone: 'rose',
+            },
             {
               n: 38,
               name: '체대 곱창집',
@@ -295,14 +301,21 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
               sub: '앞에 3팀 · ~10분',
               tone: 'sun',
             },
+            {
+              n: 22,
+              name: '의약학부 주점',
+              wait: 8,
+              sub: '앞에 8팀 · ~25분',
+              tone: 'grape',
+            },
           ].map((w, i) => {
-            // 3팀 이하: 초록(pop) / 4~7팀: 노랑(sun) / 8팀 이상: 주황(alert)
             const pillColor =
               w.wait <= 3
                 ? FESTI_TOKENS.pop
                 : w.wait <= 7
                   ? FESTI_TOKENS.sun
                   : FESTI_TOKENS.alert
+            const soon = w.wait <= 3
             return (
               <button
                 type="button"
@@ -329,7 +342,15 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
                       #{w.n}
                     </Pill>
                   </div>
-                  <div className="mt-1 text-sm font-bold tracking-[-0.3px] text-ink">
+                  <div className="mt-1 flex items-center gap-1.5 text-sm font-bold tracking-[-0.3px] text-ink">
+                    {soon && (
+                      <span
+                        className="inline-block size-1.5 shrink-0 rounded-full bg-pop"
+                        style={{
+                          animation: 'festi-ping 1.4s ease-in-out infinite',
+                        }}
+                      />
+                    )}
                     {w.name}
                   </div>
                   <div className="mt-0.5 text-[11px] text-ink-60">{w.sub}</div>

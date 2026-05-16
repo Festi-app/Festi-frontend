@@ -11,6 +11,7 @@ import {
 
 import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import { FestiTabBar } from '../../components/User/Navbar'
+import { AppHeader } from '../../components/User/ScreenHeader'
 import { useDayNightStore } from '../../stores/useDayNightStore'
 
 // ── Stat cell ─────────────────────────────────────────────────────────────────
@@ -562,7 +563,8 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
 
       {/* Top header */}
       <div className="absolute inset-x-0 top-0 z-10 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(255,255,255,0)_100%)] px-4 pt-13.5 pb-2 dark:bg-[linear-gradient(180deg,rgba(11,26,31,0.97)_0%,rgba(11,26,31,0)_100%)]">
-        <div className="mt-1 mb-2 flex items-center gap-2.5">
+        <AppHeader dark={dark} className="mt-2 mb-2.5" />
+        <div className="mb-2 flex items-center gap-2.5">
           <button
             type="button"
             onClick={() => setSearchOpen(true)}

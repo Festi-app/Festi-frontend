@@ -1,8 +1,8 @@
 import type { CSSProperties, ReactElement, ReactNode } from 'react'
 
-export const DAY_GRADIENT = 'linear-gradient(135deg, #1DB862 0%, #22C36A 100%)'
+export const DAY_GRADIENT = 'linear-gradient(135deg, #FFD747 0%, #FF9500 100%)'
 export const NIGHT_GRADIENT =
-  'linear-gradient(135deg, #E84040 0%, #FF6B6B 100%)'
+  'linear-gradient(135deg, #3B3F8C 0%, #7B5EA7 100%)'
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const FESTI_TOKENS = {
@@ -135,7 +135,7 @@ export function FestiterMark({
           }}
         />
       </span>
-      <span>festi</span>
+      <span>Fest!v.</span>
     </div>
   )
 }
