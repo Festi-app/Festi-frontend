@@ -8,6 +8,7 @@ import { AdminBooths } from './pages/Admin/Booths'
 import { AdminFestival } from './pages/Admin/Festival'
 import { AdminFoodTrucks } from './pages/Admin/FoodTrucks'
 import { AdminBoothRequests } from './pages/Admin/BoothRequests'
+import { AdminTimetable } from './pages/Admin/Timetable'
 import {
   MobileWaitingRegister,
   MobileWaitingStatus,
@@ -106,6 +107,7 @@ const NAV_SECTIONS = [
       { to: '/admin/booths', label: '부스 배치' },
       { to: '/admin/trucks', label: '푸드트럭' },
       { to: '/admin/booth-requests', label: '부스 신청 관리' },
+      { to: '/admin/timetable', label: '공연 타임테이블' },
     ],
   },
   {
@@ -387,6 +389,13 @@ function AdminBoothRequestsRoute() {
     </AdminLayout>
   )
 }
+function AdminTimetableRoute() {
+  return (
+    <AdminLayout>
+      <AdminTimetable />
+    </AdminLayout>
+  )
+}
 function BoothAdminLoginRoute() {
   return (
     <AdminLayout>
@@ -438,6 +447,7 @@ export default function App() {
           path="/admin/booth-requests"
           element={<AdminBoothRequestsRoute />}
         />
+        <Route path="/admin/timetable" element={<AdminTimetableRoute />} />
         <Route path="/booth-admin/login" element={<BoothAdminLoginRoute />} />
         <Route
           path="/booth-admin/register"

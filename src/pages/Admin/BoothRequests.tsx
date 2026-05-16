@@ -1,10 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  AdminShell,
-  AdminTopBar,
-  AdminBtn,
-} from '../../components/Admin/Chrome'
+import { AdminShell } from '../../components/Admin/AdminShell'
+import { AdminTopBar } from '../../components/Admin/AdminTopBar'
+import { AdminBtn } from '../../components/Admin/AdminBtn'
 import {
   useBoothAdminStore,
   type BoothAdminAccount,
@@ -12,9 +10,7 @@ import {
 } from '../../stores/useBoothAdminStore'
 import { I } from '../../tokens'
 
-function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(' ')
-}
+import { cn } from '../../lib/cn'
 
 type StatusFilter = 'pending' | 'approved' | 'rejected'
 
@@ -197,7 +193,7 @@ function AccountCard({
   )
 }
 
-export function AdminBoothRequests({ dark }: { dark?: boolean }) {
+export function AdminBoothRequests() {
   const accounts = useBoothAdminStore((s) => s.accounts)
   const approveAccount = useBoothAdminStore((s) => s.approveAccount)
   const rejectAccount = useBoothAdminStore((s) => s.rejectAccount)
@@ -218,7 +214,7 @@ export function AdminBoothRequests({ dark }: { dark?: boolean }) {
     filter === 'pending' ? pending : filter === 'approved' ? approved : rejected
 
   return (
-    <AdminShell active="booth-requests" dark={dark}>
+    <AdminShell active="booth-requests">
       <AdminTopBar
         title="부스 신청 관리"
         sub={`총 ${accounts.length}건 · 대기 ${pending.length}건`}

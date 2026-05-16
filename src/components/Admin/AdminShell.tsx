@@ -1,28 +1,9 @@
 import type { ReactElement, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTI_TOKENS, FestiterMark, I } from '../../tokens'
+import { cn } from '../../lib/cn'
 
-function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(' ')
-}
-
-export function AdminShell({
-  active = 'booths',
-  children,
-}: {
-  active?: string
-  children: ReactNode
-  dark?: boolean
-}) {
-  return (
-    <div className="flex h-full w-full overflow-hidden bg-bg font-festi text-ink">
-      <AdminSidebar active={active} />
-      <div className="flex min-w-0 flex-1 flex-col">{children}</div>
-    </div>
-  )
-}
-
-function AdminSidebar({ active }: { active: string; dark?: boolean }) {
+function AdminSidebar({ active }: { active: string }) {
   const navigate = useNavigate()
   const items: Array<{
     id: string
@@ -59,6 +40,13 @@ function AdminSidebar({ active }: { active: string; dark?: boolean }) {
       icon: I.user,
       badge: null,
       to: '/admin/booth-requests',
+    },
+    {
+      id: 'timetable',
+      label: '공연 타임테이블',
+      icon: I.clock,
+      badge: null,
+      to: '/admin/timetable',
     },
     {
       id: 'notices',
@@ -159,58 +147,17 @@ function AdminSidebar({ active }: { active: string; dark?: boolean }) {
   )
 }
 
-export function AdminTopBar({
-  title,
-  sub,
-  right,
-}: {
-  title: string
-  sub?: string
-  dark?: boolean
-  right?: ReactNode
-}) {
-  return (
-    <header className="flex items-center justify-between border-b border-border bg-surface px-7 py-4.5">
-      <div>
-        <div className="text-[22px] font-extrabold tracking-[-0.5px] text-ink">
-          {title}
-        </div>
-        {sub && <div className="mt-0.5 text-xs text-ink-60">{sub}</div>}
-      </div>
-      <div className="flex items-center gap-2">{right}</div>
-    </header>
-  )
-}
-
-export function AdminBtn({
+export function AdminShell({
+  active = 'booths',
   children,
-  primary,
-  ghost,
-  icon,
-  onClick,
 }: {
-  children?: ReactNode
-  primary?: boolean
-  ghost?: boolean
-  dark?: boolean
-  icon?: ReactElement
-  onClick?: () => void
+  active?: string
+  children: ReactNode
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border px-3.5 py-2.25 text-[13px] font-bold tracking-[-0.2px]',
-        primary
-          ? 'border-cta bg-cta text-cta-ink'
-          : ghost
-            ? 'border-border bg-transparent text-ink-80'
-            : 'border-border bg-surface text-ink-80'
-      )}
-    >
-      {icon && <div className="size-3.5">{icon}</div>}
-      {children}
-    </button>
+    <div className="flex h-full w-full overflow-hidden bg-bg font-festi text-ink">
+      <AdminSidebar active={active} />
+      <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+    </div>
   )
 }
