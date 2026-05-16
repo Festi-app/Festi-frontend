@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTI_TOKENS, I } from '../../tokens'
-import { FestHeaderLogo } from '../../components/FestLogo'
+import { FestWordmark } from '../../components/FestLogo'
+import { AppHeader } from '../../components/User/ScreenHeader'
 import { InputField } from '../../components/shared/InputField'
 import { PasswordField } from '../../components/shared/PasswordField'
 
@@ -60,19 +61,23 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
       className="relative flex h-full w-full flex-col overflow-hidden font-festi"
       style={{ background: dark ? '#0F1216' : '#F2F3F4' }}
     >
+      {/* 공유 헤더 */}
+      <div className="shrink-0 px-5 pt-13.5">
+        <AppHeader dark={dark} className="mt-2 mb-1" />
+      </div>
+
       {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto px-5 pb-36 pt-14">
-        {/* 로고 + 타이틀 */}
-        <div className="mb-8 mt-6">
-          <FestHeaderLogo size={26} />
-          <div className="mt-4 text-[26px] font-extrabold leading-tight tracking-[-0.6px] text-ink">
+      <div className="flex-1 overflow-y-auto px-5 pb-36 pt-4">
+        {/* 타이틀 */}
+        <div className="mb-8 mt-2">
+          <div className="text-[26px] font-extrabold leading-tight tracking-[-0.6px] text-ink">
             축제를 더 즐겁게,
             <br />
-            <FestHeaderLogo size={26} color={wordmarkColor} />
-            <span>와 함께해요</span>
+            <FestWordmark size={26} color={wordmarkColor} />
+            <span>와 함께해요.</span>
           </div>
           <div className="mt-2 text-[14px] text-ink-60">
-            간단한 정보를 입력하고 시작해보세요
+            간단한 정보를 입력하고 시작해보세요.
           </div>
         </div>
 
@@ -83,7 +88,7 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
         >
           <InputField
             label="이름"
-            placeholder="실명을 입력하세요"
+            placeholder="실명을 입력하세요."
             value={name}
             onChange={setName}
             error={errors.name}
@@ -98,14 +103,14 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
           />
           <PasswordField
             label="비밀번호"
-            placeholder="6자 이상 입력하세요"
+            placeholder="6자 이상 입력하세요."
             value={password}
             onChange={setPassword}
             error={errors.password}
           />
           <PasswordField
             label="비밀번호 확인"
-            placeholder="비밀번호를 다시 입력하세요"
+            placeholder="비밀번호를 다시 입력하세요."
             value={passwordConfirm}
             onChange={setPasswordConfirm}
             error={errors.passwordConfirm}

@@ -51,9 +51,9 @@ function AdminSidebar({ active }: { active: string }) {
     {
       id: 'notices',
       label: '공지/이벤트',
-      icon: I.star,
+      icon: I.megaphone,
       badge: null,
-      to: '/admin/festival',
+      to: '/admin/notices',
     },
   ]
 

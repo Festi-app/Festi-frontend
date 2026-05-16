@@ -9,6 +9,7 @@ import { AdminFestival } from './pages/Admin/Festival'
 import { AdminFoodTrucks } from './pages/Admin/FoodTrucks'
 import { AdminBoothRequests } from './pages/Admin/BoothRequests'
 import { AdminTimetable } from './pages/Admin/Timetable'
+import { AdminNotices } from './pages/Admin/Notices'
 import {
   MobileWaitingRegister,
   MobileWaitingStatus,
@@ -366,10 +367,9 @@ function AdminFestivalRoute() {
   )
 }
 function AdminBoothsRoute() {
-  const { dark } = useUI()
   return (
     <AdminLayout>
-      <AdminBooths dark={dark} />
+      <AdminBooths />
     </AdminLayout>
   )
 }
@@ -382,10 +382,9 @@ function AdminFoodTrucksRoute() {
   )
 }
 function AdminBoothRequestsRoute() {
-  const { dark } = useUI()
   return (
     <AdminLayout>
-      <AdminBoothRequests dark={dark} />
+      <AdminBoothRequests />
     </AdminLayout>
   )
 }
@@ -393,6 +392,13 @@ function AdminTimetableRoute() {
   return (
     <AdminLayout>
       <AdminTimetable />
+    </AdminLayout>
+  )
+}
+function AdminNoticesRoute() {
+  return (
+    <AdminLayout>
+      <AdminNotices />
     </AdminLayout>
   )
 }
@@ -448,6 +454,7 @@ export default function App() {
           element={<AdminBoothRequestsRoute />}
         />
         <Route path="/admin/timetable" element={<AdminTimetableRoute />} />
+        <Route path="/admin/notices" element={<AdminNoticesRoute />} />
         <Route path="/booth-admin/login" element={<BoothAdminLoginRoute />} />
         <Route
           path="/booth-admin/register"
