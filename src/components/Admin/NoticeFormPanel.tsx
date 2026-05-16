@@ -1,22 +1,10 @@
 import { FESTI_TOKENS, I } from '../../tokens'
 import { cn } from '../../lib/cn'
-import type { NoticeType } from '../../stores/useNoticeStore'
+import type { NoticeDraft } from './noticeShared'
 
-export interface NoticeDraft {
-  type: NoticeType
-  title: string
-  content: string
-  pinned: boolean
-}
+export type { NoticeDraft }
 
-export const EMPTY_DRAFT: NoticeDraft = {
-  type: '공지',
-  title: '',
-  content: '',
-  pinned: false,
-}
-
-const TYPE_OPTIONS: NoticeType[] = ['공지', '이벤트']
+const TYPE_OPTIONS = ['공지', '이벤트'] as const
 
 function Toggle({
   checked,
@@ -61,7 +49,8 @@ export function NoticeFormPanel({
   onSave: () => void
   onCancel: () => void
 }) {
-  const isValid = draft.title.trim().length > 0 && draft.content.trim().length > 0
+  const isValid =
+    draft.title.trim().length > 0 && draft.content.trim().length > 0
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">

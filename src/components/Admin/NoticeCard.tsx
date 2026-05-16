@@ -54,7 +54,10 @@ export function NoticeCard({
 
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-ink-40">{notice.createdAt}</span>
-        <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex items-center gap-0.5"
+          onClick={(e) => e.stopPropagation()}
+        >
           <button
             type="button"
             onClick={onTogglePin}

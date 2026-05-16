@@ -6,9 +6,11 @@ import { NoticeList } from '../../components/Admin/NoticeList'
 import {
   NoticeFormPanel,
   NoticeEmptyPanel,
+} from '../../components/Admin/NoticeFormPanel'
+import {
   EMPTY_DRAFT,
   type NoticeDraft,
-} from '../../components/Admin/NoticeFormPanel'
+} from '../../components/Admin/noticeShared'
 import { useNoticeStore } from '../../stores/useNoticeStore'
 import { I } from '../../tokens'
 
@@ -90,7 +92,6 @@ export function AdminNotices() {
           selectedId={selectedId}
           onSelect={startEdit}
           onTogglePin={togglePin}
-
           onDelete={handleDelete}
         />
 
