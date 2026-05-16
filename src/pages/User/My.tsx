@@ -8,38 +8,38 @@ const FAVORITES = [
   {
     id: 16,
     name: '컴공과 칵테일 바',
-    category: '야간 주점',
+    category: '야간',
     area: '베어드홀 동측',
     wait: 7,
     eta: '22분',
     open: true,
     tone: 'rose',
-    tagColor: FESTI_TOKENS.alert,
-    tagInk: '#FFFFFF',
+    tagColor: FESTI_TOKENS.alertSoft,
+    tagInk: FESTI_TOKENS.alert,
   },
   {
     id: 38,
     name: '체대 곱창집',
-    category: '야식',
+    category: '야간',
     area: '진리관 앞',
     wait: 3,
     eta: '12분',
     open: true,
     tone: 'mint',
-    tagColor: FESTI_TOKENS.mint,
-    tagInk: FESTI_TOKENS.ink,
+    tagColor: FESTI_TOKENS.alertSoft,
+    tagInk: FESTI_TOKENS.alert,
   },
   {
     id: 47,
     name: '미디어부 라멘',
-    category: '면류',
+    category: '주간',
     area: '학생회관 옆',
     wait: 5,
     eta: '18분',
     open: true,
     tone: 'sun',
-    tagColor: FESTI_TOKENS.sun,
-    tagInk: FESTI_TOKENS.ink,
+    tagColor: FESTI_TOKENS.popSoft,
+    tagInk: FESTI_TOKENS.pop,
   },
   {
     id: 64,
@@ -50,8 +50,8 @@ const FAVORITES = [
     eta: '8분',
     open: false,
     tone: 'coral',
-    tagColor: FESTI_TOKENS.coral,
-    tagInk: FESTI_TOKENS.ink,
+    tagColor: FESTI_TOKENS.sun,
+    tagInk: '#fff',
   },
 ]
 
@@ -63,8 +63,6 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
   const [editingPhone, setEditingPhone] = useState(false)
   const [phoneInput, setPhoneInput] = useState(phone)
   const muted = dark ? '#8B939B' : '#5E676D'
-  const surfaceAlt = dark ? '#252A30' : '#F1F7F8'
-  const ink80 = dark ? '#CDD5DA' : '#2E363C'
 
   function savePhone() {
     setPhone(phoneInput)
@@ -79,7 +77,6 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
     () =>
       FAVORITES.filter((booth) => {
         if (filter === '운영중') return booth.open
-        if (filter === '주점') return booth.category.includes('주점')
         if (filter === '푸드트럭') return booth.category === '푸드트럭'
         return true
       }),
@@ -129,7 +126,7 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
         </div>
 
         <div className="mt-3.5 flex gap-1.5 overflow-x-auto">
-          {['전체', '운영중', '주점', '푸드트럭'].map((chip) => (
+          {['전체', '운영중', '푸드트럭'].map((chip) => (
             <button
               type="button"
               key={chip}
@@ -226,21 +223,20 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
             </button>
           ))}
         </div>
-
-        <div
-          className="mt-4 rounded-[18px] border border-border p-4"
-          style={{ background: surfaceAlt, color: ink80 }}
-        >
-          <div className="flex items-center gap-2">
-            <div className="size-4 text-pop">{I.bell()}</div>
-            <div className="text-[13px] font-bold tracking-[-0.2px]">
-              즐겨찾기 알림
-            </div>
-          </div>
-          <div className="mt-1.5 text-xs leading-normal text-ink-60">
-            저장한 부스의 대기팀이 3팀 이하가 되면 알림을 받을 수 있어요.
-          </div>
-        </div>
+        {/*<div*/}
+        {/*  className="mt-4 rounded-[18px] border border-border p-4"*/}
+        {/*  style={{ background: surfaceAlt, color: ink80 }}*/}
+        {/*>*/}
+        {/*  <div className="flex items-center gap-2">*/}
+        {/*    <div className="size-4 text-pop">{I.bell()}</div>*/}
+        {/*    <div className="text-[13px] font-bold tracking-[-0.2px]">*/}
+        {/*      즐겨찾기 알림*/}
+        {/*    </div>*/}
+        {/*  </div>*/}
+        {/*  <div className="mt-1.5 text-xs leading-normal text-ink-60">*/}
+        {/*    저장한 부스의 대기팀이 3팀 이하가 되면 알림을 받을 수 있어요.*/}
+        {/*  </div>*/}
+        {/*</div>*/}
       </div>
 
       <FestiTabBar active="me" dark={dark} />
