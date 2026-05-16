@@ -194,6 +194,23 @@ export const I = {
       />
     </svg>
   ),
+  megaphone: (c = 'currentColor'): ReactElement => (
+    <svg viewBox="0 0 24 24" fill="none" width="100%" height="100%">
+      <path
+        d="M3 9.5v5h3l6 4V5.5l-6 4H3z"
+        stroke={c}
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M17 7.5c1.5 1 2.5 2.5 2.5 4.5s-1 3.5-2.5 4.5"
+        stroke={c}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path d="M6 14.5v4" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  ),
   bell: (c = 'currentColor'): ReactElement => (
     <svg viewBox="0 0 24 24" fill="none" width="100%" height="100%">
       <path
