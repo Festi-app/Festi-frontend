@@ -163,15 +163,6 @@ export function MobileBoothDetail({ dark = false }: { dark?: boolean }) {
             </div>
           ))}
         </div>
-
-        <SubHeader title="부스 소개" />
-        <div className="rounded-2xl bg-surface-alt p-3.5 text-[13px] leading-[1.55] text-ink-80">
-          숭실대 컴퓨터학부 학생회가 운영합니다. 전 메뉴는
-          <br />
-          학생증 제시 시 1,000원 할인되며, 매일 21시 이후엔
-          <br />
-          한정 시그니처 메뉴를 추가 공개해요.
-        </div>
       </div>
 
       {/* Sticky CTA */}

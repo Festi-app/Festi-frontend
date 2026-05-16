@@ -37,7 +37,7 @@ export function MobileSplash({ dark = false }: { dark?: boolean }) {
         }}
       >
         <div
-          className="mb-5 flex size-20 items-center justify-center rounded-[28px] shadow-[0_12px_40px_rgba(0,198,224,0.25)]"
+          className="mb-5 flex size-20 items-center justify-center rounded-[28px] shadow-[0_8px_24px_rgba(0,0,0,0.12),0_16px_48px_rgba(0,198,224,0.35)]"
           style={{ background: FESTI_TOKENS.coral }}
         >
           <FestMark color="#fff" size={48} />
