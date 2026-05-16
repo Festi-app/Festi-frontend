@@ -14,6 +14,7 @@ const FAVORITES = [
     open: true,
     tone: 'rose',
     tagColor: FESTI_TOKENS.alert,
+    tagInk: '#FFFFFF',
   },
   {
     id: 38,
@@ -25,6 +26,7 @@ const FAVORITES = [
     open: true,
     tone: 'mint',
     tagColor: FESTI_TOKENS.mint,
+    tagInk: FESTI_TOKENS.ink,
   },
   {
     id: 47,
@@ -36,6 +38,7 @@ const FAVORITES = [
     open: true,
     tone: 'sun',
     tagColor: FESTI_TOKENS.sun,
+    tagInk: FESTI_TOKENS.ink,
   },
   {
     id: 64,
@@ -47,6 +50,7 @@ const FAVORITES = [
     open: false,
     tone: 'coral',
     tagColor: FESTI_TOKENS.coral,
+    tagInk: FESTI_TOKENS.ink,
   },
 ]
 
@@ -169,7 +173,7 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
               }`}
             >
               <div className="flex gap-3 p-3">
-                <div className="relative size-20 shrink-0 overflow-hidden rounded-[16px]">
+                <div className="relative size-20 shrink-0 overflow-hidden rounded-2xl">
                   <PhotoSlot label="" tone={booth.tone} radius={16} />
                   <div className="absolute top-2 left-2 rounded-full bg-[rgba(15,42,51,0.82)] px-2 py-0.75 text-[10px] font-extrabold text-white">
                     #{booth.id}
@@ -178,7 +182,7 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <Pill color={booth.tagColor} ink={FESTI_TOKENS.ink}>
+                    <Pill color={booth.tagColor} ink={booth.tagInk}>
                       {booth.category}
                     </Pill>
                     <Pill

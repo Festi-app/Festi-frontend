@@ -2,7 +2,6 @@ import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTI_TOKENS, FestiterMark, I } from '../../tokens'
-import { useFestivalStore } from '../../stores/useFestivalStore'
 import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
 
 function cn(...classes: Array<string | false | null | undefined>) {
@@ -83,24 +82,18 @@ function AdminSidebar({ active }: { active: string; dark?: boolean }) {
         </span>
       </div>
 
-      <button
-        type="button"
+      <div
         onClick={() => navigate('/admin/festival')}
-        className="mb-4.5 flex items-center gap-2 rounded-[14px] border border-border bg-surface-alt px-3 py-2.5 text-left"
+        className="mb-4.5 flex cursor-pointer items-center gap-2 rounded-[14px] border border-border bg-surface-alt px-3 py-2.5"
       >
         <div className="size-8 rounded-[10px] bg-mint p-1.75 text-[#141A1F]">
           {I.star()}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[9px] font-bold tracking-[0.5px] text-ink-60">
-            FESTIVAL
-          </div>
-          <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">
-            2026 봄축제
-          </div>
+          <div className="text-[9px] font-bold tracking-[0.5px] text-ink-60">FESTIVAL</div>
+          <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">2026 봄축제</div>
         </div>
-        <div className="size-3.5 text-ink-60">{I.chev(undefined, 'd')}</div>
-      </button>
+      </div>
 
       <div className="flex flex-col gap-0.5">
         {items.map((item) => {
@@ -335,7 +328,6 @@ function buildDaysFromRange(start: string, end: string, prev: DayConfig[]): DayC
 }
 
 export function AdminFestival({ dark = false }: { dark?: boolean }) {
-  const { brandImage, setBrandImage } = useFestivalStore()
   const accounts = useBoothAdminStore((s) => s.accounts)
   const setBoothLocation = useBoothAdminStore((s) => s.setBoothLocation)
   const rejectAccount = useBoothAdminStore((s) => s.rejectAccount)
@@ -346,7 +338,6 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   const approvedBooths = accounts.filter((a) => a.status === 'approved')
 
   const [notice, setNotice] = useState('기본 정보와 일정, 운영 시간을 관리해요')
-  const [slogan, setSlogan] = useState('비상 飛上 — 다시, 봄')
   const [startDate, setStartDate] = useState('2026-05-20')
   const [endDate, setEndDate] = useState('2026-05-22')
   const [selectedDay, setSelectedDay] = useState('2일차')
@@ -396,87 +387,30 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
       <div className="grid grid-cols-[1.4fr_1fr] gap-5 overflow-auto p-6">
         {/* Left column */}
         <div className="flex flex-col gap-4">
-          {/* 기본 정보 (merged) */}
-          <Card dark={dark} title="기본 정보">
-            <div className="flex flex-col gap-3">
-              {/* Brand image upload */}
+          {/* 기본 정보 + 일자별 운영 시간 */}
+          <Card dark={dark} title="일정 · 운영 시간">
+            {/* Dates */}
+            <div className="mb-4 grid grid-cols-2 gap-3">
               <div>
-                <div className="mb-1.5 text-[11px] font-bold text-ink-60">브랜드 이미지</div>
-                <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-bg transition hover:border-cta"
-                  style={{ minHeight: brandImage ? undefined : 120 }}
-                >
-                  {brandImage ? (
-                    <div className="flex w-full items-center justify-center px-4 py-4">
-                      <img src={brandImage} alt="festival brand" className="max-h-28 max-w-full object-contain" />
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-1.5 py-8 text-center">
-                      <div className="size-8 text-ink-40">{I.plus(FESTI_TOKENS.ink40)}</div>
-                      <div className="text-[13px] font-bold text-ink-60">이미지 업로드</div>
-                      <div className="text-[11px] text-ink-40">PNG · JPG · SVG · 투명 배경 권장</div>
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (!file) return
-                      const reader = new FileReader()
-                      reader.onload = (ev) => setBrandImage(ev.target?.result as string)
-                      reader.readAsDataURL(file)
-                    }}
-                  />
-                </label>
-                {brandImage && (
-                  <button
-                    type="button"
-                    onClick={() => setBrandImage('')}
-                    className="mt-1.5 text-[11px] text-ink-40 hover:text-alert"
-                  >
-                    이미지 제거
-                  </button>
-                )}
-              </div>
-
-              {/* Slogan */}
-              <div>
-                <div className="mb-1.5 text-[11px] font-bold text-ink-60">부제 / 슬로건</div>
+                <div className="mb-1.5 text-[11px] font-bold text-ink-60">시작일</div>
                 <input
-                  value={slogan}
-                  onChange={(e) => setSlogan(e.target.value)}
-                  placeholder="비상 飛上 — 다시, 봄"
-                  className="w-full rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] font-semibold text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => handleStartDate(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] font-semibold text-ink focus:border-cta focus:outline-none"
                 />
               </div>
-
-              {/* Dates */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <div className="mb-1.5 text-[11px] font-bold text-ink-60">시작일</div>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => handleStartDate(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] font-semibold text-ink focus:border-cta focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <div className="mb-1.5 text-[11px] font-bold text-ink-60">종료일</div>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => handleEndDate(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] font-semibold text-ink focus:border-cta focus:outline-none"
-                  />
-                </div>
+              <div>
+                <div className="mb-1.5 text-[11px] font-bold text-ink-60">종료일</div>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => handleEndDate(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] font-semibold text-ink focus:border-cta focus:outline-none"
+                />
               </div>
             </div>
-          </Card>
-
-          {/* 일자별 운영 시간 */}
-          <Card dark={dark} title="일자별 운영 시간">
+            <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">일자별 운영 시간</div>
             <div className="flex flex-col gap-2.5">
               {days.map((day) => {
                 const selected = day.d === selectedDay

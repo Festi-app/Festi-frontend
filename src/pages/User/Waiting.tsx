@@ -354,7 +354,7 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
             onClick={() => setConfirmCancel(false)}
           />
           <div
-            className="absolute inset-x-5 top-1/2 z-50 -translate-y-1/2 rounded-[24px] bg-surface p-6 shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
+            className="absolute inset-x-5 top-1/2 z-50 -translate-y-1/2 rounded-3xl bg-surface p-6 shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
             style={{
               animation:
                 'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
@@ -372,7 +372,7 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
               <button
                 type="button"
                 onClick={() => setConfirmCancel(false)}
-                className="flex-1 rounded-[16px] border border-border bg-surface-alt py-3.5 text-[15px] font-bold text-ink"
+                className="flex-1 rounded-2xl border border-border bg-surface-alt py-3.5 text-[15px] font-bold text-ink"
               >
                 돌아가기
               </button>
@@ -382,7 +382,7 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
                   setActiveWaiting(false)
                   setConfirmCancel(false)
                 }}
-                className="flex-1 rounded-[16px] bg-alert py-3.5 text-[15px] font-extrabold text-white"
+                className="flex-1 rounded-2xl bg-alert py-3.5 text-[15px] font-extrabold text-white"
               >
                 취소하기
               </button>
@@ -518,7 +518,7 @@ export function MobileWaitingDetail({ dark = false }: { dark?: boolean }) {
             onClick={() => setConfirmCancel(false)}
           />
           <div
-            className="absolute inset-x-5 top-1/2 z-50 -translate-y-1/2 rounded-[24px] bg-surface p-6 shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
+            className="absolute inset-x-5 top-1/2 z-50 -translate-y-1/2 rounded-3xl bg-surface p-6 shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
             style={{
               animation:
                 'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
@@ -536,14 +536,14 @@ export function MobileWaitingDetail({ dark = false }: { dark?: boolean }) {
               <button
                 type="button"
                 onClick={() => setConfirmCancel(false)}
-                className="flex-1 rounded-[16px] border border-border bg-surface-alt py-3.5 text-[15px] font-bold text-ink"
+                className="flex-1 rounded-2xl border border-border bg-surface-alt py-3.5 text-[15px] font-bold text-ink"
               >
                 돌아가기
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
-                className="flex-1 rounded-[16px] bg-alert py-3.5 text-[15px] font-extrabold text-white"
+                className="flex-1 rounded-2xl bg-alert py-3.5 text-[15px] font-extrabold text-white"
               >
                 취소하기
               </button>

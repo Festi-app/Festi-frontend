@@ -1,11 +1,44 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactElement, TouchEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, I, Pill } from '../../tokens'
+import {
+  DAY_GRADIENT,
+  FESTI_TOKENS,
+  I,
+  NIGHT_GRADIENT,
+  Pill,
+} from '../../tokens'
 
 import soongsilDayMap from '../../assets/soongsil-day-map.png'
+import soongsilNightMap from '../../assets/soongsil-night-map.png'
+import soongsilTruckMap from '../../assets/soongsil-truck-map.png'
 import { FestiTabBar } from '../../components/User/Navbar'
+import { ZONES, NIGHT_ZONES } from '../../data/zones'
 import { useDayNightStore } from '../../stores/useDayNightStore'
+import {
+  useBoothSectionStore,
+  type BoothCategory,
+  type PermDay,
+  type PermTime,
+} from '../../stores/useBoothSectionStore'
+import {
+  TRUCK_ZONES,
+  useTruckPlacementStore,
+} from '../../stores/useTruckPlacementStore'
+
+type MobileMapView = 'day' | 'night' | 'truck'
+
+const BOOTH_CATEGORY_THEMES: Record<
+  BoothCategory,
+  { color: string; soft: string }
+> = {
+  정보: { color: FESTI_TOKENS.mint, soft: FESTI_TOKENS.mintSoft },
+  체험: { color: FESTI_TOKENS.grape, soft: FESTI_TOKENS.grapeSoft },
+  마켓: { color: FESTI_TOKENS.sun, soft: FESTI_TOKENS.sunSoft },
+  활동: { color: FESTI_TOKENS.pop, soft: FESTI_TOKENS.popSoft },
+}
+
+const BOOTH_CATEGORIES = Object.keys(BOOTH_CATEGORY_THEMES) as BoothCategory[]
 
 // ── Stat cell ─────────────────────────────────────────────────────────────────
 
@@ -42,15 +75,35 @@ export function Stat({
 export function MobileMap({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { isDay, setIsDay } = useDayNightStore()
+  const {
+    assignments,
+    slotCounts,
+    zoneRotations,
+    trucks: storeTrucks,
+  } = useTruckPlacementStore()
+  const { permissions: boothPermissions, zoneDivisions } =
+    useBoothSectionStore()
   const [selectedFestivalDay, setSelectedFestivalDay] = useState('2일차')
+  const CURRENT_DAY_LABEL = '2일차'
   const [dayDropdownOpen, setDayDropdownOpen] = useState(false)
-  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set())
+  const [mapView, setMapView] = useState<MobileMapView>(isDay ? 'day' : 'night')
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [scale, setScale] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [isPinching, setIsPinching] = useState(false)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [selectedId, setSelectedId] = useState<string | number | null>(null)
+  const [selectedSection, setSelectedSection] = useState<{
+    zoneId: string
+    slot: number
+  } | null>(null)
+  const [selectedBoothPermId, setSelectedBoothPermId] = useState<string | null>(
+    null
+  )
+  const [selectedBoothCell, setSelectedBoothCell] = useState<{
+    zoneId: string
+    slot: number
+  } | null>(null)
   const [sheetDismissing, setSheetDismissing] = useState(false)
   const [sheetDragY, setSheetDragY] = useState(0)
   const [listOpen, setListOpen] = useState(false)
@@ -66,21 +119,72 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
 
   const MIN_SCALE = 1
   const MAX_SCALE = 3.5
+  const selectedDayNumber = Number(selectedFestivalDay[0]) as PermDay
+  const activeMapImage =
+    mapView === 'day'
+      ? soongsilDayMap
+      : mapView === 'night'
+        ? soongsilNightMap
+        : soongsilTruckMap
+  const activeMapAspect =
+    mapView === 'day'
+      ? '1072 / 998'
+      : mapView === 'night'
+        ? '1430 / 846'
+        : '822 / 590'
+  const activeMapRatio =
+    mapView === 'day'
+      ? 998 / 1072
+      : mapView === 'night'
+        ? 846 / 1430
+        : 590 / 822
+  const activeBoothZones =
+    mapView === 'day' ? ZONES : mapView === 'night' ? NIGHT_ZONES : []
+  const activeBoothTime: PermTime = mapView === 'night' ? '야간' : '주간'
+  const selectedBoothPerm = selectedBoothPermId
+    ? (boothPermissions.find((p) => p.id === selectedBoothPermId) ?? null)
+    : null
+  const selectedBoothZone = selectedBoothCell
+    ? ([...ZONES, ...NIGHT_ZONES].find(
+        (zone) => zone.id === selectedBoothCell.zoneId
+      ) ?? null)
+    : null
+  const selectedBoothCellPerm = selectedBoothCell
+    ? (boothPermissions.find(
+        (p) =>
+          p.zoneId === selectedBoothCell.zoneId &&
+          p.day === selectedDayNumber &&
+          p.time === activeBoothTime &&
+          p.sections.includes(selectedBoothCell.slot)
+      ) ?? null)
+    : selectedBoothPerm
 
-  // 진입 시 이미지가 화면 세로를 꽉 채우는 스케일로 시작
+  function changeMapView(next: MobileMapView) {
+    setMapView(next)
+    if (next === 'day') setIsDay(true)
+    if (next === 'night') setIsDay(false)
+    setSelectedId(null)
+    setSelectedSection(null)
+    setSelectedBoothPermId(null)
+    setSelectedBoothCell(null)
+    setListOpen(false)
+  }
+
+  // 진입 및 지도 변경 시 이미지가 화면 세로를 최대한 채우는 스케일로 시작
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    const imageH = el.clientWidth * (998 / 1072)
+    const imageH = el.clientWidth * activeMapRatio
     setScale(Math.min(MAX_SCALE, el.clientHeight / imageH))
-  }, [])
+    setOffset({ x: 0, y: 0 })
+  }, [activeMapRatio])
 
   function clampOffset(x: number, y: number, s: number) {
     const el = containerRef.current
     if (!el) return { x: 0, y: 0 }
     const cw = el.clientWidth
     const ch = el.clientHeight
-    const imageH = cw * (998 / 1072)
+    const imageH = cw * activeMapRatio
 
     // 좌우: 이미지 범위 내에서만 이동
     const maxX = Math.max(0, ((s - 1) * cw) / 2)
@@ -155,6 +259,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     setSheetDismissing(true)
     setTimeout(() => {
       setSelectedId(null)
+      setSelectedSection(null)
+      setSelectedBoothPermId(null)
+      setSelectedBoothCell(null)
       setSheetDismissing(false)
       setSheetDragY(0)
     }, 220)
@@ -183,7 +290,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   }
 
   function openList() {
-    setListTab(isDay ? 'day' : 'night')
+    setListTab(
+      mapView === 'truck' ? 'truck' : mapView === 'day' ? 'day' : 'night'
+    )
     setListCatFilter(null)
     setListOpen(true)
   }
@@ -300,42 +409,18 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       wait: 2,
       cat: '식사',
     },
-    {
-      id: 70,
-      x: 27,
-      y: 83,
-      type: 'truck',
-      name: '훈제 통삼겹',
-      wait: 4,
-      cat: '트럭',
-      hot: true,
-    },
-    {
-      id: 67,
-      x: 41,
-      y: 83,
-      type: 'truck',
-      name: '청춘 만두',
-      wait: 0,
-      cat: '트럭',
-    },
-    {
-      id: 64,
-      x: 55,
-      y: 83,
-      type: 'truck',
-      name: '도쿄 타코야끼',
-      wait: 2,
-      cat: '트럭',
-    },
   ]
+
+  // 구역 오버레이용 데이터 (핀 마커 대신 구역 박스로 표시)
+  const truckTime = isDay ? '주간' : '야간'
+  const allMarkers = [...markers]
 
   const selectedMarker =
     selectedId !== null
-      ? (markers.find((m) => m.id === selectedId) ?? null)
+      ? (allMarkers.find((m) => m.id === selectedId) ?? null)
       : null
 
-  const listMarkersBase = markers.filter((m) => {
+  const listMarkersBase = allMarkers.filter((m) => {
     if (listTab === 'day') return m.type === 'day' || m.type === 'special'
     if (listTab === 'night') return m.type === 'night'
     return m.type === 'truck'
@@ -382,7 +467,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     return { color: FESTI_TOKENS.alert, label: `${w}팀` }
   }
 
-  const searchResults = markers.filter((m) => {
+  const searchResults = allMarkers.filter((m) => {
     const q = searchQuery.trim().toLowerCase()
     if (!q) return true
     return (
@@ -408,7 +493,13 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onClick={() => {
-          if (selectedId !== null) dismissSheet()
+          if (
+            selectedId !== null ||
+            selectedSection !== null ||
+            selectedBoothPermId !== null ||
+            selectedBoothCell !== null
+          )
+            dismissSheet()
         }}
         style={{
           transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
@@ -422,14 +513,14 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
           style={{
             top: '50%',
             transform: 'translateY(-50%)',
-            aspectRatio: '1072 / 998',
+            aspectRatio: activeMapAspect,
           }}
         >
           {/* Map image */}
           <div
             className="absolute inset-0"
             style={{
-              backgroundImage: `url(${soongsilDayMap})`,
+              backgroundImage: `url(${activeMapImage})`,
               backgroundSize: '100% 100%',
               ...(dark
                 ? {}
@@ -443,93 +534,146 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
             <div className="pointer-events-none absolute inset-0 bg-[rgba(232,244,245,0.18)]" />
           )}
 
-          {/* Markers — left/top % 이 이미지 좌표와 1:1 대응 */}
-          {markers.map((m) => {
-            const inTimeRange =
-              (isDay &&
-                (m.type === 'day' ||
-                  m.type === 'truck' ||
-                  m.type === 'special')) ||
-              (!isDay &&
-                (m.type === 'night' ||
-                  m.type === 'truck' ||
-                  m.type === 'special'))
-            if (!inTimeRange || hiddenTypes.has(m.type)) return null
-
-            const isSel = m.id === selectedId
-            const pinColor = typeColor(m.type)
-            const numColor =
-              m.type === 'night' || m.type === 'truck' || m.type === 'day'
-                ? '#fff'
-                : FESTI_TOKENS.ink
-            const ws = waitStatus(m.wait)
-
-            return (
-              <button
-                type="button"
-                key={m.id}
-                onClick={() => setSelectedId(m.id)}
-                className="absolute"
-                style={{
-                  left: `${m.x}%`,
-                  top: `${m.y}%`,
-                  zIndex: isSel ? 5 : 1,
-                  transform: 'translate(-50%, -50%)',
-                }}
-              >
-                {/* 줌과 무관하게 마커 크기를 고정하는 역보정 래퍼 */}
+          {/* 관리자 페이지에서 설정한 주간/야간 부스 섹션 */}
+          {mapView !== 'truck' &&
+            activeBoothZones.map((zone) => {
+              const divisions = zoneDivisions[zone.id] ?? zone.defaultCount
+              return (
                 <div
-                  className="flex flex-col items-center gap-1"
+                  key={zone.id}
+                  className="absolute z-2 flex rounded-sm"
                   style={{
-                    transform: `scale(${1 / scale})`,
-                    transformOrigin: 'center center',
+                    left: zone.left,
+                    top: zone.top,
+                    width: zone.width,
+                    height: zone.height,
+                    flexDirection: zone.dir,
+                    background: zone.color,
+                    border: '1.5px solid rgba(20,26,31,0.22)',
                   }}
                 >
-                  <div
-                    className="relative flex shrink-0 items-center justify-center rounded-full font-extrabold tracking-[-0.3px]"
-                    style={{
-                      width: isSel ? 40 : 32,
-                      height: isSel ? 40 : 32,
-                      background: pinColor,
-                      color: numColor,
-                      fontSize: isSel ? 13 : 11,
-                      boxShadow: isSel
-                        ? 'inset 0 0 0 3px #fff, 0 6px 18px rgba(20,26,31,0.35)'
-                        : 'inset 0 0 0 2px #fff, 0 2px 8px rgba(20,26,31,0.25)',
-                    }}
-                  >
-                    {m.id}
-                    {isSel && (
-                      <div
-                        className="absolute -inset-2 -z-1 animate-[festi-pulse_2s_ease-out_infinite] rounded-full opacity-25"
-                        style={{ background: pinColor }}
-                      />
-                    )}
-                  </div>
-                  {isSel && (
-                    <div className="flex items-center gap-1.25 whitespace-nowrap rounded-[9px] border border-[rgba(20,26,31,0.08)] bg-white px-2 py-1.25 text-[11px] font-bold tracking-[-0.2px] text-ink shadow-[0_3px_10px_rgba(20,26,31,0.18)] dark:border-white/10 dark:bg-[#1B3239]">
-                      <span
-                        className="size-1.5 shrink-0 rounded-full"
-                        style={{ background: ws.color }}
-                      />
-                      {m.name}
-                      <span
-                        className="text-[10px] font-extrabold"
-                        style={{ color: ws.color }}
+                  {Array.from({ length: divisions }, (_, idx) => {
+                    const perm = boothPermissions.find(
+                      (p) =>
+                        p.zoneId === zone.id &&
+                        p.day === selectedDayNumber &&
+                        p.time === activeBoothTime &&
+                        p.sections.includes(idx)
+                    )
+                    const selected =
+                      selectedBoothCell?.zoneId === zone.id &&
+                      selectedBoothCell.slot === idx
+                    const isLast = idx === divisions - 1
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedBoothCell({ zoneId: zone.id, slot: idx })
+                          setSelectedBoothPermId(perm?.id ?? null)
+                          setSelectedId(null)
+                          setSelectedSection(null)
+                        }}
+                        className="relative flex min-h-0 min-w-0 flex-1 select-none items-center justify-center text-[7px] font-extrabold transition-[background,box-shadow,opacity]"
+                        style={{
+                          background: perm ? perm.color : 'transparent',
+                          color: FESTI_TOKENS.ink,
+                          boxShadow: selected
+                            ? 'inset 0 0 0 2px rgba(255,255,255,0.95), 0 0 0 1px rgba(20,26,31,0.2)'
+                            : undefined,
+                          ...(isLast
+                            ? {}
+                            : zone.dir === 'row'
+                              ? { borderRight: '1px solid rgba(20,26,31,0.18)' }
+                              : {
+                                  borderBottom: '1px solid rgba(20,26,31,0.18)',
+                                }),
+                        }}
                       >
-                        {ws.label}
-                      </span>
-                      {m.hot && (
-                        <span className="rounded bg-alert px-1 py-px text-[8px] font-extrabold tracking-[0.3px] text-white">
-                          HOT
-                        </span>
-                      )}
-                    </div>
-                  )}
+                        {idx + 1}
+                        {perm && (
+                          <span className="absolute bottom-0.5 right-0.5 size-1 rounded-full bg-white/70" />
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
-              </button>
-            )
-          })}
+              )
+            })}
+
+          {/* 푸드트럭 구역 오버레이 — 관리자가 설정한 섹션 그대로 표시 */}
+          {mapView === 'truck' &&
+            TRUCK_ZONES.map((zone) => {
+              const count = slotCounts[zone.id] ?? zone.slotCount
+              const rotate = zoneRotations[zone.id] ?? zone.rotate
+              return (
+                <div
+                  key={zone.id}
+                  className="absolute flex"
+                  style={{
+                    left: zone.left,
+                    top: zone.top,
+                    width: zone.width,
+                    height: zone.height,
+                    flexDirection: zone.dir === 'row' ? 'row' : 'column',
+                    background: zone.color,
+                    border: `1.5px solid rgba(20,26,31,0.22)`,
+                    borderRadius: '2px',
+                    transform: `rotate(${rotate}deg)`,
+                    transformOrigin: 'center',
+                    zIndex: 2,
+                  }}
+                >
+                  {Array.from({ length: count }, (_, idx) => {
+                    const truckId =
+                      assignments[`${truckTime}:${zone.id}:${idx}`]
+                    const truck = truckId
+                      ? storeTrucks.find((t) => t.id === truckId)
+                      : null
+                    const selSlot =
+                      selectedSection?.zoneId === zone.id &&
+                      selectedSection?.slot === idx
+                    const isLast = idx === count - 1
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedSection({ zoneId: zone.id, slot: idx })
+                          setSelectedId(null)
+                          setSelectedBoothCell(null)
+                          setSelectedBoothPermId(null)
+                        }}
+                        className="flex min-h-0 min-w-0 flex-1 select-none items-center justify-center font-extrabold"
+                        style={{
+                          fontSize: '7px',
+                          background: selSlot
+                            ? '#141A1F'
+                            : truck
+                              ? '#2E363C'
+                              : 'transparent',
+                          color: selSlot || truck ? '#fff' : FESTI_TOKENS.ink,
+                          boxShadow: selSlot
+                            ? 'inset 0 0 0 2px rgba(255,255,255,0.85)'
+                            : undefined,
+                          ...(isLast
+                            ? {}
+                            : zone.dir === 'row'
+                              ? { borderRight: '1px solid rgba(20,26,31,0.18)' }
+                              : {
+                                  borderBottom: '1px solid rgba(20,26,31,0.18)',
+                                }),
+                        }}
+                      >
+                        {truck ? truck.name.slice(0, 3) : idx + 1}
+                      </button>
+                    )
+                  })}
+                </div>
+              )
+            })}
         </div>
       </div>
       {/* end zoomable layer */}
@@ -579,24 +723,35 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         <div className="flex items-center gap-2">
           <div className="flex rounded-full border border-border bg-white p-0.75 shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)] dark:bg-[#13262D]/95">
             {[
-              { id: 'day', label: '주간', ico: I.sun, color: FESTI_TOKENS.pop },
+              {
+                id: 'day',
+                label: '주간',
+                ico: I.sun,
+                grad: DAY_GRADIENT,
+              },
               {
                 id: 'night',
                 label: '야간',
                 ico: I.moon,
-                color: FESTI_TOKENS.alert,
+                grad: NIGHT_GRADIENT,
+              },
+              {
+                id: 'truck',
+                label: '푸드트럭',
+                ico: I.truck,
+                grad: FESTI_TOKENS.sun,
               },
             ].map((o) => {
-              const on = (o.id === 'day') === isDay
+              const on = o.id === mapView
               return (
                 <button
                   type="button"
                   key={o.id}
-                  onClick={() => setIsDay(o.id === 'day')}
+                  onClick={() => changeMapView(o.id as MobileMapView)}
                   className={`flex items-center gap-1.25 rounded-full px-3.5 py-2 text-[13px] font-bold tracking-[-0.2px] ${
                     on ? 'text-white' : 'text-ink-60'
                   }`}
-                  style={on ? { background: o.color } : undefined}
+                  style={on ? { background: o.grad } : undefined}
                 >
                   <div className="size-3.5">{o.ico()}</div>
                   {o.label}
@@ -612,6 +767,12 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               className="flex items-center gap-1 whitespace-nowrap rounded-full border border-border bg-white/80 px-3 py-2 text-[13px] font-bold tracking-[-0.2px] text-ink shadow-[0_1px_8px_rgba(20,26,31,0.10)] backdrop-blur-sm dark:border-white/30 dark:bg-white/15 dark:text-white"
             >
               {selectedFestivalDay}
+              {selectedFestivalDay === CURRENT_DAY_LABEL && (
+                <span
+                  className="size-1.5 shrink-0 rounded-full"
+                  style={{ background: FESTI_TOKENS.pop }}
+                />
+              )}
               <svg
                 viewBox="0 0 12 12"
                 width="12"
@@ -632,7 +793,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               </svg>
             </button>
             {dayDropdownOpen && (
-              <div className="absolute left-0 top-full z-50 mt-1.5 overflow-hidden rounded-[14px] border border-border bg-white shadow-[0_4px_20px_rgba(20,26,31,0.15)] dark:bg-[#13262D]">
+              <div className="absolute left-0 top-full z-50 mt-1.5 min-w-24 overflow-hidden rounded-[14px] border border-border bg-white shadow-[0_4px_20px_rgba(20,26,31,0.15)] dark:bg-[#13262D]">
                 {['1일차', '2일차', '3일차'].map((d) => (
                   <button
                     type="button"
@@ -641,13 +802,20 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                       setSelectedFestivalDay(d)
                       setDayDropdownOpen(false)
                     }}
-                    className={`block w-full px-4 py-2.5 text-left text-[13px] font-bold tracking-[-0.2px] ${
-                      selectedFestivalDay === d
-                        ? 'font-extrabold text-ink'
-                        : 'text-ink'
+                    className={`flex w-full items-center justify-between px-4 py-2.5 text-[13px] font-bold tracking-[-0.2px] ${
+                      selectedFestivalDay === d ? 'text-ink' : 'text-ink-60'
                     }`}
                   >
                     {d}
+                    <span
+                      className="size-1.5 shrink-0 rounded-full"
+                      style={{
+                        background:
+                          d === CURRENT_DAY_LABEL
+                            ? FESTI_TOKENS.pop
+                            : 'transparent',
+                      }}
+                    />
                   </button>
                 ))}
               </div>
@@ -656,60 +824,224 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         </div>
       </div>
 
-      {/* 타입 필터칩 — 하단 센터 플로팅 */}
-      {selectedId === null && !listOpen && (
-        <div className="absolute inset-x-0 bottom-24 z-10 flex justify-center gap-1.5 px-4">
-          {(isDay
-            ? [
-                { type: 'day', label: '주간 부스', color: FESTI_TOKENS.pop },
-                { type: 'truck', label: '푸드트럭', color: FESTI_TOKENS.sun },
-                {
-                  type: 'special',
-                  label: '안내·본부',
-                  color: FESTI_TOKENS.grape,
-                },
+      {/* 주간 부스 유형 범례 */}
+      {selectedId === null &&
+        selectedSection === null &&
+        selectedBoothPermId === null &&
+        selectedBoothCell === null &&
+        mapView === 'day' &&
+        !listOpen && (
+          <div className="absolute inset-x-0 bottom-25 z-10 flex justify-center px-4">
+            <div className="flex items-center gap-3 rounded-full bg-white/65 px-3 py-1.5 text-ink-80 shadow-[0_1px_6px_rgba(20,26,31,0.08)] backdrop-blur-sm dark:bg-[#13262D]/65">
+              {BOOTH_CATEGORIES.map((category) => {
+                const theme = BOOTH_CATEGORY_THEMES[category]
+                return (
+                  <div
+                    key={category}
+                    className="flex items-center gap-1 text-[11px] font-bold tracking-[-0.2px]"
+                  >
+                    <span
+                      className="size-1.5 shrink-0 rounded-full"
+                      style={{ background: theme.color }}
+                    />
+                    {category}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+      {/* Bottom sheet - selected zone section */}
+      {(selectedSection !== null || (sheetDismissing && selectedId === null)) &&
+        (() => {
+          const zone = TRUCK_ZONES.find((z) => z.id === selectedSection?.zoneId)
+          const truckId = selectedSection
+            ? assignments[
+                `${truckTime}:${selectedSection.zoneId}:${selectedSection.slot}`
               ]
-            : [
-                {
-                  type: 'night',
-                  label: '야간 주점',
-                  color: FESTI_TOKENS.alert,
-                },
-                { type: 'truck', label: '푸드트럭', color: FESTI_TOKENS.sun },
-                {
-                  type: 'special',
-                  label: '안내·본부',
-                  color: FESTI_TOKENS.grape,
-                },
-              ]
-          ).map(({ type, label, color }) => {
-            const hidden = hiddenTypes.has(type)
-            return (
+            : null
+          const truck = truckId
+            ? storeTrucks.find((t) => t.id === truckId)
+            : null
+          if (!zone && !sheetDismissing) return null
+          return (
+            <div
+              className="absolute inset-x-0 bottom-0 z-10 rounded-t-3xl border-t border-border bg-surface px-4.5 pt-2.5 pb-25 shadow-[0_-8px_32px_rgba(15,42,51,0.18)]"
+              style={{
+                animation:
+                  sheetDragY > 0
+                    ? 'none'
+                    : sheetDismissing
+                      ? 'festi-sheet-out 0.22s ease both'
+                      : 'festi-sheet-in 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both',
+                transform:
+                  sheetDragY > 0 ? `translateY(${sheetDragY}px)` : undefined,
+                transition: sheetDragY > 0 ? 'none' : undefined,
+              }}
+              onTouchStart={handleSheetTouchStart}
+              onTouchMove={handleSheetTouchMove}
+              onTouchEnd={handleSheetTouchEnd}
+            >
               <button
                 type="button"
-                key={type}
-                onClick={() =>
-                  setHiddenTypes((prev) => {
-                    const next = new Set(prev)
-                    if (next.has(type)) next.delete(type)
-                    else next.add(type)
-                    return next
-                  })
-                }
-                className={`flex items-center gap-1.25 rounded-full border px-3 py-2 text-[13px] font-bold tracking-[-0.2px] backdrop-blur-sm ${
-                  hidden
-                    ? 'border-border bg-white/70 text-ink-40 dark:bg-[#0B1A1F]/70'
-                    : 'border-border bg-white/95 text-ink-80 shadow-[0_2px_12px_rgba(20,26,31,0.12)] dark:bg-[#13262D]/95'
-                }`}
-              >
-                <span
-                  className="size-2 shrink-0 rounded-full"
-                  style={{ background: hidden ? '#D3DBDE' : color }}
-                />
-                {label}
-              </button>
-            )
-          })}
+                onClick={dismissSheet}
+                className="mx-auto mb-3 block h-1 w-9 rounded-full bg-ink-20"
+              />
+              {zone && (
+                <>
+                  <div className="flex items-center gap-2.75">
+                    <div
+                      className="flex size-11 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white"
+                      style={{
+                        background: zone.color,
+                        boxShadow: `inset 0 0 0 3px #fff, 0 4px 12px ${zone.color}66`,
+                      }}
+                    >
+                      {selectedSection ? selectedSection.slot + 1 : '—'}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-0.5">
+                        <Pill
+                          color={zone.color + '22'}
+                          ink={zone.color}
+                          style={{ fontSize: 10 }}
+                        >
+                          푸드트럭 · {zone.name}
+                        </Pill>
+                      </div>
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap text-base font-extrabold tracking-[-0.3px] text-ink">
+                        {truck ? truck.name : '비어있는 섹션'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {truck ? (
+                    <div className="mt-3 rounded-xl bg-surface-alt p-3">
+                      <div className="mb-2 text-[11px] font-extrabold text-ink-40">
+                        메뉴
+                      </div>
+                      {truck.menus.length === 0 ? (
+                        <div className="text-[12px] text-ink-40">
+                          메뉴 정보 없음
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-1.5">
+                          {truck.menus.slice(0, 5).map((m) => (
+                            <div
+                              key={m.id}
+                              className="flex items-center justify-between"
+                            >
+                              <span className="text-[13px] font-semibold text-ink">
+                                {m.name}
+                              </span>
+                              <span className="text-[13px] text-ink-60">
+                                {m.price}
+                              </span>
+                            </div>
+                          ))}
+                          {truck.menus.length > 5 && (
+                            <div className="text-[11px] text-ink-40">
+                              +{truck.menus.length - 5}개 더
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mt-3 rounded-xl bg-surface-alt px-4 py-3 text-center text-[12px] text-ink-40">
+                      이 섹션에 배정된 푸드트럭이 없어요
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )
+        })()}
+
+      {/* Bottom sheet - selected admin booth section */}
+      {(selectedBoothCell !== null || sheetDismissing) && selectedBoothZone && (
+        <div
+          className="absolute inset-x-0 bottom-0 z-10 rounded-t-3xl border-t border-border bg-surface px-4.5 pt-2.5 pb-25 shadow-[0_-8px_32px_rgba(15,42,51,0.18)]"
+          style={{
+            animation:
+              sheetDragY > 0
+                ? 'none'
+                : sheetDismissing
+                  ? 'festi-sheet-out 0.22s ease both'
+                  : 'festi-sheet-in 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both',
+            transform:
+              sheetDragY > 0 ? `translateY(${sheetDragY}px)` : undefined,
+            transition: sheetDragY > 0 ? 'none' : undefined,
+          }}
+          onTouchStart={handleSheetTouchStart}
+          onTouchMove={handleSheetTouchMove}
+          onTouchEnd={handleSheetTouchEnd}
+        >
+          <button
+            type="button"
+            onClick={dismissSheet}
+            className="mx-auto mb-3 block h-1 w-9 rounded-full bg-ink-20"
+            aria-label="닫기"
+          />
+          <div className="flex items-center gap-2.75">
+            <div
+              className="flex size-11 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white"
+              style={{
+                background:
+                  selectedBoothCellPerm?.color ?? selectedBoothZone.color,
+                boxShadow: `inset 0 0 0 3px #fff, 0 4px 12px ${
+                  selectedBoothCellPerm?.color ?? selectedBoothZone.color
+                }66`,
+              }}
+            >
+              {selectedBoothCell ? selectedBoothCell.slot + 1 : '—'}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="mb-0.5">
+                <Pill
+                  color={
+                    (selectedBoothCellPerm?.color ?? selectedBoothZone.color) +
+                    '22'
+                  }
+                  ink={selectedBoothCellPerm?.color ?? selectedBoothZone.color}
+                  style={{ fontSize: 10 }}
+                >
+                  {selectedDayNumber}일차 · {activeBoothTime} ·{' '}
+                  {selectedBoothZone.name}
+                </Pill>
+              </div>
+              <div className="overflow-hidden text-ellipsis whitespace-nowrap text-base font-extrabold tracking-[-0.3px] text-ink">
+                {selectedBoothCellPerm
+                  ? selectedBoothCellPerm.orgName
+                  : '등록된 부스 없음'}
+              </div>
+              <div className="mt-0.5 text-[12px] font-semibold text-ink-60">
+                {selectedBoothCell
+                  ? `${selectedBoothCell.slot + 1}번 섹션`
+                  : '섹션'}{' '}
+                {selectedBoothCellPerm && `· ${selectedBoothCellPerm.category}`}
+              </div>
+            </div>
+          </div>
+          <div className="mt-2.5 flex gap-1.5">
+            <button
+              type="button"
+              onClick={() => navigate('/booth')}
+              disabled={!selectedBoothCellPerm}
+              className="flex-1 rounded-[14px] border border-border bg-surface-alt p-3 text-center text-[13px] font-bold text-ink"
+            >
+              상세보기
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/waiting/register')}
+              disabled={!selectedBoothCellPerm}
+              className="flex flex-2 items-center justify-center rounded-[14px] bg-cta p-3 text-center text-sm font-extrabold tracking-[-0.3px] text-cta-ink shadow-[0_8px_22px_rgba(0,198,224,0.4)] disabled:opacity-40"
+            >
+              웨이팅 걸기
+            </button>
+          </div>
         </div>
       )}
 
@@ -921,6 +1253,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                         onClick={() => {
                           setListOpen(false)
                           setSelectedId(m.id)
+                          setSelectedSection(null)
+                          setSelectedBoothCell(null)
+                          setSelectedBoothPermId(null)
                         }}
                         className="flex items-center gap-3 py-3.5 text-left"
                       >
@@ -1044,6 +1379,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                           setSearchOpen(false)
                           setSearchQuery('')
                           setSelectedId(m.id)
+                          setSelectedSection(null)
+                          setSelectedBoothCell(null)
+                          setSelectedBoothPermId(null)
                         }}
                         className="flex items-center gap-3 rounded-[14px] px-3 py-3 text-left transition-colors hover:bg-surface-alt active:bg-surface-alt"
                       >
