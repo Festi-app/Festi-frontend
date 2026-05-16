@@ -8,6 +8,8 @@ import { AdminBooths } from './pages/Admin/Booths'
 import { AdminFestival } from './pages/Admin/Festival'
 import { AdminFoodTrucks } from './pages/Admin/FoodTrucks'
 import { AdminBoothRequests } from './pages/Admin/BoothRequests'
+import { AdminTimetable } from './pages/Admin/Timetable'
+import { AdminNotices } from './pages/Admin/Notices'
 import {
   MobileWaitingRegister,
   MobileWaitingStatus,
@@ -106,6 +108,7 @@ const NAV_SECTIONS = [
       { to: '/admin/booths', label: '부스 배치' },
       { to: '/admin/trucks', label: '푸드트럭' },
       { to: '/admin/booth-requests', label: '부스 신청 관리' },
+      { to: '/admin/timetable', label: '공연 타임테이블' },
     ],
   },
   {
@@ -364,10 +367,9 @@ function AdminFestivalRoute() {
   )
 }
 function AdminBoothsRoute() {
-  const { dark } = useUI()
   return (
     <AdminLayout>
-      <AdminBooths dark={dark} />
+      <AdminBooths />
     </AdminLayout>
   )
 }
@@ -380,10 +382,23 @@ function AdminFoodTrucksRoute() {
   )
 }
 function AdminBoothRequestsRoute() {
-  const { dark } = useUI()
   return (
     <AdminLayout>
-      <AdminBoothRequests dark={dark} />
+      <AdminBoothRequests />
+    </AdminLayout>
+  )
+}
+function AdminTimetableRoute() {
+  return (
+    <AdminLayout>
+      <AdminTimetable />
+    </AdminLayout>
+  )
+}
+function AdminNoticesRoute() {
+  return (
+    <AdminLayout>
+      <AdminNotices />
     </AdminLayout>
   )
 }
@@ -438,6 +453,8 @@ export default function App() {
           path="/admin/booth-requests"
           element={<AdminBoothRequestsRoute />}
         />
+        <Route path="/admin/timetable" element={<AdminTimetableRoute />} />
+        <Route path="/admin/notices" element={<AdminNoticesRoute />} />
         <Route path="/booth-admin/login" element={<BoothAdminLoginRoute />} />
         <Route
           path="/booth-admin/register"

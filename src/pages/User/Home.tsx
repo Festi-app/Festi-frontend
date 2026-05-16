@@ -5,97 +5,21 @@ import { DayNightToggle } from '../../components/User/DayNightToggle'
 import { FESTI_TOKENS, I, PhotoSlot } from '../../tokens'
 import { AppHeader } from '../../components/User/ScreenHeader'
 import { useDayNightStore } from '../../stores/useDayNightStore'
+import { useTimetableStore } from '../../stores/useTimetableStore'
 import { SectionHeader } from '../../components/User/SectionHeader'
 import { WaitingCarousel } from '../../components/User/WaitingCarousel'
 import { NoticeSheet } from '../../components/User/NoticeSheet'
 
-// ── Timetable data ────────────────────────────────────────────────────────────
-
-type Slot = {
-  time: string
-  end: string
-  name: string
-  artist: string
-  now?: boolean
-}
-
-const TIMETABLE: Record<number, Slot[]> = {
-  1: [
-    {
-      time: '14:00',
-      end: '15:30',
-      name: '오프닝 세레모니',
-      artist: '총학생회',
-    },
-    {
-      time: '15:30',
-      end: '17:00',
-      name: '버스킹 1부',
-      artist: '어쿠스틱 트리오',
-    },
-    {
-      time: '17:00',
-      end: '18:30',
-      name: '댄스 퍼포먼스',
-      artist: '중앙 댄스동아리',
-    },
-    {
-      time: '18:30',
-      end: '20:00',
-      name: '인디 밴드 공연',
-      artist: '블루문 밴드',
-    },
-  ],
-  2: [
-    {
-      time: '17:00',
-      end: '18:30',
-      name: '오프닝 퍼포먼스',
-      artist: '총학생회',
-      now: true,
-    },
-    {
-      time: '18:30',
-      end: '20:00',
-      name: '밴드 공연',
-      artist: '소울 인 더 박스',
-    },
-    {
-      time: '20:00',
-      end: '21:30',
-      name: '버스킹',
-      artist: '어쿠스틱 듀오 봄날',
-    },
-    {
-      time: '21:30',
-      end: '23:00',
-      name: '피날레 공연',
-      artist: '스페셜 게스트',
-    },
-  ],
-  3: [
-    { time: '16:00', end: '17:30', name: '오후 버스킹', artist: '재즈 앙상블' },
-    { time: '17:30', end: '19:00', name: '록 밴드 공연', artist: '더 선셋' },
-    { time: '19:00', end: '20:30', name: '힙합 스테이지', artist: 'MC 봄바람' },
-    {
-      time: '20:30',
-      end: '22:30',
-      name: '클로징 페스타',
-      artist: '전체 출연진',
-    },
-  ],
-}
-
-// 목업 현재 시각: 17:45 (2일차 기준)
+// 목업 현재 시각: 17:45
 const NOW_MIN = 17 * 60 + 45
-const CURRENT_DAY = 2
 
 // ── Screen: Home ─────────────────────────────────────────────────────────────
 
 export function MobileHome({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { isDay } = useDayNightStore()
-  const [timetableDay, setTimetableDay] = useState(CURRENT_DAY)
+  const { venue, currentDay, days } = useTimetableStore()
+  const [timetableDay, setTimetableDay] = useState(currentDay)
   const [dayDropdownOpen, setDayDropdownOpen] = useState(false)
   const [noticeOpen, setNoticeOpen] = useState(false)
 
@@ -128,7 +52,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
             <span className="rounded-full bg-pop px-2 py-0.75 text-[10px] font-extrabold tracking-[0.3px] text-[#141A1F]">
               LIVE
             </span>
-            축제명 · DAY {CURRENT_DAY}
+            축제명 · DAY {currentDay}
           </div>
           <div className="text-[30px] leading-[1.15] font-extrabold tracking-[-1px] text-ink">
             오늘은 어떤 부스를
@@ -226,9 +150,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
               <div className="text-lg font-extrabold tracking-[-0.5px] text-ink">
                 공연 타임테이블
               </div>
-              <div className="mt-0.5 text-xs text-ink-60">
-                베어드홀 대공연장
-              </div>
+              <div className="mt-0.5 text-xs text-ink-60">{venue}</div>
             </div>
             {/* Day 드롭다운 칩 */}
             <div className="relative">
@@ -238,7 +160,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                 className="flex items-center gap-1 rounded-full border border-border bg-white/80 px-3 py-2 text-[13px] font-bold tracking-[-0.2px] text-ink shadow-[0_1px_8px_rgba(20,26,31,0.10)] backdrop-blur-sm dark:border-white/30 dark:bg-white/15 dark:text-white"
               >
                 {timetableDay}일차
-                {timetableDay === CURRENT_DAY && (
+                {timetableDay === currentDay && (
                   <span
                     className="size-1.5 shrink-0 rounded-full"
                     style={{ background: FESTI_TOKENS.pop }}
@@ -282,9 +204,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                         className="size-1.5 shrink-0 rounded-full"
                         style={{
                           background:
-                            d === CURRENT_DAY
-                              ? FESTI_TOKENS.pop
-                              : 'transparent',
+                            d === currentDay ? FESTI_TOKENS.pop : 'transparent',
                         }}
                       />
                     </button>
@@ -297,7 +217,8 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
           <div className="mb-6 px-5">
             {/* 슬롯 카드 */}
             {(() => {
-              const slots = TIMETABLE[timetableDay]
+              const slots = days[timetableDay] ?? []
+              if (!slots.length) return null
               const ROW_H = 64
               const toMin = (t: string) => {
                 const [h, m] = t.split(':').map(Number)
@@ -311,7 +232,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
               )
               const nowY = nowPct * ROW_H * slots.length
               const showNowBar =
-                timetableDay === CURRENT_DAY && NOW_MIN > start && NOW_MIN < end
+                timetableDay === currentDay && NOW_MIN > start && NOW_MIN < end
 
               return (
                 <div
@@ -323,7 +244,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                     const slotStart = toMin(p.time)
                     const slotEnd = toMin(p.end)
                     const isNow =
-                      timetableDay === CURRENT_DAY &&
+                      timetableDay === currentDay &&
                       NOW_MIN >= slotStart &&
                       NOW_MIN < slotEnd
                     return (

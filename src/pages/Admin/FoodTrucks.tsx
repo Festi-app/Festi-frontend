@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { FESTI_TOKENS, I } from '../../tokens'
-import {
-  AdminShell,
-  AdminTopBar,
-  AdminBtn,
-} from '../../components/Admin/Chrome'
+import { AdminShell } from '../../components/Admin/AdminShell'
+import { AdminTopBar } from '../../components/Admin/AdminTopBar'
+import { AdminBtn } from '../../components/Admin/AdminBtn'
+import { cn } from '../../lib/cn'
 import soongsilTruckMap from '../../assets/soongsil-truck-map.png'
 import {
   TRUCK_ZONES,
@@ -16,10 +15,6 @@ import type {
   TruckDay,
   TruckTime,
 } from '../../stores/useTruckPlacementStore'
-
-function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(' ')
-}
 
 // ── Map view ──────────────────────────────────────────────────────────────────
 

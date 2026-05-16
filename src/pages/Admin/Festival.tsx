@@ -2,17 +2,10 @@ import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import { FESTI_TOKENS, I } from '../../tokens'
 import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
-import {
-  AdminShell,
-  AdminTopBar,
-  AdminBtn,
-} from '../../components/Admin/Chrome'
-
-export { AdminShell, AdminTopBar, AdminBtn }
-
-function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(' ')
-}
+import { AdminShell } from '../../components/Admin/AdminShell'
+import { AdminTopBar } from '../../components/Admin/AdminTopBar'
+import { AdminBtn } from '../../components/Admin/AdminBtn'
+import { cn } from '../../lib/cn'
 
 // ── Internal card / field primitives ─────────────────────────────────────────
 
@@ -199,22 +192,16 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   }
 
   return (
-    <AdminShell active="festival" dark={dark}>
+    <AdminShell active="festival">
       <AdminTopBar
         title="축제 설정"
         sub={notice}
-        dark={dark}
         right={
           <>
-            <AdminBtn
-              dark={dark}
-              ghost
-              onClick={() => setNotice('변경사항을 취소했어요')}
-            >
+            <AdminBtn ghost onClick={() => setNotice('변경사항을 취소했어요')}>
               변경사항 취소
             </AdminBtn>
             <AdminBtn
-              dark={dark}
               primary
               icon={I.check('#fff')}
               onClick={() => setNotice('저장 완료 · 사용자 화면에 반영됐어요')}
