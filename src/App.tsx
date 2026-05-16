@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import { Routes, Route, Navigate, NavLink } from 'react-router-dom'
+import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom'
 import { create } from 'zustand'
 
 import { AdminBooths } from './pages/Admin/Booths'
@@ -10,8 +10,13 @@ import { AdminBoothRequests } from './pages/Admin/BoothRequests'
 import {
   MobileWaitingRegister,
   MobileWaitingStatus,
+  MobileWaitingDetail,
 } from './pages/User/Waiting'
-import { MobileBoothDetail, MobileFoodTrucks } from './pages/User/Detail'
+import {
+  MobileBoothDetail,
+  MobileFoodTrucks,
+  MobileTruckDetail,
+} from './pages/User/Detail'
 import { MobileHome } from './pages/User/Home'
 import { MobileMap } from './pages/User/Map'
 import { MobileMy } from './pages/User/My'
@@ -79,6 +84,8 @@ const NAV_LINKS = [
   { to: '/trucks', label: '푸드트럭' },
   { to: '/waiting/register', label: '웨이팅 등록' },
   { to: '/waiting', label: '내 웨이팅' },
+  { to: '/waiting/detail', label: '웨이팅 상세' },
+  { to: '/truck', label: '푸드트럭 상세' },
   { to: '/me', label: '마이 · 즐겨찾기' },
   { to: '/admin/festival', label: '관리 · 축제 설정' },
   { to: '/admin/booths', label: '관리 · 부스 배치' },
@@ -185,10 +192,20 @@ function Nav() {
 // ── Layout wrappers ───────────────────────────────────────────────────────
 
 function MobileLayout({ children }: { children: ReactNode }) {
+  const { key } = useLocation()
   return (
     <div className="min-h-screen bg-bg md:ml-45 md:flex md:items-start md:justify-center md:px-6 md:py-10">
       <div className="relative mt-14 h-[calc(100dvh-3.5rem)] w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]">
-        {children}
+        <div
+          key={key}
+          className="h-full w-full"
+          style={{
+            animation:
+              'festi-page-in 0.26s cubic-bezier(0.25,0.46,0.45,0.94) both',
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   )
@@ -227,10 +244,9 @@ function BoothRoute() {
   )
 }
 function TrucksRoute() {
-  const { dark } = useUI()
   return (
     <MobileLayout>
-      <MobileFoodTrucks dark={dark} />
+      <MobileFoodTrucks />
     </MobileLayout>
   )
 }
@@ -247,6 +263,22 @@ function WaitingStatusRoute() {
   return (
     <MobileLayout>
       <MobileWaitingStatus dark={dark} />
+    </MobileLayout>
+  )
+}
+function WaitingDetailRoute() {
+  const { dark } = useUI()
+  return (
+    <MobileLayout>
+      <MobileWaitingDetail dark={dark} />
+    </MobileLayout>
+  )
+}
+function TruckRoute() {
+  const { dark } = useUI()
+  return (
+    <MobileLayout>
+      <MobileTruckDetail dark={dark} />
     </MobileLayout>
   )
 }
@@ -327,7 +359,9 @@ export default function App() {
         <Route path="/booth" element={<BoothRoute />} />
         <Route path="/trucks" element={<TrucksRoute />} />
         <Route path="/waiting/register" element={<WaitingRegisterRoute />} />
+        <Route path="/waiting/detail" element={<WaitingDetailRoute />} />
         <Route path="/waiting" element={<WaitingStatusRoute />} />
+        <Route path="/truck" element={<TruckRoute />} />
         <Route path="/me" element={<MyRoute />} />
         <Route path="/admin/festival" element={<AdminFestivalRoute />} />
         <Route path="/admin/booths" element={<AdminBoothsRoute />} />

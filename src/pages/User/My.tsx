@@ -53,9 +53,23 @@ const FAVORITES = [
 export function MobileMy({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const [filter, setFilter] = useState('전체')
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [phone, setPhone] = useState('010-2354-8821')
+  const [editingPhone, setEditingPhone] = useState(false)
+  const [phoneInput, setPhoneInput] = useState(phone)
   const muted = dark ? '#8B939B' : '#5E676D'
   const surfaceAlt = dark ? '#252A30' : '#F1F7F8'
   const ink80 = dark ? '#CDD5DA' : '#2E363C'
+
+  function savePhone() {
+    setPhone(phoneInput)
+    setEditingPhone(false)
+  }
+
+  function closeProfile() {
+    setProfileOpen(false)
+    setEditingPhone(false)
+  }
   const filteredFavorites = useMemo(
     () =>
       FAVORITES.filter((booth) => {
@@ -79,8 +93,14 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
               즐겨찾기
             </div>
           </div>
-          <div className="flex size-10 items-center justify-center rounded-full bg-surface-alt text-ink-80">
-            <div className="size-5">{I.user()}</div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setProfileOpen(true)}
+              className="flex size-10 items-center justify-center rounded-full bg-surface-alt text-ink-80"
+            >
+              <div className="size-5">{I.user()}</div>
+            </button>
           </div>
         </div>
 
@@ -144,7 +164,7 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
               type="button"
               key={booth.id}
               onClick={() => navigate('/booth')}
-              className={`w-full overflow-hidden rounded-[20px] border border-border bg-surface text-left ${
+              className={`w-full overflow-hidden rounded-[20px] border border-border bg-surface text-left transition-transform duration-100 active:scale-[0.98] ${
                 booth.open ? 'opacity-100' : 'opacity-65'
               }`}
             >
@@ -184,18 +204,20 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
                     </div>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between rounded-xl bg-surface-alt px-3 py-2">
-                    <div className="text-[11px] font-semibold text-ink-60">
-                      현재 대기
+                  {booth.category !== '푸드트럭' && (
+                    <div className="mt-3 flex items-center justify-between rounded-xl bg-surface-alt px-3 py-2">
+                      <div className="text-[11px] font-semibold text-ink-60">
+                        현재 대기
+                      </div>
+                      <div
+                        className={`text-[13px] font-extrabold ${
+                          booth.wait <= 2 ? 'text-pop' : 'text-alert'
+                        }`}
+                      >
+                        {booth.wait === 0 ? '바로 입장' : `${booth.wait}팀`}
+                      </div>
                     </div>
-                    <div
-                      className={`text-[13px] font-extrabold ${
-                        booth.wait <= 2 ? 'text-pop' : 'text-alert'
-                      }`}
-                    >
-                      {booth.wait === 0 ? '바로 입장' : `${booth.wait}팀`}
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </button>
@@ -219,6 +241,102 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
       </div>
 
       <FestiTabBar active="me" dark={dark} />
+
+      {/* Profile bottom sheet */}
+      {profileOpen && (
+        <>
+          <div
+            className="absolute inset-0 z-30 bg-[rgba(0,0,0,0.45)]"
+            style={{ animation: 'festi-fade-in 0.2s ease both' }}
+            onClick={closeProfile}
+          />
+          <div
+            className="absolute inset-x-0 bottom-0 z-40 rounded-t-[28px] bg-surface px-5 pt-4 pb-10 font-festi shadow-[0_-8px_40px_rgba(0,0,0,0.18)]"
+            style={{
+              animation:
+                'festi-sheet-up 0.28s cubic-bezier(0.32,0.72,0,1) both',
+            }}
+          >
+            {/* Handle */}
+            <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-border" />
+
+            <div className="mb-5 flex items-center justify-between">
+              <div className="text-[17px] font-extrabold tracking-[-0.4px] text-ink">
+                회원 정보
+              </div>
+              <button
+                type="button"
+                onClick={closeProfile}
+                className="flex size-8 items-center justify-center rounded-full bg-surface-alt text-ink-60"
+              >
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                  <path
+                    d="M3 3l10 10M13 3L3 13"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="overflow-hidden rounded-[20px] border border-border bg-bg">
+              {/* 이름 - 읽기 전용 */}
+              <div className="flex items-center gap-3 px-4 py-4">
+                <div className="w-18 text-[13px] font-semibold text-ink-60">
+                  이름
+                </div>
+                <div className="flex-1 text-[15px] font-bold tracking-[-0.3px] text-ink">
+                  홍길동
+                </div>
+              </div>
+
+              <div className="mx-4 h-px bg-border" />
+
+              {/* 전화번호 - 수정 가능 */}
+              <div className="flex items-center gap-3 px-4 py-4">
+                <div className="w-18 text-[13px] font-semibold text-ink-60">
+                  전화번호
+                </div>
+                {editingPhone ? (
+                  <input
+                    type="tel"
+                    value={phoneInput}
+                    onChange={(e) => setPhoneInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && savePhone()}
+                    autoFocus
+                    className="flex-1 bg-transparent text-[15px] font-bold tracking-[-0.3px] text-ink outline-none"
+                  />
+                ) : (
+                  <div className="flex-1 text-[15px] font-bold tracking-[-0.3px] text-ink">
+                    {phone}
+                  </div>
+                )}
+                {editingPhone ? (
+                  <button
+                    type="button"
+                    onClick={savePhone}
+                    className="rounded-full bg-cta px-3 py-1.5 text-[12px] font-extrabold text-cta-ink"
+                  >
+                    저장
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhoneInput(phone)
+                      setEditingPhone(true)
+                    }}
+                    className="rounded-full border border-border bg-surface-alt px-3 py-1.5 text-[12px] font-bold text-ink-80"
+                  >
+                    수정
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
