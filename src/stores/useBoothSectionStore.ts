@@ -22,13 +22,19 @@ interface BoothSectionState {
   zoneDivisions: Record<string, number>
   addPermission: (p: BoothPermission) => void
   removePermission: (id: string) => void
-  setZoneDivisions: (fn: (prev: Record<string, number>) => Record<string, number>) => void
+  setZoneDivisions: (
+    fn: (prev: Record<string, number>) => Record<string, number>
+  ) => void
 }
 
 export const useBoothSectionStore = create<BoothSectionState>((set) => ({
   permissions: [],
-  zoneDivisions: Object.fromEntries(ALL_ZONES.map((z) => [z.id, z.defaultCount])),
+  zoneDivisions: Object.fromEntries(
+    ALL_ZONES.map((z) => [z.id, z.defaultCount])
+  ),
   addPermission: (p) => set((s) => ({ permissions: [...s.permissions, p] })),
-  removePermission: (id) => set((s) => ({ permissions: s.permissions.filter((p) => p.id !== id) })),
-  setZoneDivisions: (fn) => set((s) => ({ zoneDivisions: fn(s.zoneDivisions) })),
+  removePermission: (id) =>
+    set((s) => ({ permissions: s.permissions.filter((p) => p.id !== id) })),
+  setZoneDivisions: (fn) =>
+    set((s) => ({ zoneDivisions: fn(s.zoneDivisions) })),
 }))

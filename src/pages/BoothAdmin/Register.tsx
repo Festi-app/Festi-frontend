@@ -402,9 +402,7 @@ export function BoothAdminRegister() {
               type="button"
               onClick={handleSubmit}
               disabled={
-                !repName.trim() ||
-                !password ||
-                password !== passwordConfirm
+                !repName.trim() || !password || password !== passwordConfirm
               }
               className="flex-1 rounded-xl bg-cta py-3 text-[14px] font-extrabold text-white disabled:opacity-40"
             >

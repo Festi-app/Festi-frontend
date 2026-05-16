@@ -90,8 +90,12 @@ function AdminSidebar({ active }: { active: string; dark?: boolean }) {
           {I.star()}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[9px] font-bold tracking-[0.5px] text-ink-60">FESTIVAL</div>
-          <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">2026 봄축제</div>
+          <div className="text-[9px] font-bold tracking-[0.5px] text-ink-60">
+            FESTIVAL
+          </div>
+          <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">
+            2026 봄축제
+          </div>
         </div>
       </div>
 
@@ -242,7 +246,6 @@ function Card({
   )
 }
 
-
 function TimeRow({
   ico,
   label,
@@ -303,7 +306,11 @@ interface DayConfig {
 
 const WD_KO = ['일', '월', '화', '수', '목', '금', '토']
 
-function buildDaysFromRange(start: string, end: string, prev: DayConfig[]): DayConfig[] {
+function buildDaysFromRange(
+  start: string,
+  end: string,
+  prev: DayConfig[]
+): DayConfig[] {
   if (!start || !end || start > end) return prev
   const result: DayConfig[] = []
   const cur = new Date(start + 'T00:00:00')
@@ -333,7 +340,9 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   const rejectAccount = useBoothAdminStore((s) => s.rejectAccount)
 
   const [dotMenuId, setDotMenuId] = useState<string | null>(null)
-  const [editingLocationId, setEditingLocationId] = useState<string | null>(null)
+  const [editingLocationId, setEditingLocationId] = useState<string | null>(
+    null
+  )
   const [locationDraft, setLocationDraft] = useState('')
   const approvedBooths = accounts.filter((a) => a.status === 'approved')
 
@@ -342,13 +351,46 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   const [endDate, setEndDate] = useState('2026-05-22')
   const [selectedDay, setSelectedDay] = useState('2일차')
   const [days, setDays] = useState<DayConfig[]>([
-    { d: '1일차', date: '05.20 수', dayStart: '11:00', dayEnd: '17:00', nightStart: '17:00', nightEnd: '22:00', booths: 58 },
-    { d: '2일차', date: '05.21 목', dayStart: '11:00', dayEnd: '17:00', nightStart: '17:00', nightEnd: '23:00', booths: 77 },
-    { d: '3일차', date: '05.22 금', dayStart: '11:00', dayEnd: '16:00', nightStart: '16:00', nightEnd: '21:00', booths: 64 },
+    {
+      d: '1일차',
+      date: '05.20 수',
+      dayStart: '11:00',
+      dayEnd: '17:00',
+      nightStart: '17:00',
+      nightEnd: '22:00',
+      booths: 58,
+    },
+    {
+      d: '2일차',
+      date: '05.21 목',
+      dayStart: '11:00',
+      dayEnd: '17:00',
+      nightStart: '17:00',
+      nightEnd: '23:00',
+      booths: 77,
+    },
+    {
+      d: '3일차',
+      date: '05.22 금',
+      dayStart: '11:00',
+      dayEnd: '16:00',
+      nightStart: '16:00',
+      nightEnd: '21:00',
+      booths: 64,
+    },
   ])
 
-  function updateDayTime(d: string, key: keyof Pick<DayConfig, 'dayStart' | 'dayEnd' | 'nightStart' | 'nightEnd'>, val: string) {
-    setDays((prev) => prev.map((day) => (day.d === d ? { ...day, [key]: val } : day)))
+  function updateDayTime(
+    d: string,
+    key: keyof Pick<
+      DayConfig,
+      'dayStart' | 'dayEnd' | 'nightStart' | 'nightEnd'
+    >,
+    val: string
+  ) {
+    setDays((prev) =>
+      prev.map((day) => (day.d === d ? { ...day, [key]: val } : day))
+    )
   }
 
   function handleStartDate(v: string) {
@@ -369,7 +411,11 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
         dark={dark}
         right={
           <>
-            <AdminBtn dark={dark} ghost onClick={() => setNotice('변경사항을 취소했어요')}>
+            <AdminBtn
+              dark={dark}
+              ghost
+              onClick={() => setNotice('변경사항을 취소했어요')}
+            >
               변경사항 취소
             </AdminBtn>
             <AdminBtn
@@ -392,7 +438,9 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
             {/* Dates */}
             <div className="mb-4 grid grid-cols-2 gap-3">
               <div>
-                <div className="mb-1.5 text-[11px] font-bold text-ink-60">시작일</div>
+                <div className="mb-1.5 text-[11px] font-bold text-ink-60">
+                  시작일
+                </div>
                 <input
                   type="date"
                   value={startDate}
@@ -401,7 +449,9 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                 />
               </div>
               <div>
-                <div className="mb-1.5 text-[11px] font-bold text-ink-60">종료일</div>
+                <div className="mb-1.5 text-[11px] font-bold text-ink-60">
+                  종료일
+                </div>
                 <input
                   type="date"
                   value={endDate}
@@ -410,7 +460,9 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                 />
               </div>
             </div>
-            <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">일자별 운영 시간</div>
+            <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
+              일자별 운영 시간
+            </div>
             <div className="flex flex-col gap-2.5">
               {days.map((day) => {
                 const selected = day.d === selectedDay
@@ -428,18 +480,52 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                     {/* Row header (always read-only) */}
                     <div className="grid grid-cols-[92px_1fr_1fr_80px_28px] items-center gap-3 p-3">
                       <div>
-                        <div className={cn('text-sm font-extrabold tracking-[-0.3px]', selected ? 'text-[#141A1F]' : 'text-ink')}>
+                        <div
+                          className={cn(
+                            'text-sm font-extrabold tracking-[-0.3px]',
+                            selected ? 'text-[#141A1F]' : 'text-ink'
+                          )}
+                        >
                           {day.d}
                         </div>
-                        <div className={cn('mt-0.5 text-[11px]', selected ? 'text-[#5E676D]' : 'text-ink-60')}>
+                        <div
+                          className={cn(
+                            'mt-0.5 text-[11px]',
+                            selected ? 'text-[#5E676D]' : 'text-ink-60'
+                          )}
+                        >
                           {day.date}
                         </div>
                       </div>
-                      <TimeRow ico={I.sun} label="주간" range={`${day.dayStart} — ${day.dayEnd}`} selected={selected} />
-                      <TimeRow ico={I.moon} label="야간" range={`${day.nightStart} — ${day.nightEnd}`} selected={selected} />
+                      <TimeRow
+                        ico={I.sun}
+                        label="주간"
+                        range={`${day.dayStart} — ${day.dayEnd}`}
+                        selected={selected}
+                      />
+                      <TimeRow
+                        ico={I.moon}
+                        label="야간"
+                        range={`${day.nightStart} — ${day.nightEnd}`}
+                        selected={selected}
+                      />
                       <div className="text-right">
-                        <div className={cn('text-sm font-extrabold', selected ? 'text-[#141A1F]' : 'text-ink')}>{day.booths}</div>
-                        <div className={cn('text-[10px]', selected ? 'text-[#5E676D]' : 'text-ink-60')}>부스</div>
+                        <div
+                          className={cn(
+                            'text-sm font-extrabold',
+                            selected ? 'text-[#141A1F]' : 'text-ink'
+                          )}
+                        >
+                          {day.booths}
+                        </div>
+                        <div
+                          className={cn(
+                            'text-[10px]',
+                            selected ? 'text-[#5E676D]' : 'text-ink-60'
+                          )}
+                        >
+                          부스
+                        </div>
                       </div>
                     </div>
 
@@ -458,14 +544,20 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                             <input
                               type="time"
                               value={day.dayStart}
-                              onChange={(e) => updateDayTime(day.d, 'dayStart', e.target.value)}
+                              onChange={(e) =>
+                                updateDayTime(day.d, 'dayStart', e.target.value)
+                              }
                               className="flex-1 rounded-lg border border-[rgba(20,26,31,0.15)] bg-white/70 px-2 py-1.5 font-mono text-[12px] font-bold text-[#141A1F] focus:border-coral focus:outline-none"
                             />
-                            <span className="text-[11px] text-[#5E676D]">—</span>
+                            <span className="text-[11px] text-[#5E676D]">
+                              —
+                            </span>
                             <input
                               type="time"
                               value={day.dayEnd}
-                              onChange={(e) => updateDayTime(day.d, 'dayEnd', e.target.value)}
+                              onChange={(e) =>
+                                updateDayTime(day.d, 'dayEnd', e.target.value)
+                              }
                               className="flex-1 rounded-lg border border-[rgba(20,26,31,0.15)] bg-white/70 px-2 py-1.5 font-mono text-[12px] font-bold text-[#141A1F] focus:border-coral focus:outline-none"
                             />
                           </div>
@@ -479,14 +571,24 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                             <input
                               type="time"
                               value={day.nightStart}
-                              onChange={(e) => updateDayTime(day.d, 'nightStart', e.target.value)}
+                              onChange={(e) =>
+                                updateDayTime(
+                                  day.d,
+                                  'nightStart',
+                                  e.target.value
+                                )
+                              }
                               className="flex-1 rounded-lg border border-[rgba(20,26,31,0.15)] bg-white/70 px-2 py-1.5 font-mono text-[12px] font-bold text-[#141A1F] focus:border-coral focus:outline-none"
                             />
-                            <span className="text-[11px] text-[#5E676D]">—</span>
+                            <span className="text-[11px] text-[#5E676D]">
+                              —
+                            </span>
                             <input
                               type="time"
                               value={day.nightEnd}
-                              onChange={(e) => updateDayTime(day.d, 'nightEnd', e.target.value)}
+                              onChange={(e) =>
+                                updateDayTime(day.d, 'nightEnd', e.target.value)
+                              }
                               className="flex-1 rounded-lg border border-[rgba(20,26,31,0.15)] bg-white/70 px-2 py-1.5 font-mono text-[12px] font-bold text-[#141A1F] focus:border-coral focus:outline-none"
                             />
                           </div>
@@ -526,7 +628,9 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                     {p.name[0]}
                   </div>
                   <div className="flex-1">
-                    <div className="text-[13px] font-bold text-ink">{p.name}</div>
+                    <div className="text-[13px] font-bold text-ink">
+                      {p.name}
+                    </div>
                     <div className="text-[11px] text-ink-60">{p.role}</div>
                   </div>
                 </div>
@@ -556,7 +660,9 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                         {acc.orgName[0]}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="text-[13px] font-bold text-ink">{acc.orgName}</div>
+                        <div className="text-[13px] font-bold text-ink">
+                          {acc.orgName}
+                        </div>
                         <div className="text-[11px] text-ink-60">
                           {acc.representativeName}
                           {loc && ` · ${loc}`}
@@ -594,7 +700,9 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                           }}
                           className="flex w-full items-center gap-2 px-3.5 py-2.5 text-[12px] font-bold text-alert hover:bg-alert/5"
                         >
-                          <span className="size-3.5">{I.trash(FESTI_TOKENS.alert)}</span>
+                          <span className="size-3.5">
+                            {I.trash(FESTI_TOKENS.alert)}
+                          </span>
                           권한 삭제
                         </button>
                       </div>
@@ -613,7 +721,9 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                         <button
                           type="button"
                           onClick={() => {
-                            const parts = locationDraft.split('·').map((s) => s.trim())
+                            const parts = locationDraft
+                              .split('·')
+                              .map((s) => s.trim())
                             if (acc.operatingTimes.includes('주간') && parts[0])
                               setBoothLocation(acc.id, '주간', parts[0])
                             if (acc.operatingTimes.includes('야간') && parts[1])

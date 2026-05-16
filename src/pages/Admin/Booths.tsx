@@ -1005,31 +1005,30 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
                         </div>
                       </button>
 
-
-                        <div className="mt-3 flex flex-col gap-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-12 text-[11px] text-ink-60">
-                              섹션 수
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => changeTruckSlotCount(zone.id, -1)}
-                              className="flex size-6 items-center justify-center rounded-lg border border-border text-ink-60"
-                            >
-                              −
-                            </button>
-                            <span className="w-8 text-center text-sm font-extrabold text-ink">
-                              {count}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => changeTruckSlotCount(zone.id, 1)}
-                              className="flex size-6 items-center justify-center rounded-lg border border-border text-ink-60"
-                            >
-                              +
-                            </button>
-                          </div>
+                      <div className="mt-3 flex flex-col gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-12 text-[11px] text-ink-60">
+                            섹션 수
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => changeTruckSlotCount(zone.id, -1)}
+                            className="flex size-6 items-center justify-center rounded-lg border border-border text-ink-60"
+                          >
+                            −
+                          </button>
+                          <span className="w-8 text-center text-sm font-extrabold text-ink">
+                            {count}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => changeTruckSlotCount(zone.id, 1)}
+                            className="flex size-6 items-center justify-center rounded-lg border border-border text-ink-60"
+                          >
+                            +
+                          </button>
                         </div>
+                      </div>
                     </div>
                   )
                 })}

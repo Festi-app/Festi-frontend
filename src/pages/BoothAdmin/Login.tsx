@@ -98,8 +98,9 @@ export function BoothAdminLogin() {
           </div>
 
           <div className="mt-4 text-center text-[11px] text-ink-40">
-            데모 계정: 단체명 <strong className="text-ink-60">컴퓨터학부</strong> /
-            비밀번호 <strong className="text-ink-60">1234</strong>
+            데모 계정: 단체명{' '}
+            <strong className="text-ink-60">컴퓨터학부</strong> / 비밀번호{' '}
+            <strong className="text-ink-60">1234</strong>
           </div>
         </div>
 
