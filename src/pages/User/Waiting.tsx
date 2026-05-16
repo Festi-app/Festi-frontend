@@ -45,8 +45,7 @@ export function MobileWaitingRegister({ dark = false }: { dark?: boolean }) {
   function handleRegister() {
     setShowToast(true)
     setTimeout(() => {
-      setShowToast(false)
-      navigate('/waiting')
+      navigate(-1)
     }, 1800)
   }
 
@@ -316,7 +315,14 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1">
-                    <Pill color={pillColor} ink={FESTI_TOKENS.ink}>
+                    <Pill
+                      color={pillColor}
+                      ink={
+                        pillColor === FESTI_TOKENS.sun
+                          ? FESTI_TOKENS.ink
+                          : '#fff'
+                      }
+                    >
                       대기중
                     </Pill>
                     <Pill color="transparent" ink={ink60}>

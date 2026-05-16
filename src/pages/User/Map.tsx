@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactElement, TouchEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTI_TOKENS, I, Pill } from '../../tokens'
@@ -43,21 +43,51 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { isDay, setIsDay } = useDayNightStore()
   const [selectedFestivalDay, setSelectedFestivalDay] = useState('2일차')
+  const [dayDropdownOpen, setDayDropdownOpen] = useState(false)
+  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set())
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [scale, setScale] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [isPinching, setIsPinching] = useState(false)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [sheetDismissing, setSheetDismissing] = useState(false)
+  const [sheetDragY, setSheetDragY] = useState(0)
+  const [listOpen, setListOpen] = useState(false)
+  const [listTab, setListTab] = useState<'day' | 'night' | 'truck'>('night')
+  const [listCatFilter, setListCatFilter] = useState<string | null>(null)
   const lastTouchDist = useRef<number | null>(null)
   const lastOffset = useRef({ x: 0, y: 0 })
   const dragStart = useRef<{ x: number; y: number } | null>(null)
+  const sheetDragStart = useRef<number | null>(null)
+  // 데스크탑에서 테스트하기 위해 추가한 마우스 드래그 ref
+  const mouseDragStart = useRef<{ x: number; y: number } | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const MIN_SCALE = 1
   const MAX_SCALE = 3.5
 
+  // 진입 시 이미지가 화면 세로를 꽉 채우는 스케일로 시작
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const imageH = el.clientWidth * (998 / 1072)
+    setScale(Math.min(MAX_SCALE, el.clientHeight / imageH))
+  }, [])
+
   function clampOffset(x: number, y: number, s: number) {
-    const maxX = (s - 1) * 50
-    const maxY = (s - 1) * 50
+    const el = containerRef.current
+    if (!el) return { x: 0, y: 0 }
+    const cw = el.clientWidth
+    const ch = el.clientHeight
+    const imageH = cw * (998 / 1072)
+
+    // 좌우: 이미지 범위 내에서만 이동
+    const maxX = Math.max(0, ((s - 1) * cw) / 2)
+
+    // 상하: 이미지 위/아래 여백이 화면의 30% 이상 보이지 않도록
+    const maxY = Math.max(0, (imageH * s) / 2 - ch * 0.2)
+
     return {
       x: Math.max(-maxX, Math.min(maxX, x)),
       y: Math.max(-maxY, Math.min(maxY, y)),
@@ -71,7 +101,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       lastTouchDist.current = Math.hypot(dx, dy)
       setIsPinching(true)
       lastOffset.current = offset
-    } else if (e.touches.length === 1 && scale > 1) {
+    } else if (e.touches.length === 1 && scale > MIN_SCALE) {
       dragStart.current = {
         x: e.touches[0].clientX - offset.x,
         y: e.touches[0].clientY - offset.y,
@@ -93,7 +123,11 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       const clamped = clampOffset(offset.x, offset.y, next)
       setScale(next)
       setOffset(clamped)
-    } else if (e.touches.length === 1 && dragStart.current && scale > 1) {
+    } else if (
+      e.touches.length === 1 &&
+      dragStart.current &&
+      scale > MIN_SCALE
+    ) {
       const nx = e.touches[0].clientX - dragStart.current.x
       const ny = e.touches[0].clientY - dragStart.current.y
       setOffset(clampOffset(nx, ny, scale))
@@ -104,8 +138,8 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     lastTouchDist.current = null
     setIsPinching(false)
     dragStart.current = null
-    if (scale < 1.05) {
-      setScale(1)
+    if (scale < MIN_SCALE * 1.05) {
+      setScale(MIN_SCALE)
       setOffset({ x: 0, y: 0 })
     }
   }
@@ -115,6 +149,63 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     const clamped = clampOffset(offset.x, offset.y, next)
     setScale(next)
     setOffset(clamped)
+  }
+
+  function dismissSheet() {
+    setSheetDismissing(true)
+    setTimeout(() => {
+      setSelectedId(null)
+      setSheetDismissing(false)
+      setSheetDragY(0)
+    }, 220)
+  }
+
+  function handleSheetTouchStart(e: TouchEvent) {
+    e.stopPropagation()
+    sheetDragStart.current = e.touches[0].clientY
+  }
+
+  function handleSheetTouchMove(e: TouchEvent) {
+    e.stopPropagation()
+    if (sheetDragStart.current === null) return
+    const dy = e.touches[0].clientY - sheetDragStart.current
+    if (dy > 0) setSheetDragY(dy)
+  }
+
+  function handleSheetTouchEnd(e: TouchEvent) {
+    e.stopPropagation()
+    if (sheetDragY > 60) {
+      dismissSheet()
+    } else {
+      setSheetDragY(0)
+    }
+    sheetDragStart.current = null
+  }
+
+  function openList() {
+    setListTab(isDay ? 'day' : 'night')
+    setListCatFilter(null)
+    setListOpen(true)
+  }
+
+  // 데스크탑에서 테스트하기 위해 추가한 마우스 드래그 핸들러
+  function handleMouseDown(e: React.MouseEvent) {
+    if (scale <= MIN_SCALE) return
+    mouseDragStart.current = {
+      x: e.clientX - offset.x,
+      y: e.clientY - offset.y,
+    }
+  }
+
+  function handleMouseMove(e: React.MouseEvent) {
+    if (!mouseDragStart.current) return
+    const nx = e.clientX - mouseDragStart.current.x
+    const ny = e.clientY - mouseDragStart.current.y
+    setOffset(clampOffset(nx, ny, scale))
+  }
+
+  function handleMouseUp() {
+    mouseDragStart.current = null
   }
 
   const markers = [
@@ -239,7 +330,22 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     },
   ]
 
-  const selectedId = 16
+  const selectedMarker =
+    selectedId !== null
+      ? (markers.find((m) => m.id === selectedId) ?? null)
+      : null
+
+  const listMarkersBase = markers.filter((m) => {
+    if (listTab === 'day') return m.type === 'day' || m.type === 'special'
+    if (listTab === 'night') return m.type === 'night'
+    return m.type === 'truck'
+  })
+
+  const listCategories = [...new Set(listMarkersBase.map((m) => m.cat))]
+
+  const listMarkers = listCatFilter
+    ? listMarkersBase.filter((m) => m.cat === listCatFilter)
+    : listMarkersBase
 
   const typeColor = (type: string) =>
     type === 'truck'
@@ -249,6 +355,26 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         : type === 'special'
           ? FESTI_TOKENS.grape
           : FESTI_TOKENS.pop
+
+  const typePillColors = (type: string): { bg: string; ink: string } => {
+    if (type === 'truck')
+      return { bg: FESTI_TOKENS.sunSoft ?? '#FFF5D6', ink: FESTI_TOKENS.sun }
+    if (type === 'night')
+      return { bg: FESTI_TOKENS.alertSoft, ink: FESTI_TOKENS.alert }
+    if (type === 'special')
+      return {
+        bg: FESTI_TOKENS.grapeSoft ?? '#EDE7F8',
+        ink: FESTI_TOKENS.grape,
+      }
+    return { bg: FESTI_TOKENS.popSoft ?? '#E6FBF5', ink: FESTI_TOKENS.pop }
+  }
+
+  const typeLabel = (type: string) => {
+    if (type === 'truck') return '푸드트럭'
+    if (type === 'night') return '야간'
+    if (type === 'special') return '안내'
+    return '주간'
+  }
 
   const waitStatus = (w: number) => {
     if (w === 0) return { color: FESTI_TOKENS.pop, label: '바로 입장' }
@@ -267,36 +393,59 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   })
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[#E8F4F5] font-festi dark:bg-[#0B1A1F]">
+    <div
+      ref={containerRef}
+      className="relative h-full w-full overflow-hidden bg-[#E8F4F5] font-festi dark:bg-[#0B1A1F]"
+    >
       {/* Zoomable map layer */}
       <div
-        className="absolute inset-0 touch-none"
+        className="absolute inset-0 touch-none cursor-grab active:cursor-grabbing"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onClick={() => {
+          if (selectedId !== null) dismissSheet()
+        }}
         style={{
           transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
           transformOrigin: 'center center',
           transition: isPinching ? 'none' : 'transform 0.15s ease-out',
         }}
       >
-        {/* Map image */}
+        {/* 이미지 + 마커를 같은 컨테이너에 배치 — x%, y%가 이미지 좌표에 직접 대응 */}
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-x-0"
           style={{
-            backgroundImage: `url(${soongsilDayMap})`,
-            filter: dark
-              ? 'brightness(0.45) saturate(0.5)'
-              : 'brightness(1.05) saturate(0.6)',
-            opacity: dark ? 0.9 : 0.7,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            aspectRatio: '1072 / 998',
           }}
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.3)_0%,rgba(255,255,255,0.55)_100%)] dark:bg-[linear-gradient(180deg,rgba(11,26,31,0.35)_0%,rgba(11,26,31,0.55)_100%)]" />
+        >
+          {/* Map image */}
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${soongsilDayMap})`,
+              backgroundSize: '100% 100%',
+              ...(dark
+                ? {}
+                : { filter: 'brightness(1.05) saturate(0.6)', opacity: 0.75 }),
+            }}
+          />
+          {/* 엣지 페이드 */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[8%] bg-[linear-gradient(180deg,#E8F4F5_0%,transparent_100%)] dark:bg-[linear-gradient(180deg,#0B1A1F_0%,transparent_100%)]" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[8%] bg-[linear-gradient(0deg,#E8F4F5_0%,transparent_100%)] dark:bg-[linear-gradient(0deg,#0B1A1F_0%,transparent_100%)]" />
+          {!dark && (
+            <div className="pointer-events-none absolute inset-0 bg-[rgba(232,244,245,0.18)]" />
+          )}
 
-        {/* Markers layer */}
-        <div className="absolute top-44.5 right-0 bottom-57.5 left-0">
+          {/* Markers — left/top % 이 이미지 좌표와 1:1 대응 */}
           {markers.map((m) => {
-            const visible =
+            const inTimeRange =
               (isDay &&
                 (m.type === 'day' ||
                   m.type === 'truck' ||
@@ -305,67 +454,77 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                 (m.type === 'night' ||
                   m.type === 'truck' ||
                   m.type === 'special'))
-            if (!visible) return null
+            if (!inTimeRange || hiddenTypes.has(m.type)) return null
 
-            const isSel = m.id === selectedId && !isDay
+            const isSel = m.id === selectedId
             const pinColor = typeColor(m.type)
             const numColor =
               m.type === 'night' || m.type === 'truck' || m.type === 'day'
                 ? '#fff'
                 : FESTI_TOKENS.ink
-            const labelRight = m.x < 50
             const ws = waitStatus(m.wait)
 
             return (
               <button
                 type="button"
                 key={m.id}
-                onClick={() => navigate('/booth')}
-                className="absolute flex translate-x-[-50%] items-center gap-1.25"
+                onClick={() => setSelectedId(m.id)}
+                className="absolute"
                 style={{
                   left: `${m.x}%`,
-                  top: `${m.y - 35}%`,
-                  flexDirection: labelRight ? 'row' : 'row-reverse',
+                  top: `${m.y}%`,
                   zIndex: isSel ? 5 : 1,
+                  transform: 'translate(-50%, -50%)',
                 }}
               >
+                {/* 줌과 무관하게 마커 크기를 고정하는 역보정 래퍼 */}
                 <div
-                  className="relative flex shrink-0 items-center justify-center rounded-full font-extrabold tracking-[-0.3px]"
+                  className="flex flex-col items-center gap-1"
                   style={{
-                    width: isSel ? 32 : 26,
-                    height: isSel ? 32 : 26,
-                    background: pinColor,
-                    color: numColor,
-                    fontSize: isSel ? 13 : 11,
-                    boxShadow: isSel
-                      ? 'inset 0 0 0 3px #fff, 0 6px 18px rgba(20,26,31,0.35)'
-                      : 'inset 0 0 0 2px #fff, 0 2px 8px rgba(20,26,31,0.25)',
+                    transform: `scale(${1 / scale})`,
+                    transformOrigin: 'center center',
                   }}
                 >
-                  {m.id}
-                  {isSel && (
-                    <div
-                      className="absolute -inset-2 -z-1 animate-[festi-pulse_2s_ease-out_infinite] rounded-full opacity-25"
-                      style={{ background: pinColor }}
-                    />
-                  )}
-                </div>
-                <div className="flex items-center gap-1.25 whitespace-nowrap rounded-[9px] border border-[rgba(20,26,31,0.08)] bg-white px-2 py-1.25 text-[11px] font-bold tracking-[-0.2px] text-ink shadow-[0_3px_10px_rgba(20,26,31,0.18)] dark:border-white/10 dark:bg-[#1B3239]">
-                  <span
-                    className="size-1.5 shrink-0 rounded-full"
-                    style={{ background: ws.color }}
-                  />
-                  {m.name}
-                  <span
-                    className="text-[10px] font-extrabold"
-                    style={{ color: ws.color }}
+                  <div
+                    className="relative flex shrink-0 items-center justify-center rounded-full font-extrabold tracking-[-0.3px]"
+                    style={{
+                      width: isSel ? 40 : 32,
+                      height: isSel ? 40 : 32,
+                      background: pinColor,
+                      color: numColor,
+                      fontSize: isSel ? 13 : 11,
+                      boxShadow: isSel
+                        ? 'inset 0 0 0 3px #fff, 0 6px 18px rgba(20,26,31,0.35)'
+                        : 'inset 0 0 0 2px #fff, 0 2px 8px rgba(20,26,31,0.25)',
+                    }}
                   >
-                    {ws.label}
-                  </span>
-                  {m.hot && (
-                    <span className="rounded bg-alert px-1 py-px text-[8px] font-extrabold tracking-[0.3px] text-white">
-                      HOT
-                    </span>
+                    {m.id}
+                    {isSel && (
+                      <div
+                        className="absolute -inset-2 -z-1 animate-[festi-pulse_2s_ease-out_infinite] rounded-full opacity-25"
+                        style={{ background: pinColor }}
+                      />
+                    )}
+                  </div>
+                  {isSel && (
+                    <div className="flex items-center gap-1.25 whitespace-nowrap rounded-[9px] border border-[rgba(20,26,31,0.08)] bg-white px-2 py-1.25 text-[11px] font-bold tracking-[-0.2px] text-ink shadow-[0_3px_10px_rgba(20,26,31,0.18)] dark:border-white/10 dark:bg-[#1B3239]">
+                      <span
+                        className="size-1.5 shrink-0 rounded-full"
+                        style={{ background: ws.color }}
+                      />
+                      {m.name}
+                      <span
+                        className="text-[10px] font-extrabold"
+                        style={{ color: ws.color }}
+                      >
+                        {ws.label}
+                      </span>
+                      {m.hot && (
+                        <span className="rounded bg-alert px-1 py-px text-[8px] font-extrabold tracking-[0.3px] text-white">
+                          HOT
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               </button>
@@ -395,12 +554,12 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       </div>
 
       {/* Top header */}
-      <div className="absolute inset-x-0 top-0 z-10 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(255,255,255,0)_100%)] px-4 pt-13.5 pb-3.5 dark:bg-[linear-gradient(180deg,rgba(11,26,31,0.97)_0%,rgba(11,26,31,0)_100%)]">
-        <div className="mt-1.5 mb-2.5 flex items-center gap-2.5">
+      <div className="absolute inset-x-0 top-0 z-10 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(255,255,255,0)_100%)] px-4 pt-13.5 pb-2 dark:bg-[linear-gradient(180deg,rgba(11,26,31,0.97)_0%,rgba(11,26,31,0)_100%)]">
+        <div className="mt-1 mb-2 flex items-center gap-2.5">
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="flex flex-1 items-center gap-2 rounded-full border border-border bg-white px-3.5 py-2.5 text-left shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)] dark:bg-white/5"
+            className="flex flex-1 items-center gap-2 rounded-full border border-border bg-white px-3.5 py-2 text-left shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)] dark:bg-white/5"
           >
             <div className="size-4.5 text-ink-60">{I.search()}</div>
             <div className="text-sm font-medium text-ink-60">
@@ -409,14 +568,14 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/trucks')}
+            onClick={() => openList()}
             className="flex size-11 items-center justify-center rounded-full bg-cta text-cta-ink shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)]"
           >
             <div className="size-5">{I.list()}</div>
           </button>
         </div>
 
-        {/* Day/Night + day-N chips */}
+        {/* Row 1: Day/Night toggle + 일차 필터칩 */}
         <div className="flex items-center gap-2">
           <div className="flex rounded-full border border-border bg-white p-0.75 shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)] dark:bg-[#13262D]/95">
             {[
@@ -445,112 +604,370 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               )
             })}
           </div>
-          <div className="flex flex-1 gap-1.5 overflow-x-auto">
-            {['2일차', '1일차', '3일차'].map((d) => (
+          {/* 일차 필터칩 */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setDayDropdownOpen((v) => !v)}
+              className="flex items-center gap-1 whitespace-nowrap rounded-full border border-border bg-white/80 px-3 py-2 text-[13px] font-bold tracking-[-0.2px] text-ink shadow-[0_1px_8px_rgba(20,26,31,0.10)] backdrop-blur-sm dark:border-white/30 dark:bg-white/15 dark:text-white"
+            >
+              {selectedFestivalDay}
+              <svg
+                viewBox="0 0 12 12"
+                width="12"
+                height="12"
+                fill="none"
+                style={{
+                  transform: dayDropdownOpen ? 'rotate(180deg)' : 'none',
+                  transition: 'transform 0.15s',
+                }}
+              >
+                <path
+                  d="M2 4l4 4 4-4"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            {dayDropdownOpen && (
+              <div className="absolute left-0 top-full z-50 mt-1.5 overflow-hidden rounded-[14px] border border-border bg-white shadow-[0_4px_20px_rgba(20,26,31,0.15)] dark:bg-[#13262D]">
+                {['1일차', '2일차', '3일차'].map((d) => (
+                  <button
+                    type="button"
+                    key={d}
+                    onClick={() => {
+                      setSelectedFestivalDay(d)
+                      setDayDropdownOpen(false)
+                    }}
+                    className={`block w-full px-4 py-2.5 text-left text-[13px] font-bold tracking-[-0.2px] ${
+                      selectedFestivalDay === d
+                        ? 'font-extrabold text-ink'
+                        : 'text-ink'
+                    }`}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 타입 필터칩 — 하단 센터 플로팅 */}
+      {selectedId === null && !listOpen && (
+        <div className="absolute inset-x-0 bottom-24 z-10 flex justify-center gap-1.5 px-4">
+          {(isDay
+            ? [
+                { type: 'day', label: '주간 부스', color: FESTI_TOKENS.pop },
+                { type: 'truck', label: '푸드트럭', color: FESTI_TOKENS.sun },
+                {
+                  type: 'special',
+                  label: '안내·본부',
+                  color: FESTI_TOKENS.grape,
+                },
+              ]
+            : [
+                {
+                  type: 'night',
+                  label: '야간 주점',
+                  color: FESTI_TOKENS.alert,
+                },
+                { type: 'truck', label: '푸드트럭', color: FESTI_TOKENS.sun },
+                {
+                  type: 'special',
+                  label: '안내·본부',
+                  color: FESTI_TOKENS.grape,
+                },
+              ]
+          ).map(({ type, label, color }) => {
+            const hidden = hiddenTypes.has(type)
+            return (
               <button
                 type="button"
-                onClick={() => setSelectedFestivalDay(d)}
-                key={d}
-                className={`whitespace-nowrap rounded-full border px-3 py-2 text-[13px] font-bold tracking-[-0.2px] ${
-                  selectedFestivalDay === d
-                    ? 'border-cta bg-cta text-cta-ink'
-                    : 'border-border bg-white/85 text-ink-80 dark:bg-white/5'
+                key={type}
+                onClick={() =>
+                  setHiddenTypes((prev) => {
+                    const next = new Set(prev)
+                    if (next.has(type)) next.delete(type)
+                    else next.add(type)
+                    return next
+                  })
+                }
+                className={`flex items-center gap-1.25 rounded-full border px-3 py-2 text-[13px] font-bold tracking-[-0.2px] backdrop-blur-sm ${
+                  hidden
+                    ? 'border-border bg-white/70 text-ink-40 dark:bg-[#0B1A1F]/70'
+                    : 'border-border bg-white/95 text-ink-80 shadow-[0_2px_12px_rgba(20,26,31,0.12)] dark:bg-[#13262D]/95'
                 }`}
               >
-                {d}
+                <span
+                  className="size-2 shrink-0 rounded-full"
+                  style={{ background: hidden ? '#D3DBDE' : color }}
+                />
+                {label}
               </button>
-            ))}
-          </div>
+            )
+          })}
         </div>
-      </div>
-
-      {/* Compact legend */}
-      <div className="absolute top-40 right-3 z-5 flex flex-col gap-1.25 rounded-xl border border-border bg-white/95 px-2.5 py-2 text-[11px] font-bold text-ink-80 shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)] backdrop-blur-md dark:bg-[#13262D]/95">
-        {[
-          isDay
-            ? { c: FESTI_TOKENS.pop, l: '주간 부스' }
-            : { c: FESTI_TOKENS.alert, l: '야간 주점' },
-          { c: FESTI_TOKENS.sun, l: '푸드트럭' },
-          { c: FESTI_TOKENS.grape, l: '안내·본부' },
-        ].map((x) => (
-          <div key={x.l} className="flex items-center gap-1.5">
-            <div
-              className="size-2.25 rounded-full shadow-[inset_0_0_0_1.5px_#fff]"
-              style={{ background: x.c }}
-            />
-            {x.l}
-          </div>
-        ))}
-        <div className="mt-px border-t border-border pt-1.25 text-[10px] font-semibold text-ink-60">
-          <div className="mb-0.75 flex items-center gap-1.25">
-            <span className="size-1.5 rounded-full bg-pop" />
-            여유 / 0-2팀
-          </div>
-          <div className="flex items-center gap-1.25">
-            <span className="size-1.5 rounded-full bg-alert" />
-            대기 / 3팀+
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Bottom sheet - selected booth */}
-      <div className="absolute inset-x-0 bottom-0 z-10 rounded-t-3xl border-t border-border bg-surface px-4.5 pt-2.5 pb-25 shadow-[0_-8px_32px_rgba(15,42,51,0.18)]">
-        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-ink-20" />
-        <div className="flex items-center gap-2.75">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-alert text-[15px] font-extrabold text-white shadow-[inset_0_0_0_3px_#fff,0_4px_12px_rgba(255,90,90,0.4)]">
-            16
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="mb-0.5 flex items-center gap-1.25">
-              <Pill
-                color={FESTI_TOKENS.alertSoft}
-                ink={FESTI_TOKENS.alert}
-                style={{ fontSize: 10 }}
-              >
-                야간 · 주점
-              </Pill>
-              <span className="text-[10px] font-semibold text-ink-60">
-                베어드홀 동측
-              </span>
-            </div>
-            <div className="overflow-hidden text-ellipsis whitespace-nowrap text-base font-extrabold tracking-[-0.3px] text-ink">
-              컴공과 칵테일 바
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-2.5 flex gap-1.5 rounded-xl bg-surface-alt p-2">
-          <Stat
-            label="대기"
-            value="7팀"
-            color={FESTI_TOKENS.alert}
-            dark={dark}
+      {(selectedId !== null || sheetDismissing) && selectedMarker && (
+        <div
+          className="absolute inset-x-0 bottom-0 z-10 rounded-t-3xl border-t border-border bg-surface px-4.5 pt-2.5 pb-25 shadow-[0_-8px_32px_rgba(15,42,51,0.18)]"
+          style={{
+            animation:
+              sheetDragY > 0
+                ? 'none'
+                : sheetDismissing
+                  ? 'festi-sheet-out 0.22s ease both'
+                  : 'festi-sheet-in 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both',
+            transform:
+              sheetDragY > 0 ? `translateY(${sheetDragY}px)` : undefined,
+            transition: sheetDragY > 0 ? 'none' : undefined,
+          }}
+          onTouchStart={handleSheetTouchStart}
+          onTouchMove={handleSheetTouchMove}
+          onTouchEnd={handleSheetTouchEnd}
+        >
+          <button
+            type="button"
+            onClick={dismissSheet}
+            className="mx-auto mb-3 block h-1 w-9 rounded-full bg-ink-20"
+            aria-label="닫기"
           />
-          <div className="w-px bg-border" />
-          <Stat label="예상" value="22분" dark={dark} />
-          <div className="w-px bg-border" />
-        </div>
+          <div className="flex items-center gap-2.75">
+            <div
+              className="flex size-11 shrink-0 items-center justify-center rounded-full text-[15px] font-extrabold text-white"
+              style={{
+                background: typeColor(selectedMarker.type),
+                boxShadow: `inset 0 0 0 3px #fff, 0 4px 12px ${typeColor(selectedMarker.type)}66`,
+              }}
+            >
+              {selectedMarker.id}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="mb-0.5 flex items-center gap-1.25">
+                <Pill
+                  color={typePillColors(selectedMarker.type).bg}
+                  ink={typePillColors(selectedMarker.type).ink}
+                  style={{ fontSize: 10 }}
+                >
+                  {typeLabel(selectedMarker.type)} · {selectedMarker.cat}
+                </Pill>
+              </div>
+              <div className="overflow-hidden text-ellipsis whitespace-nowrap text-base font-extrabold tracking-[-0.3px] text-ink">
+                {selectedMarker.name}
+              </div>
+            </div>
+          </div>
 
-        <div className="mt-2.5 flex gap-1.5">
-          <button
-            type="button"
-            onClick={() => navigate('/booth')}
-            className="flex-1 rounded-[14px] border border-border bg-surface-alt p-3 text-center text-[13px] font-bold text-ink"
-          >
-            상세보기
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/waiting/register')}
-            className="flex flex-2 items-center justify-center gap-1.5 rounded-[14px] bg-cta p-3 text-center text-sm font-extrabold tracking-[-0.3px] text-cta-ink shadow-[0_8px_22px_rgba(0,198,224,0.4)]"
-          >
-            웨이팅 걸기
-            <span className="rounded-full bg-alert px-1.75 py-0.5 text-[11px] font-extrabold text-white">
-              7팀
-            </span>
-          </button>
+          {selectedMarker.type !== 'truck' && (
+            <div className="mt-2.5 flex gap-1.5 rounded-xl bg-surface-alt p-2">
+              <Stat
+                label="대기"
+                value={
+                  selectedMarker.wait === 0
+                    ? '없음'
+                    : `${selectedMarker.wait}팀`
+                }
+                color={waitStatus(selectedMarker.wait).color}
+                dark={dark}
+              />
+              <div className="w-px bg-border" />
+              <Stat
+                label="예상"
+                value={
+                  selectedMarker.wait === 0
+                    ? '바로입장'
+                    : `${selectedMarker.wait * 3}분`
+                }
+                dark={dark}
+              />
+              <div className="w-px bg-border" />
+            </div>
+          )}
+
+          <div className="mt-2.5 flex gap-1.5">
+            <button
+              type="button"
+              onClick={() => navigate('/booth')}
+              className="flex-1 rounded-[14px] border border-border bg-surface-alt p-3 text-center text-[13px] font-bold text-ink"
+            >
+              상세보기
+            </button>
+            {selectedMarker.type !== 'truck' && (
+              <button
+                type="button"
+                onClick={() => navigate('/waiting/register')}
+                className="flex flex-2 items-center justify-center gap-1.5 rounded-[14px] bg-cta p-3 text-center text-sm font-extrabold tracking-[-0.3px] text-cta-ink shadow-[0_8px_22px_rgba(0,198,224,0.4)]"
+              >
+                웨이팅 걸기
+                {selectedMarker.wait > 0 && (
+                  <span className="rounded-full bg-alert px-1.75 py-0.5 text-[11px] font-extrabold text-white">
+                    {selectedMarker.wait}팀
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Booth list overlay */}
+      {listOpen && (
+        <>
+          <div
+            className="absolute inset-0 z-20 bg-[rgba(0,0,0,0.4)]"
+            style={{ animation: 'festi-fade-in 0.18s ease both' }}
+            onClick={() => setListOpen(false)}
+          />
+          <div
+            className="absolute inset-x-0 bottom-0 z-30 flex flex-col rounded-t-3xl bg-surface shadow-[0_-8px_32px_rgba(15,42,51,0.18)]"
+            style={{
+              animation:
+                'festi-sheet-in 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both',
+              height: '72vh',
+            }}
+          >
+            <div className="pt-2.5">
+              <button
+                type="button"
+                onClick={() => setListOpen(false)}
+                className="mx-auto block h-1 w-9 rounded-full bg-ink-20"
+                aria-label="닫기"
+              />
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-1.5 px-4 pt-3 pb-2">
+              {(
+                [
+                  { id: 'day', label: '주간', color: FESTI_TOKENS.pop },
+                  { id: 'night', label: '야간', color: FESTI_TOKENS.alert },
+                  { id: 'truck', label: '푸드트럭', color: FESTI_TOKENS.sun },
+                ] as const
+              ).map((tab) => {
+                const on = listTab === tab.id
+                return (
+                  <button
+                    type="button"
+                    key={tab.id}
+                    onClick={() => {
+                      setListTab(tab.id)
+                      setListCatFilter(null)
+                    }}
+                    className={`rounded-full border px-3.5 py-2 text-[13px] font-bold tracking-[-0.2px] ${
+                      on
+                        ? 'border-transparent text-white'
+                        : 'border-border bg-surface-alt text-ink-60'
+                    }`}
+                    style={on ? { background: tab.color } : undefined}
+                  >
+                    {tab.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Category filter chips */}
+            {listCategories.length > 1 && (
+              <div className="flex gap-1.5 overflow-x-auto px-4 pb-2.5 [scrollbar-width:none]">
+                <button
+                  type="button"
+                  onClick={() => setListCatFilter(null)}
+                  className={`shrink-0 rounded-full border px-3 py-1.5 text-[12px] font-bold tracking-[-0.2px] ${
+                    listCatFilter === null
+                      ? 'border-ink bg-ink text-white dark:border-white dark:bg-white dark:text-ink'
+                      : 'border-border bg-surface-alt text-ink-60'
+                  }`}
+                >
+                  전체
+                </button>
+                {listCategories.map((cat) => (
+                  <button
+                    type="button"
+                    key={cat}
+                    onClick={() => setListCatFilter(cat)}
+                    className={`shrink-0 rounded-full border px-3 py-1.5 text-[12px] font-bold tracking-[-0.2px] ${
+                      listCatFilter === cat
+                        ? 'border-ink bg-ink text-white dark:border-white dark:bg-white dark:text-ink'
+                        : 'border-border bg-surface-alt text-ink-60'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* List */}
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-27.5">
+              {listMarkers.length === 0 ? (
+                <div className="py-10 text-center text-sm text-ink-40">
+                  부스가 없습니다
+                </div>
+              ) : (
+                <div className="flex flex-col divide-y divide-border">
+                  {listMarkers.map((m) => {
+                    const ws = waitStatus(m.wait)
+                    const pinColor = typeColor(m.type)
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          setListOpen(false)
+                          setSelectedId(m.id)
+                        }}
+                        className="flex items-center gap-3 py-3.5 text-left"
+                      >
+                        <div
+                          className="flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
+                          style={{ background: pinColor }}
+                        >
+                          {m.id}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[14px] font-bold tracking-[-0.3px] text-ink">
+                              {m.name}
+                            </span>
+                            {m.hot && (
+                              <span className="rounded bg-alert px-1.25 py-px text-[8px] font-extrabold tracking-[0.3px] text-white">
+                                HOT
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-0.5 text-[11px] text-ink-60">
+                            {m.cat}
+                          </div>
+                        </div>
+                        {m.type !== 'truck' && (
+                          <div className="flex items-center gap-1">
+                            <span
+                              className="size-1.5 rounded-full"
+                              style={{ background: ws.color }}
+                            />
+                            <span
+                              className="text-[13px] font-extrabold"
+                              style={{ color: ws.color }}
+                            >
+                              {ws.label}
+                            </span>
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Search overlay */}
       {searchOpen && (
@@ -626,7 +1043,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                         onClick={() => {
                           setSearchOpen(false)
                           setSearchQuery('')
-                          navigate('/booth')
+                          setSelectedId(m.id)
                         }}
                         className="flex items-center gap-3 rounded-[14px] px-3 py-3 text-left transition-colors hover:bg-surface-alt active:bg-surface-alt"
                       >
@@ -663,6 +1080,14 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       <FestiTabBar active="map" dark={dark} />
 
       <style>{`
+        @keyframes festi-sheet-in {
+          from { transform: translateY(100%); }
+          to   { transform: translateY(0); }
+        }
+        @keyframes festi-sheet-out {
+          from { transform: translateY(0); }
+          to   { transform: translateY(100%); }
+        }
         @keyframes festi-pulse {
           0%   { transform: scale(0.7); opacity: 0.55; }
           80%  { transform: scale(2.6); opacity: 0; }
