@@ -642,7 +642,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                       setDayDropdownOpen(false)
                     }}
                     className={`block w-full px-4 py-2.5 text-left text-[13px] font-bold tracking-[-0.2px] ${
-                      selectedFestivalDay === d ? 'font-extrabold text-ink' : 'text-ink'
+                      selectedFestivalDay === d
+                        ? 'font-extrabold text-ink'
+                        : 'text-ink'
                     }`}
                   >
                     {d}
