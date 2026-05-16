@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AdminShell, AdminTopBar, AdminBtn } from './Festival'
+import { AdminShell, AdminTopBar, AdminBtn } from '../../components/Admin/Chrome'
 import {
   useBoothAdminStore,
   type BoothAdminAccount,
