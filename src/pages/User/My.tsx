@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { FESTI_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
+import { AppHeader, PageTitle } from '../../components/User/ScreenHeader'
 
 const FAVORITES = [
   {
@@ -88,14 +89,10 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
       <div className="shrink-0 border-b border-border bg-surface px-5 pt-13.5 pb-5">
-        <div className="mt-1.5 flex items-center justify-between">
+        <AppHeader dark={dark} className="mt-1.5 mb-1" />
+        <div className="flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-bold tracking-[0.3px] text-ink-60">
-              MY FESTI
-            </div>
-            <div className="mt-1 text-[26px] font-extrabold tracking-[-0.7px] text-ink">
-              즐겨찾기
-            </div>
+            <PageTitle>즐겨찾기</PageTitle>
           </div>
           <div className="flex gap-2">
             <button
@@ -200,7 +197,9 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
                         {booth.name}
                       </div>
                       <div className="mt-1 text-[11px] font-semibold text-ink-60">
-                        {booth.open ? '운영중' : '준비중'} · 예상 {booth.eta}
+                        {booth.open ? '운영중' : '준비중'}
+                        {booth.category !== '푸드트럭' &&
+                          ` · 예상 ${booth.eta}`}
                       </div>
                     </div>
                     <div className="size-4.5 shrink-0 text-alert">

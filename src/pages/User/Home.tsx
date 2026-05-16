@@ -2,7 +2,8 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { DayNightToggle } from '../../components/User/DayNightToggle'
-import { FESTI_TOKENS, FestiterMark, I, PhotoSlot, Pill } from '../../tokens'
+import { FESTI_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
+import { AppHeader } from '../../components/User/ScreenHeader'
 import { useDayNightStore } from '../../stores/useDayNightStore'
 
 const SEARCH_ITEMS = [
@@ -282,7 +283,15 @@ function WaitingCarousel({
                 <div className="mb-0.5 text-[11px] font-semibold opacity-75">
                   웨이팅 진행 중
                 </div>
-                <div className="text-[15px] font-bold tracking-[-0.3px]">
+                <div className="flex items-center gap-1.5 text-[15px] font-bold tracking-[-0.3px]">
+                  {w.ahead <= 3 && (
+                    <span
+                      className="inline-block size-1.5 shrink-0 rounded-full bg-white"
+                      style={{
+                        animation: 'festi-ping 1.4s ease-in-out infinite',
+                      }}
+                    />
+                  )}
                   {w.boothName} · 앞에 {w.ahead}팀
                 </div>
               </div>
@@ -318,7 +327,6 @@ function WaitingCarousel({
 export function MobileHome({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { isDay } = useDayNightStore()
-  const markColor = dark ? '#F2F5F7' : '#141A1F'
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [timetableDay, setTimetableDay] = useState(CURRENT_DAY)
@@ -348,10 +356,10 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
       >
         {/* Hero header */}
         <div className="relative border-b border-border bg-surface px-5 pt-13.5 pb-6">
-          {/* nav row */}
-          <div className="mt-2 mb-5.5 flex items-center justify-between">
-            <FestiterMark size={22} color={markColor} />
-            <div className="flex gap-2">
+          <AppHeader
+            dark={dark}
+            className="mt-2 mb-5.5"
+            right={
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
@@ -359,15 +367,15 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
               >
                 {I.search()}
               </button>
-            </div>
-          </div>
+            }
+          />
 
           {/* Live chip + greeting */}
           <div className="mb-3.5 inline-flex items-center gap-1.5 rounded-full bg-ink py-1 pr-2.5 pl-1 text-xs font-bold tracking-[-0.2px] text-bg">
             <span className="rounded-full bg-pop px-2 py-0.75 text-[10px] font-extrabold tracking-[0.3px] text-[#141A1F]">
               LIVE
             </span>
-            2일차 · 봄축제 둘째 날
+            축제명 · DAY {CURRENT_DAY}
           </div>
           <div className="text-[30px] leading-[1.15] font-extrabold tracking-[-1px] text-ink">
             오늘은 어떤 부스를
@@ -606,14 +614,13 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                   {/* 현재 시각 바 */}
                   {showNowBar && (
                     <div
-                      className="pointer-events-none absolute right-0 left-0 flex items-center gap-1.5"
+                      className="pointer-events-none absolute right-3 left-0 flex items-center gap-1.5"
                       style={{ top: nowY }}
                     >
                       <div className="h-px flex-1 bg-[linear-gradient(90deg,#22C55E,#00C6E0)]" />
                       <span className="shrink-0 rounded-full bg-[#22C55E] px-2 py-0.5 text-[10px] font-extrabold text-white">
                         지금
                       </span>
-                      <div className="size-1.5 shrink-0 rounded-full bg-[#00C6E0]" />
                     </div>
                   )}
                 </div>
