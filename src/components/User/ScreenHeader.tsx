@@ -1,6 +1,37 @@
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { I } from '../../tokens'
+import { FestHeaderLogo } from '../FestLogo'
+
+// ── 메인 탭 공통 헤더 ─────────────────────────────────────────────────────────
+
+export function AppHeader({
+  dark = false,
+  right,
+  className,
+}: {
+  dark?: boolean
+  right?: ReactNode
+  className?: string
+}) {
+  const color = dark ? '#F2F5F7' : '#141A1F'
+  return (
+    <div className={`flex items-center justify-between ${className ?? ''}`}>
+      <FestHeaderLogo size={28} color={color} />
+      {right}
+    </div>
+  )
+}
+
+// ── 메인 탭 페이지 타이틀 ─────────────────────────────────────────────────────
+
+export function PageTitle({ children }: { children: ReactNode }) {
+  return (
+    <div className="text-[26px] font-extrabold tracking-[-0.7px] text-ink">
+      {children}
+    </div>
+  )
+}
 
 // ── 서브화면 공통 헤더 ────────────────────────────────────────────────────────
 

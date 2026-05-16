@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom'
 import { create } from 'zustand'
+import { FestHeaderLogo } from './components/FestLogo'
 
 import { AdminBooths } from './pages/Admin/Booths'
 import { AdminFestival } from './pages/Admin/Festival'
@@ -18,6 +19,7 @@ import {
   MobileTruckDetail,
 } from './pages/User/Detail'
 import { MobileHome } from './pages/User/Home'
+import { MobileLogin } from './pages/User/Login'
 import { MobileMap } from './pages/User/Map'
 import { MobileMy } from './pages/User/My'
 import { MobileOnboarding } from './pages/User/Onboarding'
@@ -84,6 +86,7 @@ const NAV_SECTIONS = [
     title: '유저',
     links: [
       { to: '/splash', label: '로딩 화면' },
+      { to: '/login', label: '로그인' },
       { to: '/onboarding', label: '회원가입' },
       { to: '/home', label: '홈' },
       { to: '/map', label: '배치도' },
@@ -166,17 +169,15 @@ function Nav() {
     <>
       {/* Desktop sidebar */}
       <nav className="fixed top-0 bottom-0 left-0 z-50 hidden w-45 flex-col overflow-y-auto border-r border-border bg-surface px-2.5 py-4 font-festi md:flex">
-        <div className="px-2 pb-3 text-[11px] font-extrabold tracking-wider text-ink">
-          Festi
+        <div className="px-2 pb-3">
+          <FestHeaderLogo size={18} />
         </div>
         <NavLinks />
       </nav>
 
       {/* Mobile top bar */}
       <div className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center border-b border-border bg-surface px-4 font-festi md:hidden">
-        <span className="text-[11px] font-bold tracking-wider text-ink-60">
-          Festi
-        </span>
+        <FestHeaderLogo size={18} />
         <div className="flex-1" />
         <button
           onClick={() => setOpen((o) => !o)}
@@ -328,6 +329,14 @@ function MyRoute() {
     </MobileLayout>
   )
 }
+function LoginRoute() {
+  const { dark } = useUI()
+  return (
+    <MobileLayout>
+      <MobileLogin dark={dark} />
+    </MobileLayout>
+  )
+}
 function OnboardingRoute() {
   const { dark } = useUI()
   return (
@@ -337,9 +346,10 @@ function OnboardingRoute() {
   )
 }
 function SplashRoute() {
+  const { dark } = useUI()
   return (
     <MobileLayout>
-      <MobileSplash />
+      <MobileSplash dark={dark} />
     </MobileLayout>
   )
 }
@@ -417,6 +427,7 @@ export default function App() {
         <Route path="/waiting" element={<WaitingStatusRoute />} />
         <Route path="/truck" element={<TruckRoute />} />
         <Route path="/me" element={<MyRoute />} />
+        <Route path="/login" element={<LoginRoute />} />
         <Route path="/onboarding" element={<OnboardingRoute />} />
         <Route path="/admin/festival" element={<AdminFestivalRoute />} />
         <Route path="/admin/booths" element={<AdminBoothsRoute />} />

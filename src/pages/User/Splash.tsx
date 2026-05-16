@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, FestiterMark } from '../../tokens'
+import { FESTI_TOKENS } from '../../tokens'
+import { FestMark, FestWordmark } from '../../components/FestLogo'
 
-export function MobileSplash() {
+export function MobileSplash({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const [out, setOut] = useState(false)
 
@@ -14,11 +15,16 @@ export function MobileSplash() {
     return () => clearTimeout(t)
   }, [navigate])
 
+  const bg = dark
+    ? `linear-gradient(160deg, #1F3035 0%, #0F1216 60%)`
+    : `linear-gradient(160deg, ${FESTI_TOKENS.mintSoft} 0%, #fff 60%)`
+  const wordmarkColor = dark ? '#F2F5F7' : FESTI_TOKENS.ink
+
   return (
     <div
       className="flex h-full w-full flex-col items-center justify-center font-festi"
       style={{
-        background: `linear-gradient(160deg, ${FESTI_TOKENS.mintSoft} 0%, #fff 60%)`,
+        background: bg,
         opacity: out ? 0 : 1,
         transition: 'opacity 0.4s ease',
       }}
@@ -34,7 +40,7 @@ export function MobileSplash() {
           className="mb-5 flex size-20 items-center justify-center rounded-[28px] shadow-[0_12px_40px_rgba(0,198,224,0.25)]"
           style={{ background: FESTI_TOKENS.coral }}
         >
-          <FestiterMark size={28} mono color="#fff" />
+          <FestMark color="#fff" size={48} />
         </div>
       </div>
 
@@ -45,18 +51,19 @@ export function MobileSplash() {
           animationDelay: '0.35s',
         }}
       >
-        <FestiterMark size={30} />
+        <FestWordmark size={30} color={wordmarkColor} />
       </div>
 
       {/* 슬로건 */}
       <div
-        className="mt-2 text-[13px] font-medium tracking-[-0.1px] text-ink-60"
+        className="mt-2 flex flex-wrap items-center justify-center gap-x-0.5 text-[13px] font-medium tracking-[-0.1px]"
         style={{
+          color: dark ? '#8B939B' : FESTI_TOKENS.ink60,
           animation: 'splash-fade-up 0.5s ease both',
           animationDelay: '0.5s',
         }}
       >
-        축제를 더 즐겁게
+        <span>축제를 더 즐겁게</span>
       </div>
 
       {/* 로딩 도트 */}

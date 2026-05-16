@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, FestiterMark, I } from '../../tokens'
+import { FESTI_TOKENS, I } from '../../tokens'
+import { FestHeaderLogo } from '../../components/FestLogo'
 
 function InputField({
   label,
@@ -165,14 +166,20 @@ function PasswordField({
 export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [phone, setPhone] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [showToast, setShowToast] = useState(false)
+  const wordmarkColor = dark ? '#F2F5F7' : FESTI_TOKENS.ink
 
   const errors = {
     name: submitted && name.trim().length === 0 ? '이름을 입력해주세요' : '',
+    email:
+      submitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        ? '이메일 형식을 확인해주세요'
+        : '',
     password:
       submitted && password.length < 6 ? '비밀번호는 6자 이상이어야 해요' : '',
     passwordConfirm:
@@ -194,6 +201,7 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
 
   const isValid =
     name.trim().length > 0 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
     password.length >= 6 &&
     passwordConfirm === password &&
     phone.replace(/-/g, '').length >= 10
@@ -214,11 +222,12 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
       <div className="flex-1 overflow-y-auto px-5 pb-36 pt-14">
         {/* 로고 + 타이틀 */}
         <div className="mb-8 mt-6">
-          <FestiterMark size={26} />
+          <FestHeaderLogo size={26} />
           <div className="mt-4 text-[26px] font-extrabold leading-tight tracking-[-0.6px] text-ink">
             축제를 더 즐겁게,
             <br />
-            <span style={{ color: FESTI_TOKENS.coral }}>festi</span>와 함께해요
+            <FestHeaderLogo size={26} color={wordmarkColor} />
+            <span>와 함께해요</span>
           </div>
           <div className="mt-2 text-[14px] text-ink-60">
             간단한 정보를 입력하고 시작해보세요
@@ -236,6 +245,14 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
             value={name}
             onChange={setName}
             error={errors.name}
+          />
+          <InputField
+            label="이메일"
+            type="email"
+            placeholder="example@email.com"
+            value={email}
+            onChange={setEmail}
+            error={errors.email}
           />
           <PasswordField
             label="비밀번호"
@@ -265,8 +282,9 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
         <div className="mt-4 px-1 text-center text-[12px] leading-relaxed text-ink-40">
           가입 시{' '}
           <span className="font-semibold text-ink-60">서비스 이용약관</span> 및{' '}
-          <span className="font-semibold text-ink-60">개인정보 처리방침</span>
-          <br />에 동의하는 것으로 간주됩니다.
+          <span className="font-semibold text-ink-60">개인정보 처리방침</span>에
+          <br />
+          동의하는 것으로 간주됩니다.
         </div>
       </div>
 
