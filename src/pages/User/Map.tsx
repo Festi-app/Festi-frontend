@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactElement, TouchEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, I, Pill } from '../../tokens'
+import {
+  DAY_GRADIENT,
+  FESTI_TOKENS,
+  I,
+  NIGHT_GRADIENT,
+  Pill,
+} from '../../tokens'
 
 import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import { FestiTabBar } from '../../components/User/Navbar'
@@ -43,6 +49,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { isDay, setIsDay } = useDayNightStore()
   const [selectedFestivalDay, setSelectedFestivalDay] = useState('2일차')
+  const CURRENT_DAY_LABEL = '2일차'
   const [dayDropdownOpen, setDayDropdownOpen] = useState(false)
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set())
   const [searchOpen, setSearchOpen] = useState(false)
@@ -579,12 +586,12 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         <div className="flex items-center gap-2">
           <div className="flex rounded-full border border-border bg-white p-0.75 shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)] dark:bg-[#13262D]/95">
             {[
-              { id: 'day', label: '주간', ico: I.sun, color: FESTI_TOKENS.pop },
+              { id: 'day', label: '주간', ico: I.sun, grad: DAY_GRADIENT },
               {
                 id: 'night',
                 label: '야간',
                 ico: I.moon,
-                color: FESTI_TOKENS.alert,
+                grad: NIGHT_GRADIENT,
               },
             ].map((o) => {
               const on = (o.id === 'day') === isDay
@@ -596,7 +603,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                   className={`flex items-center gap-1.25 rounded-full px-3.5 py-2 text-[13px] font-bold tracking-[-0.2px] ${
                     on ? 'text-white' : 'text-ink-60'
                   }`}
-                  style={on ? { background: o.color } : undefined}
+                  style={on ? { background: o.grad } : undefined}
                 >
                   <div className="size-3.5">{o.ico()}</div>
                   {o.label}
@@ -612,6 +619,12 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               className="flex items-center gap-1 whitespace-nowrap rounded-full border border-border bg-white/80 px-3 py-2 text-[13px] font-bold tracking-[-0.2px] text-ink shadow-[0_1px_8px_rgba(20,26,31,0.10)] backdrop-blur-sm dark:border-white/30 dark:bg-white/15 dark:text-white"
             >
               {selectedFestivalDay}
+              {selectedFestivalDay === CURRENT_DAY_LABEL && (
+                <span
+                  className="size-1.5 shrink-0 rounded-full"
+                  style={{ background: FESTI_TOKENS.pop }}
+                />
+              )}
               <svg
                 viewBox="0 0 12 12"
                 width="12"
@@ -632,7 +645,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               </svg>
             </button>
             {dayDropdownOpen && (
-              <div className="absolute left-0 top-full z-50 mt-1.5 overflow-hidden rounded-[14px] border border-border bg-white shadow-[0_4px_20px_rgba(20,26,31,0.15)] dark:bg-[#13262D]">
+              <div className="absolute left-0 top-full z-50 mt-1.5 min-w-24 overflow-hidden rounded-[14px] border border-border bg-white shadow-[0_4px_20px_rgba(20,26,31,0.15)] dark:bg-[#13262D]">
                 {['1일차', '2일차', '3일차'].map((d) => (
                   <button
                     type="button"
@@ -641,13 +654,20 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                       setSelectedFestivalDay(d)
                       setDayDropdownOpen(false)
                     }}
-                    className={`block w-full px-4 py-2.5 text-left text-[13px] font-bold tracking-[-0.2px] ${
-                      selectedFestivalDay === d
-                        ? 'font-extrabold text-ink'
-                        : 'text-ink'
+                    className={`flex w-full items-center justify-between px-4 py-2.5 text-[13px] font-bold tracking-[-0.2px] ${
+                      selectedFestivalDay === d ? 'text-ink' : 'text-ink-60'
                     }`}
                   >
                     {d}
+                    <span
+                      className="size-1.5 shrink-0 rounded-full"
+                      style={{
+                        background:
+                          d === CURRENT_DAY_LABEL
+                            ? FESTI_TOKENS.pop
+                            : 'transparent',
+                      }}
+                    />
                   </button>
                 ))}
               </div>
