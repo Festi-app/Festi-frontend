@@ -4,6 +4,7 @@ import { FestiTabBar } from '../../components/User/Navbar'
 import { DayNightToggle } from '../../components/User/DayNightToggle'
 import { FESTI_TOKENS, FestiterMark, I, PhotoSlot, Pill } from '../../tokens'
 import { useDayNightStore } from '../../stores/useDayNightStore'
+import { useFestivalStore } from '../../stores/useFestivalStore'
 
 const SEARCH_ITEMS = [
   {
@@ -318,6 +319,7 @@ function WaitingCarousel({
 export function MobileHome({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { isDay } = useDayNightStore()
+  const { brandImage } = useFestivalStore()
   const markColor = dark ? '#F2F5F7' : '#141A1F'
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -343,7 +345,11 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
       <div className="relative shrink-0 border-b border-border bg-surface px-5 pt-13.5 pb-6">
         {/* nav row */}
         <div className="mt-2 mb-5.5 flex items-center justify-between">
-          <FestiterMark size={22} color={markColor} />
+          {brandImage ? (
+            <img src={brandImage} alt="" className="h-7 max-w-35 object-contain" />
+          ) : (
+            <FestiterMark size={22} color={markColor} />
+          )}
           <div className="flex gap-2">
             <button
               type="button"

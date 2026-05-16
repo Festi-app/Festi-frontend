@@ -24,7 +24,6 @@ export interface WaitingEntry {
 
 export interface BoothAdminAccount {
   id: string
-  studentId: string
   password: string
   representativeName: string
   orgType: OrgType
@@ -52,7 +51,7 @@ interface BoothAdminState {
       'id' | 'status' | 'dayDetailImage' | 'nightMenus' | 'waitingList'
     >
   ) => void
-  login: (studentId: string, password: string) => boolean
+  login: (orgName: string, password: string) => boolean
   logout: () => void
   updateInfo: (
     patch: Partial<
@@ -136,7 +135,6 @@ export const useBoothAdminStore = create<BoothAdminState>((set, get) => ({
   accounts: [
     {
       id: 'seed1',
-      studentId: '20210001',
       password: '1234',
       representativeName: '홍길동',
       orgType: '동아리/소모임',
@@ -158,7 +156,6 @@ export const useBoothAdminStore = create<BoothAdminState>((set, get) => ({
     },
     {
       id: 'seed2',
-      studentId: '20220001',
       password: '1234',
       representativeName: '김철수',
       orgType: '단과대/학과',
@@ -186,9 +183,9 @@ export const useBoothAdminStore = create<BoothAdminState>((set, get) => ({
     }))
   },
 
-  login: (studentId, password) => {
+  login: (orgName, password) => {
     const account = get().accounts.find(
-      (a) => a.studentId === studentId && a.password === password
+      (a) => a.orgName === orgName && a.password === password
     )
     if (account) {
       set({ currentAccountId: account.id })

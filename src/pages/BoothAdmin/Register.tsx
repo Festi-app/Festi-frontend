@@ -78,7 +78,6 @@ export function BoothAdminRegister() {
   const [nightBoothDesc, setNightBoothDesc] = useState('')
 
   // Step 3
-  const [studentId, setStudentId] = useState('')
   const [repName, setRepName] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
@@ -104,15 +103,8 @@ export function BoothAdminRegister() {
   }
 
   function handleSubmit() {
-    if (
-      !studentId.trim() ||
-      !repName.trim() ||
-      !password ||
-      password !== passwordConfirm
-    )
-      return
+    if (!repName.trim() || !password || password !== passwordConfirm) return
     register({
-      studentId,
       password,
       representativeName: repName,
       orgType,
@@ -141,12 +133,21 @@ export function BoothAdminRegister() {
         </div>
 
         {/* Step indicator */}
-        <div className="mb-6 flex items-center">
+        <div className="mb-6 flex w-full items-center">
           {STEPS.map((label, i) => {
             const s = i + 1
             return (
-              <div key={s} className="flex flex-1 items-center">
-                <div className="flex flex-col items-center gap-1">
+              <>
+                {i > 0 && (
+                  <div
+                    key={`line-${i}`}
+                    className={cn(
+                      'mb-4 h-px flex-1 transition-colors',
+                      step > i ? 'bg-pop' : 'bg-border'
+                    )}
+                  />
+                )}
+                <div key={s} className="flex flex-col items-center gap-1">
                   <div
                     className={cn(
                       'flex size-7 items-center justify-center rounded-full text-[12px] font-extrabold transition-colors',
@@ -168,15 +169,7 @@ export function BoothAdminRegister() {
                     {label}
                   </div>
                 </div>
-                {i < STEPS.length - 1 && (
-                  <div
-                    className={cn(
-                      'mb-4 h-px flex-1 transition-colors',
-                      step > s ? 'bg-pop' : 'bg-border'
-                    )}
-                  />
-                )}
-              </div>
+              </>
             )
           })}
         </div>
@@ -350,14 +343,6 @@ export function BoothAdminRegister() {
           {step === 3 && (
             <div className="flex flex-col gap-4">
               <div>
-                <FieldLabel required>대표자 학번</FieldLabel>
-                <TextInput
-                  value={studentId}
-                  onChange={setStudentId}
-                  placeholder="ex) 20210001"
-                />
-              </div>
-              <div>
                 <FieldLabel required>대표자 이름</FieldLabel>
                 <TextInput
                   value={repName}
@@ -417,7 +402,6 @@ export function BoothAdminRegister() {
               type="button"
               onClick={handleSubmit}
               disabled={
-                !studentId.trim() ||
                 !repName.trim() ||
                 !password ||
                 password !== passwordConfirm

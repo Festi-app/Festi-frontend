@@ -106,7 +106,7 @@ function AccountCard({
             </span>
             <button
               type="button"
-              onClick={() => navigate('/admin/booths')}
+              onClick={() => navigate('/admin/booths?step=assign')}
               className="flex items-center gap-1 rounded-lg border border-border bg-surface px-2.5 py-1 text-[11px] font-bold text-ink-60 hover:text-ink"
             >
               <span className="size-3">{I.map()}</span>

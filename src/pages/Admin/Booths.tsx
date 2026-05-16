@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import type { ReactElement } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { FESTI_TOKENS, I, Pill } from '../../tokens'
 import { AdminShell, AdminTopBar, AdminBtn } from './Festival'
 import soongsilDayMap from '../../assets/soongsil-day-map.png'
@@ -53,6 +54,7 @@ interface OrgAccount {
   type: '동아리' | '학생회' | '부서'
   color: string
   applications: Array<{ day: PermDay; time: PermTime }>
+  dayCategory?: BoothCategory
 }
 
 // ── Zone & Org constants ──────────────────────────────────────────────────────
@@ -528,7 +530,10 @@ function PermissionModal({
                   <button
                     key={org.id}
                     type="button"
-                    onClick={() => setSelectedOrgId(org.id)}
+                    onClick={() => {
+                      setSelectedOrgId(org.id)
+                      if (org.dayCategory) setSelectedCategory(org.dayCategory)
+                    }}
                     className={cn(
                       'flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-all',
                       selectedOrgId === org.id
@@ -919,10 +924,14 @@ export function AdminBooths({ dark = false }: { dark?: boolean }) {
         applications: ([1, 2, 3] as PermDay[]).flatMap((d) =>
           a.operatingTimes.map((t) => ({ day: d, time: t as PermTime }))
         ),
+        dayCategory: (a.dayCategory as BoothCategory) || undefined,
       })),
   ]
 
-  const [step, setStep] = useState<'configure' | 'assign'>('configure')
+  const [searchParams] = useSearchParams()
+  const [step, setStep] = useState<'configure' | 'assign'>(
+    searchParams.get('step') === 'assign' ? 'assign' : 'configure'
+  )
   const [mapMode, setMapMode] = useState<'주간' | '야간'>('주간')
   const activeZones = mapMode === '주간' ? ZONES : NIGHT_ZONES
   const [zoneDivisions, setZoneDivisions] = useState<Record<string, number>>(

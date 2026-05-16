@@ -14,9 +14,14 @@ interface MenuItem {
   price: string
 }
 
+type TruckDay = 1 | 2 | 3
+
 interface FoodTruck {
   id: string
   name: string
+  days: TruckDay[]
+  startTime: string
+  endTime: string
   note: string
   menus: MenuItem[]
 }
@@ -27,12 +32,18 @@ const SEED: FoodTruck[] = [
   {
     id: '1',
     name: '골드',
+    days: [1, 2, 3],
+    startTime: '10:00',
+    endTime: '20:00',
     note: '',
-    menus: [{ id: 'm1', name: '소프트아이스크림컵·콘', price: '4,500' }],
+    menus: [{ id: 'm1', name: '소프트 아이스크림컵·콘', price: '4,500' }],
   },
   {
     id: '2',
     name: '캡틴',
+    days: [1, 2, 3],
+    startTime: '10:00',
+    endTime: '20:00',
     note: '',
     menus: [
       { id: 'm2', name: '타코야끼', price: '6,000' },
@@ -42,6 +53,9 @@ const SEED: FoodTruck[] = [
   {
     id: '3',
     name: '안녕',
+    days: [1, 2, 3],
+    startTime: '10:00',
+    endTime: '20:00',
     note: '',
     menus: [
       { id: 'm4', name: '떡볶이', price: '5,000' },
@@ -53,6 +67,9 @@ const SEED: FoodTruck[] = [
   {
     id: '4',
     name: '일광',
+    days: [1, 2, 3],
+    startTime: '10:00',
+    endTime: '20:00',
     note: '',
     menus: [
       { id: 'm8', name: '칠리/크림 새우', price: '10,000' },
@@ -62,6 +79,9 @@ const SEED: FoodTruck[] = [
   {
     id: '5',
     name: '가마솥',
+    days: [1, 2, 3],
+    startTime: '10:00',
+    endTime: '20:00',
     note: '',
     menus: [
       { id: 'm10', name: '닭강정', price: '소 10,000 / 중 15,000 / 대 18,000' },
@@ -70,12 +90,18 @@ const SEED: FoodTruck[] = [
   {
     id: '6',
     name: '아라',
+    days: [1, 2, 3],
+    startTime: '10:00',
+    endTime: '20:00',
     note: '',
     menus: [{ id: 'm11', name: '닭꼬치', price: '5,000' }],
   },
   {
     id: '7',
     name: '청춘',
+    days: [1, 2, 3],
+    startTime: '10:00',
+    endTime: '20:00',
     note: '',
     menus: [
       { id: 'm12', name: '야끼소바', price: '10,000' },
@@ -86,13 +112,19 @@ const SEED: FoodTruck[] = [
   {
     id: '8',
     name: '부엉이푸드',
+    days: [1, 2, 3],
+    startTime: '10:00',
+    endTime: '20:00',
     note: '',
     menus: [{ id: 'm15', name: '불초밥/새우초밥', price: '12,000' }],
   },
   {
     id: '9',
     name: '달리는푸드',
-    note: '14, 15일 운영',
+    days: [1, 2],
+    startTime: '10:00',
+    endTime: '20:00',
+    note: '',
     menus: [
       { id: 'm16', name: '츄러스', price: '4,000' },
       { id: 'm17', name: '젤라또', price: '4,500' },
@@ -102,6 +134,9 @@ const SEED: FoodTruck[] = [
   {
     id: '10',
     name: '에페스케밥',
+    days: [1, 2, 3],
+    startTime: '10:00',
+    endTime: '20:00',
     note: '',
     menus: [
       { id: 'm19', name: '케밥 (닭고기/양고기/믹스)', price: '8,000~10,000' },
@@ -139,6 +174,9 @@ export function AdminFoodTrucks() {
     const newTruck: FoodTruck = {
       id: newId,
       name: '새 업체',
+      days: [1, 2, 3],
+      startTime: '10:00',
+      endTime: '20:00',
       note: '',
       menus: [],
     }
@@ -213,7 +251,8 @@ export function AdminFoodTrucks() {
                   </div>
                   <div className="text-[11px] text-ink-40">
                     {truck.menus.length}개 메뉴
-                    {truck.note && ` · ${truck.note}`}
+                    {truck.days.length > 0 && ` · ${truck.days.map((d) => `${d}일`).join('·')}`}
+                    {truck.startTime && ` · ${truck.startTime}~${truck.endTime}`}
                   </div>
                 </div>
               </button>
@@ -250,8 +289,8 @@ export function AdminFoodTrucks() {
                 </button>
               </div>
 
-              <div className="mb-3">
-                <div className="mb-1.5 text-[11px] font-bold text-ink-60">
+              <div className="flex flex-col gap-3">
+                <div className=" text-[11px] font-bold text-ink-60">
                   업체 이름
                 </div>
                 <input
@@ -260,19 +299,73 @@ export function AdminFoodTrucks() {
                   placeholder="업체 이름"
                   className="w-full rounded-xl border border-border bg-bg px-3 py-2.5 text-[14px] font-bold text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
                 />
-              </div>
 
-              <div>
-                <div className="mb-1.5 text-[11px] font-bold text-ink-60">
-                  운영 특이사항{' '}
-                  <span className="font-normal text-ink-40">(선택)</span>
+                <div>
+                  <div className="mb-2 text-[11px] font-bold text-ink-60">
+                    운영 날짜{' '}
+                    <span className="font-normal text-ink-40">(중복 선택)</span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {([1, 2, 3] as TruckDay[]).map((d) => {
+                      const on = selected.days.includes(d)
+                      return (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() =>
+                            updateTruck({
+                              days: on
+                                ? selected.days.filter((x) => x !== d)
+                                : [...selected.days, d].sort(),
+                            })
+                          }
+                          className={cn(
+                            'flex-1 rounded-xl border py-2 text-[12px] font-bold transition-colors',
+                            on
+                              ? 'border-cta bg-cta/10 text-cta'
+                              : 'border-border bg-bg text-ink-40'
+                          )}
+                        >
+                          {d}일차
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
-                <input
-                  value={selected.note}
-                  onChange={(e) => updateTruck({ note: e.target.value })}
-                  placeholder="예: 14, 15일만 운영"
-                  className="w-full rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
-                />
+
+                <div>
+                  <div className="mb-2 text-[11px] font-bold text-ink-60">
+                    운영 시간
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="time"
+                      value={selected.startTime}
+                      onChange={(e) => updateTruck({ startTime: e.target.value })}
+                      className="flex-1 rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] text-ink focus:border-cta focus:outline-none"
+                    />
+                    <span className="shrink-0 text-[12px] text-ink-40">~</span>
+                    <input
+                      type="time"
+                      value={selected.endTime}
+                      onChange={(e) => updateTruck({ endTime: e.target.value })}
+                      className="flex-1 rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] text-ink focus:border-cta focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-1.5 text-[11px] font-bold text-ink-60">
+                    특이사항{' '}
+                    <span className="font-normal text-ink-40">(선택)</span>
+                  </div>
+                  <input
+                    value={selected.note}
+                    onChange={(e) => updateTruck({ note: e.target.value })}
+                    placeholder="예: 우천 시 미운영"
+                    className="w-full rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+                  />
+                </div>
               </div>
             </div>
 
@@ -370,14 +463,20 @@ export function AdminFoodTrucks() {
                     <div className="flex items-center border-b border-border px-4 py-3">
                       <div className="text-[13px] font-bold text-ink">
                         {selected.name || '—'}
+                        {selected.days.length > 0 && (
+                          <div className="text-[10px] font-normal text-ink-40">
+                            {selected.days.map((d) => `${d}일차`).join('·')}
+                            {selected.startTime && ` ${selected.startTime}~${selected.endTime}`}
+                          </div>
+                        )}
                         {selected.note && (
                           <div className="text-[10px] font-normal text-ink-40">
-                            ({selected.note})
+                            {selected.note}
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className="border-b border-border border-l px-4 py-3 text-[13px] text-ink">
+                    <div className=" flex flex-col items-start justify-center border-b border-border border-l px-4 py-3 text-[13px] text-ink">
                       {selected.menus.map((m) => (
                         <div key={m.id}>
                           {m.name || '—'}
