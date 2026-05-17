@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom'
+import {
+  Routes,
+  Route,
+  Navigate,
+  NavLink,
+  useLocation,
+  useSearchParams,
+} from 'react-router-dom'
 import { create } from 'zustand'
 import { FestHeaderLogo } from './components/FestLogo'
 
@@ -10,11 +17,9 @@ import { AdminFoodTrucks } from './pages/Admin/FoodTrucks'
 import { AdminBoothRequests } from './pages/Admin/BoothRequests'
 import { AdminTimetable } from './pages/Admin/Timetable'
 import { AdminNotices } from './pages/Admin/Notices'
-import {
-  MobileWaitingRegister,
-  MobileWaitingStatus,
-  MobileWaitingDetail,
-} from './pages/User/Waiting'
+import { MobileWaitingRegister } from './pages/User/WaitingRegister'
+import { MobileWaitingStatus } from './pages/User/WaitingStatus'
+import { MobileWaitingDetail } from './pages/User/WaitingDetail'
 import {
   MobileBoothDetail,
   MobileFoodTrucks,
@@ -172,15 +177,17 @@ function Nav() {
     <>
       {/* Desktop sidebar */}
       <nav className="fixed top-0 bottom-0 left-0 z-50 hidden w-45 flex-col overflow-y-auto border-r border-border bg-surface px-2.5 py-4 font-festi md:flex">
-        <div className="px-2 pb-3">
-          <FestHeaderLogo size={18} />
+        <div className="px-2 pb-3 text-[#141A1F] dark:text-white">
+          <FestHeaderLogo size={18} color="currentColor" />
         </div>
         <NavLinks />
       </nav>
 
       {/* Mobile top bar */}
       <div className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center border-b border-border bg-surface px-4 font-festi md:hidden">
-        <FestHeaderLogo size={18} />
+        <div className="text-[#141A1F] dark:text-white">
+          <FestHeaderLogo size={18} color="currentColor" />
+        </div>
         <div className="flex-1" />
         <button
           onClick={() => setOpen((o) => !o)}
@@ -281,9 +288,11 @@ function MapRoute() {
 }
 function BoothRoute() {
   const { dark } = useUI()
+  const [searchParams] = useSearchParams()
+  const alreadyWaiting = searchParams.get('waiting') === 'true'
   return (
     <MobileLayout>
-      <MobileBoothDetail dark={dark} />
+      <MobileBoothDetail dark={dark} alreadyWaiting={alreadyWaiting} />
     </MobileLayout>
   )
 }
@@ -439,9 +448,9 @@ export default function App() {
         <Route path="/map" element={<MapRoute />} />
         <Route path="/booth" element={<BoothRoute />} />
         <Route path="/trucks" element={<TrucksRoute />} />
+        <Route path="/waiting" element={<WaitingStatusRoute />} />
         <Route path="/waiting/register" element={<WaitingRegisterRoute />} />
         <Route path="/waiting/detail" element={<WaitingDetailRoute />} />
-        <Route path="/waiting" element={<WaitingStatusRoute />} />
         <Route path="/truck" element={<TruckRoute />} />
         <Route path="/me" element={<MyRoute />} />
         <Route path="/login" element={<LoginRoute />} />

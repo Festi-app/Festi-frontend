@@ -1,6 +1,7 @@
 import type { ReactElement, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, FestiterMark, I } from '../../tokens'
+import { FESTI_TOKENS, I } from '../../tokens'
+import { FestHeaderLogo } from '../FestLogo'
 import { cn } from '../../lib/cn'
 
 function AdminSidebar({ active }: { active: string }) {
@@ -60,7 +61,9 @@ function AdminSidebar({ active }: { active: string }) {
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-border bg-surface px-3.5 py-5">
       <div className="mb-5.5 flex items-center gap-2 px-2 py-1">
-        <FestiterMark size={20} />
+        <div className="text-[#141A1F] dark:text-white">
+          <FestHeaderLogo size={22} color="currentColor" />
+        </div>
         <span className="rounded-full bg-alert px-2.25 py-1 text-[9px] font-bold tracking-[0.5px] text-white">
           ADMIN
         </span>

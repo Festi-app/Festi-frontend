@@ -8,6 +8,7 @@ import {
   type TimetableSlot,
 } from '../../stores/useTimetableStore'
 import { cn } from '../../lib/cn'
+import { toMin } from '../../lib/time'
 
 const DAYS = [1, 2, 3] as const
 
@@ -315,7 +316,7 @@ function AddSlotForm({ day, onDone }: { day: number; onDone: () => void }) {
 // ── Screen: Admin Timetable ───────────────────────────────────────────────────
 
 export function AdminTimetable() {
-  const { venue, currentDay, days, setVenue, setCurrentDay } =
+  const { venue, currentDay, nowMin, days, setVenue, setCurrentDay } =
     useTimetableStore()
   const [selectedDay, setSelectedDay] = useState<number>(currentDay)
   const [adding, setAdding] = useState(false)
@@ -324,12 +325,6 @@ export function AdminTimetable() {
   const [saved, setSaved] = useState(false)
 
   const slots = days[selectedDay] ?? []
-  const toMin = (t: string) => {
-    const [h, m] = t.split(':').map(Number)
-    return h * 60 + m
-  }
-  // 목업 현재 시각 기준 (실제 서비스에서는 new Date() 사용)
-  const NOW_MIN = 17 * 60 + 45
 
   function handleSave() {
     if (venueEditing) {
@@ -454,8 +449,8 @@ export function AdminTimetable() {
                 const slotEnd = toMin(slot.end)
                 const isNow =
                   selectedDay === currentDay &&
-                  NOW_MIN >= slotStart &&
-                  NOW_MIN < slotEnd
+                  nowMin >= slotStart &&
+                  nowMin < slotEnd
                 return (
                   <SlotRow
                     key={slot.id}
@@ -526,8 +521,8 @@ export function AdminTimetable() {
                   const slotEnd = toMin(slot.end)
                   const isNow =
                     selectedDay === currentDay &&
-                    NOW_MIN >= slotStart &&
-                    NOW_MIN < slotEnd
+                    nowMin >= slotStart &&
+                    nowMin < slotEnd
                   return (
                     <div
                       key={slot.id}

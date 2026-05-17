@@ -2,24 +2,31 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTI_TOKENS, I } from '../../tokens'
 import { FestMark, FestWordmark } from '../../components/FestLogo'
+import { Toast } from '../../components/shared/Toast'
 
 export function MobileLogin({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loginFailed, setLoginFailed] = useState(false)
 
   const wordmarkColor = dark ? '#F2F5F7' : FESTI_TOKENS.ink
   const muted = dark ? '#8B939B' : '#5E676D'
   const isValid =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length >= 6
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length >= 1
 
   function handleLogin() {
     if (!isValid) return
     setLoading(true)
     setTimeout(() => {
       setLoading(false)
-      navigate('/home', { replace: true })
+      if (email === 'test@test.com') {
+        navigate('/home', { replace: true })
+      } else {
+        setLoginFailed(true)
+        setTimeout(() => setLoginFailed(false), 2500)
+      }
     }, 600)
   }
 
@@ -83,6 +90,12 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
           >
             {loading ? '로그인 중…' : '로그인'}
           </button>
+          <div
+            className="mt-3 text-center text-[11px]"
+            style={{ color: muted }}
+          >
+            테스트 성공: test@test.com
+          </div>
         </div>
       </div>
 
@@ -100,6 +113,25 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
           회원가입
         </button>
       </div>
+
+      {loginFailed && (
+        <Toast
+          bottom="bottom-12"
+          message="이메일 또는 비밀번호가 올바르지 않습니다."
+          icon={
+            <div className="flex size-8 items-center justify-center rounded-full bg-alert/20">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                <path
+                  d="M3 3l10 10M13 3L3 13"
+                  stroke="#FF6B6B"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+          }
+        />
+      )}
     </div>
   )
 }
