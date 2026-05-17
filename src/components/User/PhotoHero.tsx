@@ -1,4 +1,4 @@
-import { FESTI_TOKENS, I, PhotoSlot } from '../../tokens'
+import { FESTIV_TOKENS, I, PhotoSlot } from '../../tokens'
 
 export function PhotoHero({
   tone,
@@ -46,8 +46,8 @@ export function PhotoHero({
           >
             <div className="size-4.5">
               {I.star(
-                favorite ? FESTI_TOKENS.alert : undefined,
-                favorite ? FESTI_TOKENS.alert : 'none'
+                favorite ? FESTIV_TOKENS.alert : undefined,
+                favorite ? FESTIV_TOKENS.alert : 'none'
               )}
             </div>
           </button>

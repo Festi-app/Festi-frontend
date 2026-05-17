@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, PhotoSlot } from '../../tokens'
+import { FESTIV_TOKENS, PhotoSlot } from '../../tokens'
 import { SectionHeader } from './SectionHeader'
 
 const BOOTHS = [
@@ -69,10 +69,10 @@ export function QuickEntrySection({
         {BOOTHS.map((b) => {
           const badgeBg =
             b.wait === 0
-              ? FESTI_TOKENS.pop
+              ? FESTIV_TOKENS.pop
               : b.wait === 1
                 ? '#A3E635'
-                : FESTI_TOKENS.sun
+                : FESTIV_TOKENS.sun
           return (
             <button
               key={b.n}

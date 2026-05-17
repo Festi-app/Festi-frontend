@@ -9,7 +9,7 @@ import {
   useSearchParams,
 } from 'react-router-dom'
 import { create } from 'zustand'
-import { FestHeaderLogo } from './components/FestLogo'
+import { FestivHeaderLogo } from './components/Logo'
 
 import { AdminBooths } from './pages/Admin/Booths'
 import { AdminFestival } from './pages/Admin/Festival'
@@ -178,7 +178,7 @@ function Nav() {
       {/* Desktop sidebar */}
       <nav className="fixed top-0 bottom-0 left-0 z-50 hidden w-45 flex-col overflow-y-auto border-r border-border bg-surface px-2.5 py-4 font-festi md:flex">
         <div className="px-2 pb-3 text-[#141A1F] dark:text-white">
-          <FestHeaderLogo size={18} color="currentColor" />
+          <FestivHeaderLogo size={18} color="currentColor" />
         </div>
         <NavLinks />
       </nav>
@@ -186,7 +186,7 @@ function Nav() {
       {/* Mobile top bar */}
       <div className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center border-b border-border bg-surface px-4 font-festi md:hidden">
         <div className="text-[#141A1F] dark:text-white">
-          <FestHeaderLogo size={18} color="currentColor" />
+          <FestivHeaderLogo size={18} color="currentColor" />
         </div>
         <div className="flex-1" />
         <button

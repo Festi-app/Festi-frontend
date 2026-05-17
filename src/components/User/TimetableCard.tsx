@@ -1,4 +1,4 @@
-import { FESTI_TOKENS } from '../../tokens'
+import { FESTIV_TOKENS } from '../../tokens'
 import { toMin } from '../../lib/time'
 
 type Slot = {
@@ -60,8 +60,8 @@ export function TimetableCard({
                   <span
                     className="rounded-full px-1.5 py-0.5 text-[10px] font-extrabold"
                     style={{
-                      background: FESTI_TOKENS.pop + '22',
-                      color: FESTI_TOKENS.pop,
+                      background: FESTIV_TOKENS.pop + '22',
+                      color: FESTIV_TOKENS.pop,
                     }}
                   >
                     진행중

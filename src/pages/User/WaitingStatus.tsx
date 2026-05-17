@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
+import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { AppHeader, SubHeader } from '../../components/User/ScreenHeader'
 import { WaitingTicketCard } from '../../components/User/WaitingTicket'
@@ -30,10 +30,10 @@ function WaitingBoothCard({
 }) {
   const pillColor =
     w.aheadTeams <= 3
-      ? FESTI_TOKENS.pop
+      ? FESTIV_TOKENS.pop
       : w.aheadTeams <= 7
-        ? FESTI_TOKENS.sun
-        : FESTI_TOKENS.alert
+        ? FESTIV_TOKENS.sun
+        : FESTIV_TOKENS.alert
   const soon = w.aheadTeams <= 3
   return (
     <button
@@ -48,7 +48,7 @@ function WaitingBoothCard({
         <div className="flex items-center gap-1">
           <Pill
             color={pillColor}
-            ink={pillColor === FESTI_TOKENS.sun ? FESTI_TOKENS.ink : '#fff'}
+            ink={pillColor === FESTIV_TOKENS.sun ? FESTIV_TOKENS.ink : '#fff'}
           >
             대기중
           </Pill>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
-import { FESTI_TOKENS, I } from '../../tokens'
+import { FESTIV_TOKENS, I } from '../../tokens'
 import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
@@ -483,7 +483,7 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                           className="flex w-full items-center gap-2 px-3.5 py-2.5 text-[12px] font-bold text-alert hover:bg-alert/5"
                         >
                           <span className="size-3.5">
-                            {I.trash(FESTI_TOKENS.alert)}
+                            {I.trash(FESTIV_TOKENS.alert)}
                           </span>
                           권한 삭제
                         </button>

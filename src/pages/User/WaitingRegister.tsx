@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
+import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { ScreenHeader } from '../../components/User/ScreenHeader'
 import { FieldLabel } from '../../components/shared/FieldLabel'
 import { Toast } from '../../components/shared/Toast'
@@ -42,7 +42,7 @@ export function MobileWaitingRegister({ dark = false }: { dark?: boolean }) {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex gap-1">
-              <Pill color={FESTI_TOKENS.alert} ink="#fff">
+              <Pill color={FESTIV_TOKENS.alert} ink="#fff">
                 #16
               </Pill>
               <Pill color={surfaceAlt} ink={ink80}>

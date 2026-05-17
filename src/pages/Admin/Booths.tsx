@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { FESTI_TOKENS, I } from '../../tokens'
+import { FESTIV_TOKENS, I } from '../../tokens'
 import { ZONES, NIGHT_ZONES } from '../../data/zones'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
@@ -38,7 +38,7 @@ const ORG_LIST: OrgAccount[] = [
     id: 'org1',
     name: '컴퓨터학부',
     type: '동아리',
-    color: FESTI_TOKENS.coral,
+    color: FESTIV_TOKENS.coral,
     applications: [
       { day: 1, time: '주간' },
       { day: 2, time: '야간' },
@@ -48,7 +48,7 @@ const ORG_LIST: OrgAccount[] = [
     id: 'org2',
     name: '경영대학생회',
     type: '학생회',
-    color: FESTI_TOKENS.mint,
+    color: FESTIV_TOKENS.mint,
     applications: [
       { day: 1, time: '주간' },
       { day: 1, time: '야간' },
@@ -59,7 +59,7 @@ const ORG_LIST: OrgAccount[] = [
     id: 'org3',
     name: '사범대학생회',
     type: '학생회',
-    color: FESTI_TOKENS.sun,
+    color: FESTIV_TOKENS.sun,
     applications: [
       { day: 2, time: '주간' },
       { day: 3, time: '야간' },
@@ -69,7 +69,7 @@ const ORG_LIST: OrgAccount[] = [
     id: 'org4',
     name: '의약학부',
     type: '동아리',
-    color: FESTI_TOKENS.grape,
+    color: FESTIV_TOKENS.grape,
     applications: [
       { day: 1, time: '야간' },
       { day: 2, time: '주간' },
@@ -79,7 +79,7 @@ const ORG_LIST: OrgAccount[] = [
     id: 'org5',
     name: '법과대학생회',
     type: '학생회',
-    color: FESTI_TOKENS.rose,
+    color: FESTIV_TOKENS.rose,
     applications: [
       { day: 2, time: '주간' },
       { day: 2, time: '야간' },
@@ -90,7 +90,7 @@ const ORG_LIST: OrgAccount[] = [
     id: 'org6',
     name: '글로벌통상학과',
     type: '동아리',
-    color: FESTI_TOKENS.leaf,
+    color: FESTIV_TOKENS.leaf,
     applications: [
       { day: 3, time: '주간' },
       { day: 3, time: '야간' },
@@ -100,7 +100,7 @@ const ORG_LIST: OrgAccount[] = [
     id: 'org7',
     name: '미디어학부',
     type: '동아리',
-    color: FESTI_TOKENS.pop,
+    color: FESTIV_TOKENS.pop,
     applications: [
       { day: 1, time: '주간' },
       { day: 3, time: '야간' },
@@ -146,7 +146,7 @@ export function AdminBooths() {
         type: (a.orgType === '동아리/소모임'
           ? '동아리'
           : '학생회') as OrgAccount['type'],
-        color: FESTI_TOKENS.mint,
+        color: FESTIV_TOKENS.mint,
         applications: ([1, 2, 3] as PermDay[]).flatMap((d) =>
           a.operatingTimes.map((t) => ({ day: d, time: t as PermTime }))
         ),
@@ -322,7 +322,7 @@ export function AdminBooths() {
           ) : (
             <>
               <AdminBtn
-                icon={I.edit(FESTI_TOKENS.ink60)}
+                icon={I.edit(FESTIV_TOKENS.ink60)}
                 onClick={() => {
                   setStep('configure')
                   setNotice('구역별 섹션 개수를 설정하고 저장하세요')
@@ -589,7 +589,7 @@ export function AdminBooths() {
                               )}
                               style={{
                                 background: truck ? '#2E363C' : 'transparent',
-                                color: truck ? '#fff' : FESTI_TOKENS.ink,
+                                color: truck ? '#fff' : FESTIV_TOKENS.ink,
                                 ...(isLast
                                   ? {}
                                   : zone.dir === 'row'
@@ -830,8 +830,8 @@ export function AdminBooths() {
                   <div
                     className="absolute bottom-6 left-6 rounded-[14px] border px-4 py-2.5 text-[12px] font-semibold text-ink-60 shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)] backdrop-blur-xl"
                     style={{
-                      background: `${FESTI_TOKENS.coral}18`,
-                      borderColor: `${FESTI_TOKENS.coral}44`,
+                      background: `${FESTIV_TOKENS.coral}18`,
+                      borderColor: `${FESTIV_TOKENS.coral}44`,
                     }}
                   >
                     <span className="text-ink">구역을 드래그</span>해 선택 후

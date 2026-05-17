@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { FESTI_TOKENS } from '../../tokens'
+import { FESTIV_TOKENS } from '../../tokens'
 
 export function DayDropdown({
   value,
@@ -44,7 +44,7 @@ export function DayDropdown({
         {value === currentDay && (
           <span
             className="size-1.5 shrink-0 rounded-full"
-            style={{ background: FESTI_TOKENS.pop }}
+            style={{ background: FESTIV_TOKENS.pop }}
           />
         )}
         <svg
@@ -90,7 +90,7 @@ export function DayDropdown({
                 className="size-1.5 shrink-0 rounded-full"
                 style={{
                   background:
-                    d === currentDay ? FESTI_TOKENS.pop : 'transparent',
+                    d === currentDay ? FESTIV_TOKENS.pop : 'transparent',
                 }}
               />
             </button>

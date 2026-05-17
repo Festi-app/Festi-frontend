@@ -33,7 +33,7 @@ const SPARKS: [number, number, number][] = [
   [148, 70, 5],
 ]
 
-export function FestMark({
+export function FestivMark({
   color = '#0A0A0A',
   size = 240,
   style,
@@ -80,7 +80,7 @@ export function FestMark({
 
 // ── Wordmark ───────────────────────────────────────────────────────────────
 
-export function FestWordmark({
+export function FestivWordmark({
   color = '#0A0A0A',
   size = 96,
   bangSlot = null,
@@ -126,7 +126,7 @@ export function FestWordmark({
 
 // ── Header lockup — wordmark with burst as "!" ─────────────────────────────
 
-export function FestHeaderLogo({
+export function FestivHeaderLogo({
   color = '#0A0A0A',
   size = 32,
   style,
@@ -136,10 +136,10 @@ export function FestHeaderLogo({
   style?: CSSProperties
 }) {
   return (
-    <FestWordmark
+    <FestivWordmark
       color={color}
       size={size}
-      bangSlot={<FestMark color={color} size={size * 0.95} />}
+      bangSlot={<FestivMark color={color} size={size * 0.95} />}
       style={style}
     />
   )
@@ -147,7 +147,7 @@ export function FestHeaderLogo({
 
 // ── Loading screen ─────────────────────────────────────────────────────────
 
-export function FestLoadingScreen({
+export function FestivLoadingScreen({
   message = '축제 정보를 불러오는 중…',
 }: {
   message?: string
@@ -171,11 +171,11 @@ export function FestLoadingScreen({
           display: 'inline-flex',
           alignItems: 'center',
           gap: 26,
-          animation: 'fest-pulse 1.6s ease-in-out infinite',
+          animation: 'festiv-pulse 1.6s ease-in-out infinite',
         }}
       >
-        <FestMark color="#0A0A0A" size={120} />
-        <FestWordmark color="#0A0A0A" size={92} />
+        <FestivMark color="#0A0A0A" size={120} />
+        <FestivWordmark color="#0A0A0A" size={92} />
       </div>
 
       <div
@@ -193,7 +193,7 @@ export function FestLoadingScreen({
             height: '100%',
             background: '#0A0A0A',
             borderRadius: 9999,
-            animation: 'fest-bar 1.4s ease-in-out infinite',
+            animation: 'festiv-bar 1.4s ease-in-out infinite',
           }}
         />
       </div>
@@ -212,11 +212,11 @@ export function FestLoadingScreen({
       </div>
 
       <style>{`
-        @keyframes fest-pulse {
+        @keyframes festiv-pulse {
           0%, 100% { transform: scale(1);    opacity: 1; }
           50%       { transform: scale(1.06); opacity: 0.92; }
         }
-        @keyframes fest-bar {
+        @keyframes festiv-bar {
           0%   { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
         }

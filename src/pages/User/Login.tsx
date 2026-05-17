@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, I } from '../../tokens'
-import { FestMark, FestWordmark } from '../../components/FestLogo'
+import { FESTIV_TOKENS, I } from '../../tokens'
+import { FestivMark, FestivWordmark } from '../../components/Logo'
 import { Toast } from '../../components/shared/Toast'
 
 export function MobileLogin({ dark = false }: { dark?: boolean }) {
@@ -11,7 +11,7 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
   const [loading, setLoading] = useState(false)
   const [loginFailed, setLoginFailed] = useState(false)
 
-  const wordmarkColor = dark ? '#F2F5F7' : FESTI_TOKENS.ink
+  const wordmarkColor = dark ? '#F2F5F7' : FESTIV_TOKENS.ink
   const muted = dark ? '#8B939B' : '#5E676D'
   const isValid =
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length >= 1
@@ -36,11 +36,11 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
       <div className="flex flex-col items-center pt-20 pb-10">
         <div
           className="mb-4 flex size-16 items-center justify-center rounded-[22px] shadow-[0_8px_28px_rgba(0,198,224,0.3)]"
-          style={{ background: FESTI_TOKENS.coral }}
+          style={{ background: FESTIV_TOKENS.coral }}
         >
-          <FestMark color="#fff" size={38} />
+          <FestivMark color="#fff" size={38} />
         </div>
-        <FestWordmark size={24} color={wordmarkColor} />
+        <FestivWordmark size={24} color={wordmarkColor} />
         <div
           className="mt-1.5 text-[13px] font-medium"
           style={{ color: muted }}
@@ -86,7 +86,7 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
             onClick={handleLogin}
             disabled={!isValid || loading}
             className="mt-1 w-full rounded-[14px] py-4 text-[15px] font-extrabold tracking-[-0.3px] transition-opacity disabled:opacity-40"
-            style={{ background: FESTI_TOKENS.coral, color: '#fff' }}
+            style={{ background: FESTIV_TOKENS.coral, color: '#fff' }}
           >
             {loading ? '로그인 중…' : '로그인'}
           </button>
@@ -108,7 +108,7 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
           type="button"
           onClick={() => navigate('/onboarding')}
           className="text-[13px] font-bold"
-          style={{ color: FESTI_TOKENS.coral }}
+          style={{ color: FESTIV_TOKENS.coral }}
         >
           회원가입
         </button>

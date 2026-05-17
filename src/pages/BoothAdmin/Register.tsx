@@ -6,17 +6,17 @@ import {
   type OperatingTime,
   type BoothCategoryType,
 } from '../../stores/useBoothAdminStore'
-import { FESTI_TOKENS } from '../../tokens'
+import { FESTIV_TOKENS } from '../../tokens'
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
 }
 
 const CATEGORY_COLORS: Record<BoothCategoryType, string> = {
-  정보: FESTI_TOKENS.coral,
-  체험: FESTI_TOKENS.grape,
-  마켓: FESTI_TOKENS.sun,
-  활동: FESTI_TOKENS.pop,
+  정보: FESTIV_TOKENS.coral,
+  체험: FESTIV_TOKENS.grape,
+  마켓: FESTIV_TOKENS.sun,
+  활동: FESTIV_TOKENS.pop,
 }
 
 function FieldLabel({
@@ -253,7 +253,7 @@ export function BoothAdminRegister() {
                   <div className="mb-3 flex items-center gap-2">
                     <div
                       className="size-2 rounded-full"
-                      style={{ background: FESTI_TOKENS.coral }}
+                      style={{ background: FESTIV_TOKENS.coral }}
                     />
                     <div className="text-[13px] font-extrabold text-ink">
                       주간 부스 정보
@@ -310,7 +310,7 @@ export function BoothAdminRegister() {
                   <div className="mb-3 flex items-center gap-2">
                     <div
                       className="size-2 rounded-full"
-                      style={{ background: FESTI_TOKENS.grape }}
+                      style={{ background: FESTIV_TOKENS.grape }}
                     />
                     <div className="text-[13px] font-extrabold text-ink">
                       야간 부스 정보 (주점)

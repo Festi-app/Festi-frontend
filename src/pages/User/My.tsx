@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FestiTabBar } from '../../components/User/Navbar'
-import { FESTI_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
+import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { AppHeader } from '../../components/User/ScreenHeader'
 import { FilterChips } from '../../components/User/FilterChips'
 import { ProfileInfoRow } from '../../components/User/ProfileInfoRow'
@@ -18,8 +18,8 @@ const FAVORITES = [
     eta: '22분',
     open: true,
     tone: 'rose',
-    tagColor: FESTI_TOKENS.alertSoft,
-    tagInk: FESTI_TOKENS.alert,
+    tagColor: FESTIV_TOKENS.alertSoft,
+    tagInk: FESTIV_TOKENS.alert,
   },
   {
     id: 38,
@@ -30,8 +30,8 @@ const FAVORITES = [
     eta: '12분',
     open: true,
     tone: 'mint',
-    tagColor: FESTI_TOKENS.alertSoft,
-    tagInk: FESTI_TOKENS.alert,
+    tagColor: FESTIV_TOKENS.alertSoft,
+    tagInk: FESTIV_TOKENS.alert,
   },
   {
     id: 47,
@@ -42,8 +42,8 @@ const FAVORITES = [
     eta: '18분',
     open: true,
     tone: 'sun',
-    tagColor: FESTI_TOKENS.popSoft,
-    tagInk: FESTI_TOKENS.pop,
+    tagColor: FESTIV_TOKENS.popSoft,
+    tagInk: FESTIV_TOKENS.pop,
   },
   {
     id: 64,
@@ -54,7 +54,7 @@ const FAVORITES = [
     eta: '8분',
     open: false,
     tone: 'coral',
-    tagColor: FESTI_TOKENS.sun,
+    tagColor: FESTIV_TOKENS.sun,
     tagInk: '#fff',
   },
 ]
@@ -247,8 +247,8 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
                         className="size-4.5 shrink-0 text-alert"
                       >
                         {I.star(
-                          isSaved ? FESTI_TOKENS.alert : undefined,
-                          isSaved ? FESTI_TOKENS.alert : 'none'
+                          isSaved ? FESTIV_TOKENS.alert : undefined,
+                          isSaved ? FESTIV_TOKENS.alert : 'none'
                         )}
                       </button>
                     </div>

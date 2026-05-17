@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactElement, ReactNode } from 'react'
-import { FESTI_TOKENS, FESTI_FONT } from './tokens'
+import { FESTIV_TOKENS, FESTIV_FONT } from './tokens'
 
 // ── Festiter wordmark ──────────────────────────────────────────────────────────
 
@@ -12,15 +12,15 @@ export function FestiterMark({
   mono?: boolean
   color?: string
 }): ReactElement {
-  const ink = color ?? FESTI_TOKENS.ink
-  const dot = mono ? ink : FESTI_TOKENS.pop
+  const ink = color ?? FESTIV_TOKENS.ink
+  const dot = mono ? ink : FESTIV_TOKENS.pop
   return (
     <div
       style={{
         display: 'inline-flex',
         alignItems: 'center',
         gap: size * 0.28,
-        fontFamily: FESTI_FONT,
+        fontFamily: FESTIV_FONT,
         fontWeight: 800,
         fontSize: size,
         letterSpacing: -0.6,
@@ -33,7 +33,7 @@ export function FestiterMark({
           width: size * 0.95,
           height: size * 0.95,
           borderRadius: '50%',
-          background: FESTI_TOKENS.mint,
+          background: FESTIV_TOKENS.mint,
           position: 'relative',
           display: 'inline-flex',
           alignItems: 'center',
@@ -106,8 +106,8 @@ export function PhotoSlot({
 
 export function Pill({
   children,
-  color = FESTI_TOKENS.mintSoft,
-  ink = FESTI_TOKENS.ink,
+  color = FESTIV_TOKENS.mintSoft,
+  ink = FESTIV_TOKENS.ink,
   size = 'sm',
   style = {},
 }: {
@@ -130,7 +130,7 @@ export function Pill({
         background: color,
         color: ink,
         borderRadius: 9999,
-        fontFamily: FESTI_FONT,
+        fontFamily: FESTIV_FONT,
         fontWeight: 600,
         ...sz,
         ...style,

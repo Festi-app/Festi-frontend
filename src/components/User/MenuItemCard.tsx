@@ -1,4 +1,4 @@
-import { FESTI_TOKENS, PhotoSlot, Pill } from '../../tokens'
+import { FESTIV_TOKENS, PhotoSlot, Pill } from '../../tokens'
 
 export function MenuItemCard({
   name,
@@ -25,8 +25,8 @@ export function MenuItemCard({
           </div>
           {best && (
             <Pill
-              color={FESTI_TOKENS.pop}
-              ink={FESTI_TOKENS.ink}
+              color={FESTIV_TOKENS.pop}
+              ink={FESTIV_TOKENS.ink}
               style={{ fontSize: 10 }}
             >
               BEST

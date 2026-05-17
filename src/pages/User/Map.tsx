@@ -3,7 +3,7 @@ import type { TouchEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   DAY_GRADIENT,
-  FESTI_TOKENS,
+  FESTIV_TOKENS,
   I,
   NIGHT_GRADIENT,
   Pill,
@@ -34,10 +34,10 @@ const BOOTH_CATEGORY_THEMES: Record<
   BoothCategory,
   { color: string; soft: string }
 > = {
-  정보: { color: FESTI_TOKENS.mint, soft: FESTI_TOKENS.mintSoft },
-  체험: { color: FESTI_TOKENS.grape, soft: FESTI_TOKENS.grapeSoft },
-  마켓: { color: FESTI_TOKENS.sun, soft: FESTI_TOKENS.sunSoft },
-  활동: { color: FESTI_TOKENS.pop, soft: FESTI_TOKENS.popSoft },
+  정보: { color: FESTIV_TOKENS.mint, soft: FESTIV_TOKENS.mintSoft },
+  체험: { color: FESTIV_TOKENS.grape, soft: FESTIV_TOKENS.grapeSoft },
+  마켓: { color: FESTIV_TOKENS.sun, soft: FESTIV_TOKENS.sunSoft },
+  활동: { color: FESTIV_TOKENS.pop, soft: FESTIV_TOKENS.popSoft },
 }
 
 const BOOTH_CATEGORIES = Object.keys(BOOTH_CATEGORY_THEMES) as BoothCategory[]
@@ -536,24 +536,24 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
 
   const typeColor = (type: string) =>
     type === 'truck'
-      ? FESTI_TOKENS.sun
+      ? FESTIV_TOKENS.sun
       : type === 'night'
-        ? FESTI_TOKENS.alert
+        ? FESTIV_TOKENS.alert
         : type === 'special'
-          ? FESTI_TOKENS.grape
-          : FESTI_TOKENS.pop
+          ? FESTIV_TOKENS.grape
+          : FESTIV_TOKENS.pop
 
   const typePillColors = (type: string): { bg: string; ink: string } => {
     if (type === 'truck')
-      return { bg: FESTI_TOKENS.sunSoft ?? '#FFF5D6', ink: FESTI_TOKENS.sun }
+      return { bg: FESTIV_TOKENS.sunSoft ?? '#FFF5D6', ink: FESTIV_TOKENS.sun }
     if (type === 'night')
-      return { bg: FESTI_TOKENS.alertSoft, ink: FESTI_TOKENS.alert }
+      return { bg: FESTIV_TOKENS.alertSoft, ink: FESTIV_TOKENS.alert }
     if (type === 'special')
       return {
-        bg: FESTI_TOKENS.grapeSoft ?? '#EDE7F8',
-        ink: FESTI_TOKENS.grape,
+        bg: FESTIV_TOKENS.grapeSoft ?? '#EDE7F8',
+        ink: FESTIV_TOKENS.grape,
       }
-    return { bg: FESTI_TOKENS.popSoft ?? '#E6FBF5', ink: FESTI_TOKENS.pop }
+    return { bg: FESTIV_TOKENS.popSoft ?? '#E6FBF5', ink: FESTIV_TOKENS.pop }
   }
 
   const typeLabel = (type: string) => {
@@ -564,9 +564,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   }
 
   const waitStatus = (w: number) => {
-    if (w === 0) return { color: FESTI_TOKENS.pop, label: '바로 입장' }
-    if (w <= 2) return { color: FESTI_TOKENS.pop, label: `${w}팀` }
-    return { color: FESTI_TOKENS.alert, label: `${w}팀` }
+    if (w === 0) return { color: FESTIV_TOKENS.pop, label: '바로 입장' }
+    if (w <= 2) return { color: FESTIV_TOKENS.pop, label: `${w}팀` }
+    return { color: FESTIV_TOKENS.alert, label: `${w}팀` }
   }
 
   const searchResults = allMarkers.filter((m) => {
@@ -680,7 +680,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                         className="relative flex min-h-0 min-w-0 flex-1 select-none items-center justify-center text-[7px] font-extrabold transition-[background,box-shadow,opacity]"
                         style={{
                           background: perm ? perm.color : 'transparent',
-                          color: FESTI_TOKENS.ink,
+                          color: FESTIV_TOKENS.ink,
                           boxShadow: selected
                             ? 'inset 0 0 0 2px rgba(255,255,255,0.95), 0 0 0 1px rgba(20,26,31,0.2)'
                             : undefined,
@@ -756,7 +756,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                             : truck
                               ? '#2E363C'
                               : 'transparent',
-                          color: selSlot || truck ? '#fff' : FESTI_TOKENS.ink,
+                          color: selSlot || truck ? '#fff' : FESTIV_TOKENS.ink,
                           boxShadow: selSlot
                             ? 'inset 0 0 0 2px rgba(255,255,255,0.85)'
                             : undefined,
@@ -842,7 +842,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                 id: 'truck',
                 label: '푸드트럭',
                 ico: I.truck,
-                grad: FESTI_TOKENS.sun,
+                grad: FESTIV_TOKENS.sun,
               },
             ].map((o) => {
               const on = o.id === mapView
@@ -873,7 +873,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               {selectedFestivalDay === CURRENT_DAY_LABEL && (
                 <span
                   className="size-1.5 shrink-0 rounded-full"
-                  style={{ background: FESTI_TOKENS.pop }}
+                  style={{ background: FESTIV_TOKENS.pop }}
                 />
               )}
               <svg
@@ -915,7 +915,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                       style={{
                         background:
                           d === CURRENT_DAY_LABEL
-                            ? FESTI_TOKENS.pop
+                            ? FESTIV_TOKENS.pop
                             : 'transparent',
                       }}
                     />
@@ -1165,9 +1165,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
             <div className="flex gap-1.5 px-4 pt-3 pb-2">
               {(
                 [
-                  { id: 'day', label: '주간', color: FESTI_TOKENS.pop },
-                  { id: 'night', label: '야간', color: FESTI_TOKENS.alert },
-                  { id: 'truck', label: '푸드트럭', color: FESTI_TOKENS.sun },
+                  { id: 'day', label: '주간', color: FESTIV_TOKENS.pop },
+                  { id: 'night', label: '야간', color: FESTIV_TOKENS.alert },
+                  { id: 'truck', label: '푸드트럭', color: FESTIV_TOKENS.sun },
                 ] as const
               ).map((tab) => {
                 const on = listTab === tab.id

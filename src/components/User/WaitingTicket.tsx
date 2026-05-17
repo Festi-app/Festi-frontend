@@ -1,5 +1,5 @@
-import { FESTI_TOKENS, PhotoSlot, Pill } from '../../tokens'
-import { FestMark } from '../FestLogo'
+import { FESTIV_TOKENS, PhotoSlot, Pill } from '../../tokens'
+import { FestivMark } from '../Logo'
 
 // const STAR_PATH =
 //   'M50,2 L50.6,48.6 L83.9,16.1 L51.4,49.4 L98,50 L51.4,50.6 L83.9,83.9 L50.6,51.4 L50,98 L49.4,51.4 L16.1,83.9 L48.6,50.6 L2,50 L48.6,49.4 L16.1,16.1 L49.4,48.6 Z'
@@ -32,7 +32,7 @@ export function WaitingTicketCard({
   onClick?: () => void
 }) {
   const bgColor = dark ? '#0F1216' : '#F2F3F4'
-  const cardColor = dark ? '#1A3137' : FESTI_TOKENS.ink
+  const cardColor = dark ? '#1A3137' : FESTIV_TOKENS.ink
   const cardText = dark ? '#EAF6F7' : '#FFFFFF'
 
   return (
@@ -56,8 +56,8 @@ export function WaitingTicketCard({
       <div
         className="absolute inset-0"
         style={{
-          background: `radial-gradient(circle at 80% 20%, ${FESTI_TOKENS.mint}55 0%, transparent 55%),
-                       radial-gradient(circle at 20% 100%, ${FESTI_TOKENS.pop}33 0%, transparent 50%)`,
+          background: `radial-gradient(circle at 80% 20%, ${FESTIV_TOKENS.mint}55 0%, transparent 55%),
+                       radial-gradient(circle at 20% 100%, ${FESTIV_TOKENS.pop}33 0%, transparent 50%)`,
         }}
       />
 
@@ -73,7 +73,7 @@ export function WaitingTicketCard({
 
       {/* 로고 워터마크 */}
       <div className="pointer-events-none absolute -top-7 -right-5 opacity-[0.13]">
-        <FestMark color="white" size={200} />
+        <FestivMark color="white" size={200} />
       </div>
 
       {/* 대기번호 + 호출번호 */}
@@ -81,7 +81,7 @@ export function WaitingTicketCard({
         <div className="flex items-center justify-between">
           <Pill
             color="rgba(169,229,231,0.18)"
-            ink={FESTI_TOKENS.mint}
+            ink={FESTIV_TOKENS.mint}
             style={{ fontSize: 11 }}
           >
             {aheadTeams <= 3 && (

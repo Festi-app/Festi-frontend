@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, I } from '../../tokens'
+import { FESTIV_TOKENS, I } from '../../tokens'
 
 export function FestiTabBar({
   active = 'home',
@@ -29,7 +29,7 @@ export function FestiTabBar({
             className={`flex flex-1 flex-col items-center justify-center gap-0.5 rounded-[22px] py-2 transition ${
               on ? 'bg-mint text-[#141A1F]' : 'text-ink-60'
             }`}
-            style={{ color: on ? FESTI_TOKENS.ink : muted }}
+            style={{ color: on ? FESTIV_TOKENS.ink : muted }}
           >
             <div className="size-5.5">{it.icon()}</div>
             <div className="text-[11px] font-bold tracking-[-0.2px]">

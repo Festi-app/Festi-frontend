@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FestiTabBar } from '../../components/User/Navbar'
-import { FESTI_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
+import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { ScreenHeader, SubHeader } from '../../components/User/ScreenHeader'
 import { Toast } from '../../components/shared/Toast'
 import { PhotoHero } from '../../components/User/PhotoHero'
@@ -45,7 +45,7 @@ export function MobileBoothDetail({
       {/* Body */}
       <div className="relative z-2 -mt-7 h-[calc(100%-320px+28px)] overflow-auto rounded-t-[28px] bg-surface px-5 pt-5 pb-36">
         <div className="mb-2 flex gap-1.5">
-          <Pill color={FESTI_TOKENS.alert} ink="#fff">
+          <Pill color={FESTIV_TOKENS.alert} ink="#fff">
             야간 주점
           </Pill>
           <Pill color={surfaceAlt} ink={ink80}>
@@ -310,7 +310,7 @@ export function MobileTruckDetail({ dark = false }: { dark?: boolean }) {
       {/* Body */}
       <div className="relative z-2 -mt-7 h-[calc(100%-288px+28px)] overflow-auto rounded-t-[28px] bg-surface px-5 pt-5 pb-10">
         <div className="mb-2 flex gap-1.5">
-          <Pill color={FESTI_TOKENS.sun} ink={FESTI_TOKENS.ink}>
+          <Pill color={FESTIV_TOKENS.sun} ink={FESTIV_TOKENS.ink}>
             디저트
           </Pill>
           <Pill color={surfaceAlt} ink={ink80}>

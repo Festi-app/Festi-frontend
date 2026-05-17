@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FESTI_TOKENS, I } from '../../tokens'
+import { FESTIV_TOKENS, I } from '../../tokens'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
@@ -153,8 +153,8 @@ function SlotRow({
             <span
               className="rounded-full px-1.5 py-0.5 text-[10px] font-extrabold"
               style={{
-                background: FESTI_TOKENS.pop + '22',
-                color: FESTI_TOKENS.pop,
+                background: FESTIV_TOKENS.pop + '22',
+                color: FESTIV_TOKENS.pop,
               }}
             >
               진행중
@@ -429,7 +429,7 @@ export function AdminTimetable() {
                   {isCurrent && (
                     <span
                       className="size-1.5 shrink-0 rounded-full"
-                      style={{ background: FESTI_TOKENS.pop }}
+                      style={{ background: FESTIV_TOKENS.pop }}
                     />
                   )}
                 </button>
@@ -504,7 +504,7 @@ export function AdminTimetable() {
                 {selectedDay === currentDay && (
                   <span
                     className="size-1.5 rounded-full"
-                    style={{ background: FESTI_TOKENS.pop }}
+                    style={{ background: FESTIV_TOKENS.pop }}
                   />
                 )}
               </div>
@@ -550,8 +550,8 @@ export function AdminTimetable() {
                             <span
                               className="shrink-0 rounded-full px-1 py-0.25 text-[9px] font-extrabold"
                               style={{
-                                background: FESTI_TOKENS.pop + '22',
-                                color: FESTI_TOKENS.pop,
+                                background: FESTIV_TOKENS.pop + '22',
+                                color: FESTIV_TOKENS.pop,
                               }}
                             >
                               진행중

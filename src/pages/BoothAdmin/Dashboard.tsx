@@ -6,7 +6,7 @@ import {
   type NightMenuItem,
   type BoothCategoryType,
 } from '../../stores/useBoothAdminStore'
-import { FESTI_TOKENS, I } from '../../tokens'
+import { FESTIV_TOKENS, I } from '../../tokens'
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
@@ -17,10 +17,10 @@ function uid() {
 }
 
 const CATEGORY_COLORS: Record<BoothCategoryType, string> = {
-  정보: FESTI_TOKENS.coral,
-  체험: FESTI_TOKENS.grape,
-  마켓: FESTI_TOKENS.sun,
-  활동: FESTI_TOKENS.pop,
+  정보: FESTIV_TOKENS.coral,
+  체험: FESTIV_TOKENS.grape,
+  마켓: FESTIV_TOKENS.sun,
+  활동: FESTIV_TOKENS.pop,
 }
 
 // ── Pending screen ────────────────────────────────────────────────────────────
@@ -234,7 +234,7 @@ function InfoTab({ account }: { account: BoothAdminAccount }) {
             <div className="mb-4 flex items-center gap-2">
               <div
                 className="size-2.5 rounded-full"
-                style={{ background: FESTI_TOKENS.coral }}
+                style={{ background: FESTIV_TOKENS.coral }}
               />
               <div className="text-[15px] font-extrabold text-ink">
                 주간 부스
@@ -322,7 +322,7 @@ function InfoTab({ account }: { account: BoothAdminAccount }) {
             <div className="mb-4 flex items-center gap-2">
               <div
                 className="size-2.5 rounded-full"
-                style={{ background: FESTI_TOKENS.grape }}
+                style={{ background: FESTIV_TOKENS.grape }}
               />
               <div className="text-[15px] font-extrabold text-ink">
                 야간 부스 (주점)
@@ -479,22 +479,22 @@ function WaitingTab({ account }: { account: BoothAdminAccount }) {
           {
             label: '대기 중',
             count: queueOnly.length,
-            color: FESTI_TOKENS.ink,
+            color: FESTIV_TOKENS.ink,
           },
           {
             label: '호출됨',
             count: waitingList.filter((w) => w.status === 'called').length,
-            color: FESTI_TOKENS.coral,
+            color: FESTIV_TOKENS.coral,
           },
           {
             label: '입장 완료',
             count: waitingList.filter((w) => w.status === 'done').length,
-            color: FESTI_TOKENS.pop,
+            color: FESTIV_TOKENS.pop,
           },
           {
             label: '취소',
             count: waitingList.filter((w) => w.status === 'cancelled').length,
-            color: FESTI_TOKENS.ink40,
+            color: FESTIV_TOKENS.ink40,
           },
         ].map(({ label, count, color }) => (
           <div
@@ -543,8 +543,8 @@ function WaitingTab({ account }: { account: BoothAdminAccount }) {
                     style={{
                       background:
                         w.status === 'called'
-                          ? FESTI_TOKENS.coral
-                          : FESTI_TOKENS.ink40,
+                          ? FESTIV_TOKENS.coral
+                          : FESTIV_TOKENS.ink40,
                     }}
                   >
                     {w.number}
@@ -569,7 +569,7 @@ function WaitingTab({ account }: { account: BoothAdminAccount }) {
                         className="flex items-center gap-1 font-semibold text-cta no-underline"
                       >
                         <div className="size-3">
-                          {I.call(FESTI_TOKENS.coral)}
+                          {I.call(FESTIV_TOKENS.coral)}
                         </div>
                         {w.phone}
                       </a>
