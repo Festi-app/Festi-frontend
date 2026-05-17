@@ -65,7 +65,7 @@ export function MobileBoothDetail({
           className="mt-4"
           stats={[
             { label: '현재 대기', value: '7팀', sub: '예상 22분' },
-            { label: '운영 시간', value: '~22시', sub: '17시 오픈' },
+            { label: '운영 시간', value: '17시 ~ 22시' },
           ]}
         />
 
@@ -328,7 +328,9 @@ export function MobileTruckDetail({ dark = false }: { dark?: boolean }) {
 
         <StatGrid
           className="mt-4"
-          stats={[{ label: '운영 시간', value: '~21시', sub: '12시 오픈' }]}
+          stats={[
+            { label: '운영 시간', value: '12시 ~ 21시', sub: '특이 사항' },
+          ]}
         />
 
         <SubHeader title="메뉴" right="총 4종" />

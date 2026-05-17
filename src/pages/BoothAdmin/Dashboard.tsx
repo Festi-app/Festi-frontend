@@ -694,7 +694,7 @@ export function BoothAdminDashboard() {
   ]
 
   return (
-    <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col bg-bg font-festi md:min-h-screen">
+    <div className="flex h-full flex-col overflow-hidden bg-bg font-festi">
       {/* Header */}
       <header className="sticky top-14 z-40 flex items-center gap-4 border-b border-border bg-surface px-5 py-3.5 md:top-0">
         <div className="min-w-0 flex-1">
@@ -715,7 +715,7 @@ export function BoothAdminDashboard() {
         </button>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <aside className="hidden w-48 shrink-0 border-r border-border bg-surface pt-5 md:block">
           <div className="px-3">

@@ -19,15 +19,19 @@ export function StatGrid({
       {stats.map((x, i) => (
         <div
           key={i}
-          className={`text-center ${i < stats.length - 1 ? 'border-r border-border' : ''}`}
+          className={`flex flex-col text-center ${i < stats.length - 1 ? 'border-r border-border' : ''}`}
         >
           <div className="text-[11px] font-semibold text-ink-60">{x.label}</div>
-          <div className="mt-1 text-[17px] font-extrabold tracking-[-0.3px] text-ink">
-            {x.value}
+          <div className="flex flex-1 flex-col items-center justify-center">
+            <div className="mt-1 text-[17px] font-extrabold tracking-[-0.3px] text-ink">
+              {x.value}
+            </div>
+            {x.sub && (
+              <div className="mt-0.5 text-[11px] font-semibold text-ink-60">
+                {x.sub}
+              </div>
+            )}
           </div>
-          {x.sub && (
-            <div className="mt-0.5 text-[10px] text-ink-40">{x.sub}</div>
-          )}
         </div>
       ))}
     </div>

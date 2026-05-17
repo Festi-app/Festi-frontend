@@ -141,58 +141,58 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
         <AppHeader dark={dark} className="mt-1.5 mb-1" />
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto px-5 pt-1 pb-27.5">
-        {main ? (
-          <>
-            <WaitingTicketCard
-              dark={dark}
-              boothName={main.boothName}
-              boothId={main.boothId}
-              boothTone={main.boothTone}
-              registered={main.registered}
-              waitNo={main.waitNo}
-              callNo={main.callNo}
-              progressPct={main.progressPct}
-              aheadTeams={main.aheadTeams}
-              etaMin={main.etaMin}
-              onCancel={() => setConfirmCancel(true)}
-              onClick={() => navigate('/waiting/detail')}
-            />
+      {main ? (
+        <div className="min-h-0 flex-1 overflow-auto px-5 pt-1 pb-27.5">
+          <WaitingTicketCard
+            dark={dark}
+            boothName={main.boothName}
+            boothId={main.boothId}
+            boothTone={main.boothTone}
+            registered={main.registered}
+            waitNo={main.waitNo}
+            callNo={main.callNo}
+            progressPct={main.progressPct}
+            aheadTeams={main.aheadTeams}
+            etaMin={main.etaMin}
+            onCancel={() => setConfirmCancel(true)}
+            onClick={() => navigate('/waiting/detail')}
+          />
 
-            {main.aheadTeams <= 3 && (
-              <div className="mt-3.5 flex items-center gap-3 rounded-[18px] bg-pop-soft p-3.5">
-                <div className="size-9 shrink-0 rounded-xl bg-pop p-2 text-white">
-                  {I.bell()}
+          {main.aheadTeams <= 3 && (
+            <div className="mt-3.5 flex items-center gap-3 rounded-[18px] bg-pop-soft p-3.5">
+              <div className="size-9 shrink-0 rounded-xl bg-pop p-2 text-white">
+                {I.bell()}
+              </div>
+              <div className="flex-1">
+                <div className="text-[13px] font-bold tracking-[-0.2px] text-[#141A1F]">
+                  곧 호출돼요!
                 </div>
-                <div className="flex-1">
-                  <div className="text-[13px] font-bold tracking-[-0.2px] text-[#141A1F]">
-                    곧 호출돼요!
-                  </div>
-                  <div className="mt-0.5 text-xs text-[#2E363C]">
-                    부스 근처에서 대기해 주세요. 호출 후 5분 안에 도착!
-                  </div>
+                <div className="mt-0.5 text-xs text-[#2E363C]">
+                  부스 근처에서 대기해 주세요. 호출 후 5분 안에 도착!
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {others.length > 0 && (
-              <>
-                <SubHeader title="다른 웨이팅" right={`${others.length}건`} />
-                <div className="flex flex-col gap-2.5">
-                  {others.map((w) => (
-                    <WaitingBoothCard
-                      key={w.boothId}
-                      waiting={w}
-                      ink60={ink60}
-                      onClick={() => navigate('/waiting/detail')}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-10 text-center">
+          {others.length > 0 && (
+            <>
+              <SubHeader title="다른 웨이팅" right={`${others.length}건`} />
+              <div className="flex flex-col gap-2.5">
+                {others.map((w) => (
+                  <WaitingBoothCard
+                    key={w.boothId}
+                    waiting={w}
+                    ink60={ink60}
+                    onClick={() => navigate('/waiting/detail')}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center text-center">
             <div className="mb-3 flex size-16 items-center justify-center rounded-full bg-surface-alt text-ink-40">
               <div className="size-7">{I.ticket()}</div>
             </div>
@@ -203,13 +203,10 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
               부스 웨이팅을 등록해 보세요
             </div>
           </div>
-        )}
-      </div>
-
-      {!main && (
-        <div className="pb-27.5">
-          <QuickEntrySection dark={dark} compact />
-        </div>
+          <div className="pb-27.5">
+            <QuickEntrySection dark={dark} compact />
+          </div>
+        </>
       )}
 
       <FestiTabBar active="wait" dark={dark} />
