@@ -1,7 +1,8 @@
-import { FESTI_TOKENS, PhotoSlot, Pill } from '../../tokens'
+import { FESTIV_TOKENS, PhotoSlot, Pill } from '../../tokens'
+import { FestivMark } from '../Logo'
 
-const STAR_PATH =
-  'M50,2 L50.6,48.6 L83.9,16.1 L51.4,49.4 L98,50 L51.4,50.6 L83.9,83.9 L50.6,51.4 L50,98 L49.4,51.4 L16.1,83.9 L48.6,50.6 L2,50 L48.6,49.4 L16.1,16.1 L49.4,48.6 Z'
+// const STAR_PATH =
+//   'M50,2 L50.6,48.6 L83.9,16.1 L51.4,49.4 L98,50 L51.4,50.6 L83.9,83.9 L50.6,51.4 L50,98 L49.4,51.4 L16.1,83.9 L48.6,50.6 L2,50 L48.6,49.4 L16.1,16.1 L49.4,48.6 Z'
 
 export function WaitingTicketCard({
   dark = false,
@@ -15,6 +16,7 @@ export function WaitingTicketCard({
   aheadTeams,
   etaMin,
   onCancel,
+  onClick,
 }: {
   dark?: boolean
   boothName: string
@@ -27,14 +29,23 @@ export function WaitingTicketCard({
   aheadTeams: number
   etaMin: number
   onCancel: () => void
+  onClick?: () => void
 }) {
   const bgColor = dark ? '#0F1216' : '#F2F3F4'
-  const cardColor = dark ? '#1A3137' : FESTI_TOKENS.ink
+  const cardColor = dark ? '#1A3137' : FESTIV_TOKENS.ink
   const cardText = dark ? '#EAF6F7' : '#FFFFFF'
 
   return (
     <div
-      className="relative overflow-hidden rounded-[28px] p-5.5"
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => (e.key === 'Enter' || e.key === ' ') && onClick()
+          : undefined
+      }
+      className={`relative overflow-hidden rounded-[28px] p-5.5 ${onClick ? 'cursor-pointer transition-transform duration-100 active:scale-[0.98]' : ''}`}
       style={{
         background: cardColor,
         color: cardText,
@@ -45,27 +56,32 @@ export function WaitingTicketCard({
       <div
         className="absolute inset-0"
         style={{
-          background: `radial-gradient(circle at 80% 20%, ${FESTI_TOKENS.mint}55 0%, transparent 55%),
-                       radial-gradient(circle at 20% 100%, ${FESTI_TOKENS.pop}33 0%, transparent 50%)`,
+          background: `radial-gradient(circle at 80% 20%, ${FESTIV_TOKENS.mint}55 0%, transparent 55%),
+                       radial-gradient(circle at 20% 100%, ${FESTIV_TOKENS.pop}33 0%, transparent 50%)`,
         }}
       />
 
-      {/* 별 워터마크 */}
-      <svg
-        width={200}
-        height={200}
-        viewBox="0 0 100 100"
-        className="pointer-events-none absolute -top-7 -right-5 opacity-[0.13]"
-      >
-        <path fill="white" d={STAR_PATH} />
-      </svg>
+      {/*/!* 별 워터마크 *!/*/}
+      {/*<svg*/}
+      {/*  width={200}*/}
+      {/*  height={200}*/}
+      {/*  viewBox="0 0 100 100"*/}
+      {/*  className="pointer-events-none absolute -top-7 -right-5 opacity-[0.13]"*/}
+      {/*>*/}
+      {/*  <path fill="white" d={STAR_PATH} />*/}
+      {/*</svg>*/}
+
+      {/* 로고 워터마크 */}
+      <div className="pointer-events-none absolute -top-7 -right-5 opacity-[0.13]">
+        <FestivMark color="white" size={200} />
+      </div>
 
       {/* 대기번호 + 호출번호 */}
       <div className="relative">
         <div className="flex items-center justify-between">
           <Pill
             color="rgba(169,229,231,0.18)"
-            ink={FESTI_TOKENS.mint}
+            ink={FESTIV_TOKENS.mint}
             style={{ fontSize: 11 }}
           >
             {aheadTeams <= 3 && (
@@ -135,7 +151,10 @@ export function WaitingTicketCard({
         </div>
         <button
           type="button"
-          onClick={onCancel}
+          onClick={(e) => {
+            e.stopPropagation()
+            onCancel()
+          }}
           className="rounded-full bg-white/10 px-3 py-2 text-xs font-bold"
         >
           취소

@@ -1,10 +1,10 @@
-import { FESTI_TOKENS, I } from '../../tokens'
+import { FESTIV_TOKENS, I } from '../../tokens'
 import { cn } from '../../lib/cn'
 import type { Notice } from '../../stores/useNoticeStore'
 
 const TYPE_STYLE: Record<Notice['type'], { bg: string; ink: string }> = {
-  공지: { bg: FESTI_TOKENS.coralSoft, ink: FESTI_TOKENS.coral },
-  이벤트: { bg: FESTI_TOKENS.sunSoft, ink: '#9A7A00' },
+  공지: { bg: FESTIV_TOKENS.coralSoft, ink: FESTIV_TOKENS.coral },
+  이벤트: { bg: FESTIV_TOKENS.sunSoft, ink: '#9A7A00' },
 }
 
 export function NoticeCard({
@@ -70,7 +70,7 @@ export function NoticeCard({
             )}
           >
             <div className="size-3.5">
-              {I.star(notice.pinned ? FESTI_TOKENS.ink : FESTI_TOKENS.ink40)}
+              {I.star(notice.pinned ? FESTIV_TOKENS.ink : FESTIV_TOKENS.ink40)}
             </div>
           </button>
           <button

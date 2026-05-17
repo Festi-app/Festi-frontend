@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS } from '../../tokens'
-import { FestMark, FestWordmark } from '../../components/FestLogo'
+import { FESTIV_TOKENS } from '../../tokens'
+import { FestivMark, FestivWordmark } from '../../components/Logo'
+
+const FESTIVAL_START = new Date('2026-05-10T00:00:00')
+const FESTIVAL_END = new Date('2026-05-12T23:59:59')
 
 export function MobileSplash({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
@@ -10,15 +13,18 @@ export function MobileSplash({ dark = false }: { dark?: boolean }) {
   useEffect(() => {
     const t = setTimeout(() => {
       setOut(true)
-      setTimeout(() => navigate('/home', { replace: true }), 400)
+      const now = new Date()
+      const dest =
+        now >= FESTIVAL_START && now <= FESTIVAL_END ? '/home' : '/off-season'
+      setTimeout(() => navigate(dest, { replace: true }), 400)
     }, 2000)
     return () => clearTimeout(t)
   }, [navigate])
 
   const bg = dark
     ? `linear-gradient(160deg, #1F3035 0%, #0F1216 60%)`
-    : `linear-gradient(160deg, ${FESTI_TOKENS.mintSoft} 0%, #fff 60%)`
-  const wordmarkColor = dark ? '#F2F5F7' : FESTI_TOKENS.ink
+    : `linear-gradient(160deg, ${FESTIV_TOKENS.mintSoft} 0%, #fff 60%)`
+  const wordmarkColor = dark ? '#F2F5F7' : FESTIV_TOKENS.ink
 
   return (
     <div
@@ -38,9 +44,9 @@ export function MobileSplash({ dark = false }: { dark?: boolean }) {
       >
         <div
           className="mb-5 flex size-20 items-center justify-center rounded-[28px] shadow-[0_8px_24px_rgba(0,0,0,0.12),0_16px_48px_rgba(0,198,224,0.35)]"
-          style={{ background: FESTI_TOKENS.coral }}
+          style={{ background: FESTIV_TOKENS.coral }}
         >
-          <FestMark color="#fff" size={48} />
+          <FestivMark color="#fff" size={48} />
         </div>
       </div>
 
@@ -51,14 +57,14 @@ export function MobileSplash({ dark = false }: { dark?: boolean }) {
           animationDelay: '0.35s',
         }}
       >
-        <FestWordmark size={30} color={wordmarkColor} />
+        <FestivWordmark size={30} color={wordmarkColor} />
       </div>
 
       {/* 슬로건 */}
       <div
         className="mt-2 flex flex-wrap items-center justify-center gap-x-0.5 text-[13px] font-medium tracking-[-0.1px]"
         style={{
-          color: dark ? '#8B939B' : FESTI_TOKENS.ink60,
+          color: dark ? '#8B939B' : FESTIV_TOKENS.ink60,
           animation: 'splash-fade-up 0.5s ease both',
           animationDelay: '0.5s',
         }}
@@ -79,7 +85,7 @@ export function MobileSplash({ dark = false }: { dark?: boolean }) {
             key={i}
             className="size-1.5 rounded-full"
             style={{
-              background: FESTI_TOKENS.coral,
+              background: FESTIV_TOKENS.coral,
               animation: `splash-dot 1.2s ease-in-out ${i * 0.2}s infinite`,
             }}
           />

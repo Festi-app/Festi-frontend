@@ -1,25 +1,32 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, I } from '../../tokens'
-import { FestMark, FestWordmark } from '../../components/FestLogo'
+import { FESTIV_TOKENS, I } from '../../tokens'
+import { FestivMark, FestivWordmark } from '../../components/Logo'
+import { Toast } from '../../components/shared/Toast'
 
 export function MobileLogin({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loginFailed, setLoginFailed] = useState(false)
 
-  const wordmarkColor = dark ? '#F2F5F7' : FESTI_TOKENS.ink
+  const wordmarkColor = dark ? '#F2F5F7' : FESTIV_TOKENS.ink
   const muted = dark ? '#8B939B' : '#5E676D'
   const isValid =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length >= 6
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length >= 1
 
   function handleLogin() {
     if (!isValid) return
     setLoading(true)
     setTimeout(() => {
       setLoading(false)
-      navigate('/home', { replace: true })
+      if (email === 'test@test.com') {
+        navigate('/home', { replace: true })
+      } else {
+        setLoginFailed(true)
+        setTimeout(() => setLoginFailed(false), 2500)
+      }
     }, 600)
   }
 
@@ -29,11 +36,11 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
       <div className="flex flex-col items-center pt-20 pb-10">
         <div
           className="mb-4 flex size-16 items-center justify-center rounded-[22px] shadow-[0_8px_28px_rgba(0,198,224,0.3)]"
-          style={{ background: FESTI_TOKENS.coral }}
+          style={{ background: FESTIV_TOKENS.coral }}
         >
-          <FestMark color="#fff" size={38} />
+          <FestivMark color="#fff" size={38} />
         </div>
-        <FestWordmark size={24} color={wordmarkColor} />
+        <FestivWordmark size={24} color={wordmarkColor} />
         <div
           className="mt-1.5 text-[13px] font-medium"
           style={{ color: muted }}
@@ -79,10 +86,16 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
             onClick={handleLogin}
             disabled={!isValid || loading}
             className="mt-1 w-full rounded-[14px] py-4 text-[15px] font-extrabold tracking-[-0.3px] transition-opacity disabled:opacity-40"
-            style={{ background: FESTI_TOKENS.coral, color: '#fff' }}
+            style={{ background: FESTIV_TOKENS.coral, color: '#fff' }}
           >
             {loading ? '로그인 중…' : '로그인'}
           </button>
+          <div
+            className="mt-3 text-center text-[11px]"
+            style={{ color: muted }}
+          >
+            테스트 성공: test@test.com
+          </div>
         </div>
       </div>
 
@@ -95,11 +108,30 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
           type="button"
           onClick={() => navigate('/onboarding')}
           className="text-[13px] font-bold"
-          style={{ color: FESTI_TOKENS.coral }}
+          style={{ color: FESTIV_TOKENS.coral }}
         >
           회원가입
         </button>
       </div>
+
+      {loginFailed && (
+        <Toast
+          bottom="bottom-12"
+          message="이메일 또는 비밀번호가 올바르지 않습니다."
+          icon={
+            <div className="flex size-8 items-center justify-center rounded-full bg-alert/20">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                <path
+                  d="M3 3l10 10M13 3L3 13"
+                  stroke="#FF6B6B"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+          }
+        />
+      )}
     </div>
   )
 }

@@ -4,7 +4,7 @@ export const DAY_GRADIENT = '#FF9800'
 export const NIGHT_GRADIENT = '#3B3F8C'
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const FESTI_TOKENS = {
+export const FESTIV_TOKENS = {
   mint: '#A9E5E7',
   mintDeep: '#6FC8CB',
   mintSoft: '#E6F2F3',
@@ -39,7 +39,7 @@ export const FESTI_TOKENS = {
   },
 }
 
-export const FESTI_FONT = `'Pretendard', 'Pretendard Variable', -apple-system, system-ui, sans-serif`
+export const FESTIV_FONT = `'Pretendard', 'Pretendard Variable', -apple-system, system-ui, sans-serif`
 
 export interface ToneTheme {
   bg: string
@@ -76,10 +76,10 @@ export function tone(): ToneTheme {
     ink60: dark ? '#8B939B' : '#5E676D',
     ink40: dark ? '#5F676D' : '#8C949A',
     ink20: dark ? '#3E454D' : '#C8CDD1',
-    mint: FESTI_TOKENS.mint,
-    mintDeep: FESTI_TOKENS.mintDeep,
+    mint: FESTIV_TOKENS.mint,
+    mintDeep: FESTIV_TOKENS.mintDeep,
     mintSoft: dark ? '#1F3035' : '#E6F2F3',
-    cta: FESTI_TOKENS.coral,
+    cta: FESTIV_TOKENS.coral,
     ctaInk: '#FFFFFF',
     chip: dark ? '#252A30' : '#F3F5F6',
     chipInk: dark ? '#F2F5F7' : '#141A1F',
@@ -96,15 +96,15 @@ export function FestiterMark({
   mono?: boolean
   color?: string
 }): ReactElement {
-  const ink = color ?? FESTI_TOKENS.ink
-  const dot = mono ? ink : FESTI_TOKENS.pop
+  const ink = color ?? FESTIV_TOKENS.ink
+  const dot = mono ? ink : FESTIV_TOKENS.pop
   return (
     <div
       style={{
         display: 'inline-flex',
         alignItems: 'center',
         gap: size * 0.28,
-        fontFamily: FESTI_FONT,
+        fontFamily: FESTIV_FONT,
         fontWeight: 800,
         fontSize: size,
         letterSpacing: -0.6,
@@ -117,7 +117,7 @@ export function FestiterMark({
           width: size * 0.95,
           height: size * 0.95,
           borderRadius: '50%',
-          background: FESTI_TOKENS.mint,
+          background: FESTIV_TOKENS.mint,
           position: 'relative',
           display: 'inline-flex',
           alignItems: 'center',
@@ -517,6 +517,24 @@ export const I = {
       <circle cx="18" cy="12" r="1.7" />
     </svg>
   ),
+  refresh: (c = 'currentColor'): ReactElement => (
+    <svg viewBox="0 0 24 24" fill="none" width="100%" height="100%">
+      <path
+        d="M23 4v6h-6M1 20v-6h6"
+        stroke={c}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+        stroke={c}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
 }
 
 // ── Placeholder photo block ───────────────────────────────────────
@@ -571,8 +589,8 @@ export function PhotoSlot({
 // ── Pill / tag ────────────────────────────────────────────────────
 export function Pill({
   children,
-  color = FESTI_TOKENS.mintSoft,
-  ink = FESTI_TOKENS.ink,
+  color = FESTIV_TOKENS.mintSoft,
+  ink = FESTIV_TOKENS.ink,
   size = 'sm',
   style = {},
   className,
@@ -598,7 +616,7 @@ export function Pill({
         background: color,
         color: ink,
         borderRadius: 9999,
-        fontFamily: FESTI_FONT,
+        fontFamily: FESTIV_FONT,
         fontWeight: 600,
         ...sz,
         ...style,

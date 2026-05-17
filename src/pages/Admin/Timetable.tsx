@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FESTI_TOKENS, I } from '../../tokens'
+import { FESTIV_TOKENS, I } from '../../tokens'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
@@ -8,6 +8,7 @@ import {
   type TimetableSlot,
 } from '../../stores/useTimetableStore'
 import { cn } from '../../lib/cn'
+import { toMin } from '../../lib/time'
 
 const DAYS = [1, 2, 3] as const
 
@@ -152,8 +153,8 @@ function SlotRow({
             <span
               className="rounded-full px-1.5 py-0.5 text-[10px] font-extrabold"
               style={{
-                background: FESTI_TOKENS.pop + '22',
-                color: FESTI_TOKENS.pop,
+                background: FESTIV_TOKENS.pop + '22',
+                color: FESTIV_TOKENS.pop,
               }}
             >
               진행중
@@ -315,7 +316,7 @@ function AddSlotForm({ day, onDone }: { day: number; onDone: () => void }) {
 // ── Screen: Admin Timetable ───────────────────────────────────────────────────
 
 export function AdminTimetable() {
-  const { venue, currentDay, days, setVenue, setCurrentDay } =
+  const { venue, currentDay, nowMin, days, setVenue, setCurrentDay } =
     useTimetableStore()
   const [selectedDay, setSelectedDay] = useState<number>(currentDay)
   const [adding, setAdding] = useState(false)
@@ -324,12 +325,6 @@ export function AdminTimetable() {
   const [saved, setSaved] = useState(false)
 
   const slots = days[selectedDay] ?? []
-  const toMin = (t: string) => {
-    const [h, m] = t.split(':').map(Number)
-    return h * 60 + m
-  }
-  // 목업 현재 시각 기준 (실제 서비스에서는 new Date() 사용)
-  const NOW_MIN = 17 * 60 + 45
 
   function handleSave() {
     if (venueEditing) {
@@ -434,7 +429,7 @@ export function AdminTimetable() {
                   {isCurrent && (
                     <span
                       className="size-1.5 shrink-0 rounded-full"
-                      style={{ background: FESTI_TOKENS.pop }}
+                      style={{ background: FESTIV_TOKENS.pop }}
                     />
                   )}
                 </button>
@@ -454,8 +449,8 @@ export function AdminTimetable() {
                 const slotEnd = toMin(slot.end)
                 const isNow =
                   selectedDay === currentDay &&
-                  NOW_MIN >= slotStart &&
-                  NOW_MIN < slotEnd
+                  nowMin >= slotStart &&
+                  nowMin < slotEnd
                 return (
                   <SlotRow
                     key={slot.id}
@@ -509,7 +504,7 @@ export function AdminTimetable() {
                 {selectedDay === currentDay && (
                   <span
                     className="size-1.5 rounded-full"
-                    style={{ background: FESTI_TOKENS.pop }}
+                    style={{ background: FESTIV_TOKENS.pop }}
                   />
                 )}
               </div>
@@ -526,8 +521,8 @@ export function AdminTimetable() {
                   const slotEnd = toMin(slot.end)
                   const isNow =
                     selectedDay === currentDay &&
-                    NOW_MIN >= slotStart &&
-                    NOW_MIN < slotEnd
+                    nowMin >= slotStart &&
+                    nowMin < slotEnd
                   return (
                     <div
                       key={slot.id}
@@ -555,8 +550,8 @@ export function AdminTimetable() {
                             <span
                               className="shrink-0 rounded-full px-1 py-0.25 text-[9px] font-extrabold"
                               style={{
-                                background: FESTI_TOKENS.pop + '22',
-                                color: FESTI_TOKENS.pop,
+                                background: FESTIV_TOKENS.pop + '22',
+                                color: FESTIV_TOKENS.pop,
                               }}
                             >
                               진행중

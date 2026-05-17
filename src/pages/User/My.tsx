@@ -1,8 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FestiTabBar } from '../../components/User/Navbar'
-import { FESTI_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
-import { AppHeader, PageTitle } from '../../components/User/ScreenHeader'
+import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
+import { AppHeader } from '../../components/User/ScreenHeader'
+import { FilterChips } from '../../components/User/FilterChips'
+import { ProfileInfoRow } from '../../components/User/ProfileInfoRow'
+import { StatGrid } from '../../components/User/StatGrid'
+import { Toast } from '../../components/shared/Toast'
 
 const FAVORITES = [
   {
@@ -14,8 +18,8 @@ const FAVORITES = [
     eta: '22분',
     open: true,
     tone: 'rose',
-    tagColor: FESTI_TOKENS.alertSoft,
-    tagInk: FESTI_TOKENS.alert,
+    tagColor: FESTIV_TOKENS.alertSoft,
+    tagInk: FESTIV_TOKENS.alert,
   },
   {
     id: 38,
@@ -26,8 +30,8 @@ const FAVORITES = [
     eta: '12분',
     open: true,
     tone: 'mint',
-    tagColor: FESTI_TOKENS.alertSoft,
-    tagInk: FESTI_TOKENS.alert,
+    tagColor: FESTIV_TOKENS.alertSoft,
+    tagInk: FESTIV_TOKENS.alert,
   },
   {
     id: 47,
@@ -38,8 +42,8 @@ const FAVORITES = [
     eta: '18분',
     open: true,
     tone: 'sun',
-    tagColor: FESTI_TOKENS.popSoft,
-    tagInk: FESTI_TOKENS.pop,
+    tagColor: FESTIV_TOKENS.popSoft,
+    tagInk: FESTIV_TOKENS.pop,
   },
   {
     id: 64,
@@ -50,7 +54,7 @@ const FAVORITES = [
     eta: '8분',
     open: false,
     tone: 'coral',
-    tagColor: FESTI_TOKENS.sun,
+    tagColor: FESTIV_TOKENS.sun,
     tagInk: '#fff',
   },
 ]
@@ -58,11 +62,33 @@ const FAVORITES = [
 export function MobileMy({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const [filter, setFilter] = useState('전체')
+  const [savedIds, setSavedIds] = useState(
+    () => new Set(FAVORITES.map((b) => b.id))
+  )
+  const [toast, setToast] = useState<'saved' | 'unsaved' | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [spinning, setSpinning] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [name, setName] = useState('홍길동')
+  const [editingName, setEditingName] = useState(false)
+  const [nameInput, setNameInput] = useState(name)
   const [phone, setPhone] = useState('010-2354-8821')
   const [editingPhone, setEditingPhone] = useState(false)
   const [phoneInput, setPhoneInput] = useState(phone)
+  const email = 'hong@example.com'
   const muted = dark ? '#8B939B' : '#5E676D'
+
+  function formatPhone(raw: string) {
+    const d = raw.replace(/\D/g, '').slice(0, 11)
+    if (d.length <= 3) return d
+    if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`
+    return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`
+  }
+
+  function saveName() {
+    setName(nameInput)
+    setEditingName(false)
+  }
 
   function savePhone() {
     setPhone(phoneInput)
@@ -71,8 +97,21 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
 
   function closeProfile() {
     setProfileOpen(false)
+    setEditingName(false)
     setEditingPhone(false)
   }
+
+  function toggleSave(id: number) {
+    const next = new Set(savedIds)
+    const nowSaved = next.has(id)
+      ? (next.delete(id), false)
+      : (next.add(id), true)
+    setSavedIds(next)
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToast(nowSaved ? 'saved' : 'unsaved')
+    toastTimer.current = setTimeout(() => setToast(null), 2000)
+  }
+
   const filteredFavorites = useMemo(
     () =>
       FAVORITES.filter((booth) => {
@@ -86,61 +125,40 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
       <div className="shrink-0 border-b border-border bg-surface px-5 pt-13.5 pb-5">
-        <AppHeader dark={dark} className="mt-1.5 mb-1" />
+        <AppHeader dark={dark} className="mt-2 mb-5.5" />
         <div className="flex items-center justify-between">
-          <div>
-            <PageTitle>즐겨찾기</PageTitle>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setProfileOpen(true)}
-              className="flex size-10 items-center justify-center rounded-full bg-surface-alt text-ink-80"
-            >
+          <div className="flex items-center gap-3">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-surface-alt text-ink-80">
               <div className="size-5">{I.user()}</div>
-            </button>
+            </div>
+            <div>
+              <div className="text-[17px] font-extrabold tracking-[-0.4px] text-ink">
+                {name}
+              </div>
+              <div className="mt-0.5 text-[13px] text-ink-60">{phone}</div>
+              <div className="mt-0.5 text-[11px] text-ink-40">{email}</div>
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setProfileOpen(true)}
+            className="rounded-full border border-border bg-surface-alt px-3 py-1.5 text-[12px] font-bold text-ink-80"
+          >
+            수정
+          </button>
         </div>
 
-        <div className="mt-5 grid grid-cols-3 rounded-2xl bg-surface-alt py-3">
-          {[
-            { label: '저장', value: `${FAVORITES.length}` },
+        <StatGrid
+          className="mt-5"
+          stats={[
+            { label: '저장', value: `${savedIds.size}` },
             {
               label: '운영중',
-              value: `${FAVORITES.filter((b) => b.open).length}`,
+              value: `${FAVORITES.filter((b) => b.open && savedIds.has(b.id)).length}`,
             },
             { label: '최단 대기', value: '2팀' },
-          ].map((s, i) => (
-            <div
-              key={s.label}
-              className={`text-center ${i < 2 ? 'border-r border-border' : ''}`}
-            >
-              <div className="text-[11px] font-semibold text-ink-60">
-                {s.label}
-              </div>
-              <div className="mt-1 text-[18px] font-extrabold tracking-[-0.4px] text-ink">
-                {s.value}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-3.5 flex gap-1.5 overflow-x-auto">
-          {['전체', '운영중', '푸드트럭'].map((chip) => (
-            <button
-              type="button"
-              key={chip}
-              onClick={() => setFilter(chip)}
-              className={`whitespace-nowrap rounded-full border px-3 py-2 text-[13px] font-bold tracking-[-0.2px] ${
-                chip === filter
-                  ? 'border-cta bg-cta text-cta-ink'
-                  : 'border-border bg-surface text-ink-80'
-              }`}
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
+          ]}
+        />
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-32">
@@ -153,93 +171,138 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
               웨이팅 상황을 빠르게 확인하세요
             </div>
           </div>
-          <div className="text-xs font-semibold text-ink-60">최근 업데이트</div>
+          <button
+            type="button"
+            onClick={() => setSpinning(true)}
+            onAnimationEnd={() => setSpinning(false)}
+            className="flex size-8 items-center justify-center rounded-full border border-border bg-surface-alt p-1.5 text-ink-60"
+            style={
+              spinning
+                ? { animation: 'festi-spin-once 0.5s ease both' }
+                : undefined
+            }
+          >
+            {I.refresh()}
+          </button>
+        </div>
+
+        <div className="mb-3">
+          <FilterChips
+            options={['전체', '운영중', '푸드트럭']}
+            active={filter}
+            onChange={setFilter}
+          />
         </div>
 
         <div className="flex flex-col gap-3">
-          {filteredFavorites.map((booth) => (
-            <button
-              type="button"
-              key={booth.id}
-              onClick={() => navigate('/booth')}
-              className={`w-full overflow-hidden rounded-[20px] border border-border bg-surface text-left transition-transform duration-100 active:scale-[0.98] ${
-                booth.open ? 'opacity-100' : 'opacity-65'
-              }`}
-            >
-              <div className="flex gap-3 p-3">
-                <div className="relative size-20 shrink-0 overflow-hidden rounded-2xl">
-                  <PhotoSlot label="" tone={booth.tone} radius={16} />
-                  <div className="absolute top-2 left-2 rounded-full bg-[rgba(15,42,51,0.82)] px-2 py-0.75 text-[10px] font-extrabold text-white">
-                    #{booth.id}
-                  </div>
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <Pill color={booth.tagColor} ink={booth.tagInk}>
-                      {booth.category}
-                    </Pill>
-                    <Pill
-                      color="transparent"
-                      ink={muted}
-                      style={{ padding: 0 }}
-                    >
-                      {booth.area}
-                    </Pill>
-                  </div>
-
-                  <div className="mt-1.5 flex items-start gap-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-[15px] font-extrabold tracking-[-0.3px] text-ink">
-                        {booth.name}
-                      </div>
-                      <div className="mt-1 text-[11px] font-semibold text-ink-60">
-                        {booth.open ? '운영중' : '준비중'}
-                        {booth.category !== '푸드트럭' &&
-                          ` · 예상 ${booth.eta}`}
-                      </div>
-                    </div>
-                    <div className="size-4.5 shrink-0 text-alert">
-                      {I.star(FESTI_TOKENS.alert, FESTI_TOKENS.alert)}
+          {filteredFavorites.map((booth) => {
+            const isSaved = savedIds.has(booth.id)
+            return (
+              <div
+                key={booth.id}
+                onClick={() => navigate('/booth')}
+                className={`w-full cursor-pointer overflow-hidden rounded-[20px] border border-border bg-surface text-left transition-transform duration-100 active:scale-[0.98] ${
+                  booth.open ? 'opacity-100' : 'opacity-65'
+                }`}
+              >
+                <div className="flex gap-3 p-3">
+                  <div className="relative size-20 shrink-0 overflow-hidden rounded-2xl">
+                    <PhotoSlot label="" tone={booth.tone} radius={16} />
+                    <div className="absolute top-2 left-2 rounded-full bg-[rgba(15,42,51,0.82)] px-2 py-0.75 text-[10px] font-extrabold text-white">
+                      #{booth.id}
                     </div>
                   </div>
 
-                  {booth.category !== '푸드트럭' && (
-                    <div className="mt-3 flex items-center justify-between rounded-xl bg-surface-alt px-3 py-2">
-                      <div className="text-[11px] font-semibold text-ink-60">
-                        현재 대기
-                      </div>
-                      <div
-                        className={`text-[13px] font-extrabold ${
-                          booth.wait <= 2 ? 'text-pop' : 'text-alert'
-                        }`}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <Pill color={booth.tagColor} ink={booth.tagInk}>
+                        {booth.category}
+                      </Pill>
+                      <Pill
+                        color="transparent"
+                        ink={muted}
+                        style={{ padding: 0 }}
                       >
-                        {booth.wait === 0 ? '바로 입장' : `${booth.wait}팀`}
-                      </div>
+                        {booth.area}
+                      </Pill>
                     </div>
-                  )}
+
+                    <div className="mt-1.5 flex items-start gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[15px] font-extrabold tracking-[-0.3px] text-ink">
+                          {booth.name}
+                        </div>
+                        <div className="mt-1 text-[11px] font-semibold text-ink-60">
+                          {booth.open ? '운영중' : '준비중'}
+                          {booth.category !== '푸드트럭' &&
+                            ` · 예상 ${booth.eta}`}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleSave(booth.id)
+                        }}
+                        className="size-4.5 shrink-0 text-alert"
+                      >
+                        {I.star(
+                          isSaved ? FESTIV_TOKENS.alert : undefined,
+                          isSaved ? FESTIV_TOKENS.alert : 'none'
+                        )}
+                      </button>
+                    </div>
+
+                    {booth.category !== '푸드트럭' && (
+                      <div className="mt-3 flex items-center justify-between rounded-xl bg-surface-alt px-3 py-2">
+                        <div className="text-[11px] font-semibold text-ink-60">
+                          현재 대기
+                        </div>
+                        <div
+                          className={`text-[13px] font-extrabold ${
+                            booth.wait <= 2 ? 'text-pop' : 'text-alert'
+                          }`}
+                        >
+                          {booth.wait === 0 ? '바로 입장' : `${booth.wait}팀`}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </button>
-          ))}
+            )
+          })}
         </div>
-        {/*<div*/}
-        {/*  className="mt-4 rounded-[18px] border border-border p-4"*/}
-        {/*  style={{ background: surfaceAlt, color: ink80 }}*/}
-        {/*>*/}
-        {/*  <div className="flex items-center gap-2">*/}
-        {/*    <div className="size-4 text-pop">{I.bell()}</div>*/}
-        {/*    <div className="text-[13px] font-bold tracking-[-0.2px]">*/}
-        {/*      즐겨찾기 알림*/}
-        {/*    </div>*/}
-        {/*  </div>*/}
-        {/*  <div className="mt-1.5 text-xs leading-normal text-ink-60">*/}
-        {/*    저장한 부스의 대기팀이 3팀 이하가 되면 알림을 받을 수 있어요.*/}
-        {/*  </div>*/}
-        {/*</div>*/}
       </div>
 
       <FestiTabBar active="me" dark={dark} />
+
+      {toast && (
+        <Toast
+          bottom="bottom-24"
+          message={
+            toast === 'saved' ? '저장되었습니다' : '저장이 취소되었습니다'
+          }
+          icon={
+            toast === 'saved' ? (
+              <div className="flex size-8 items-center justify-center rounded-full bg-alert">
+                {I.star('#fff', '#fff')}
+              </div>
+            ) : (
+              <div className="flex size-8 items-center justify-center rounded-full bg-alert/20">
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                  <path
+                    d="M3 3l10 10M13 3L3 13"
+                    stroke="#FF6B6B"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+            )
+          }
+        />
+      )}
 
       {/* Profile bottom sheet */}
       {profileOpen && (
@@ -256,7 +319,6 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
                 'festi-sheet-up 0.28s cubic-bezier(0.32,0.72,0,1) both',
             }}
           >
-            {/* Handle */}
             <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-border" />
 
             <div className="mb-5 flex items-center justify-between">
@@ -280,58 +342,37 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
             </div>
 
             <div className="overflow-hidden rounded-[20px] border border-border bg-bg">
-              {/* 이름 - 읽기 전용 */}
-              <div className="flex items-center gap-3 px-4 py-4">
-                <div className="w-18 text-[13px] font-semibold text-ink-60">
-                  이름
-                </div>
-                <div className="flex-1 text-[15px] font-bold tracking-[-0.3px] text-ink">
-                  홍길동
-                </div>
-              </div>
-
+              <ProfileInfoRow
+                label="이름"
+                value={name}
+                editable
+                editing={editingName}
+                inputValue={nameInput}
+                onChange={setNameInput}
+                onEdit={() => {
+                  setNameInput(name)
+                  setEditingName(true)
+                }}
+                onSave={saveName}
+              />
               <div className="mx-4 h-px bg-border" />
-
-              {/* 전화번호 - 수정 가능 */}
-              <div className="flex items-center gap-3 px-4 py-4">
-                <div className="w-18 text-[13px] font-semibold text-ink-60">
-                  전화번호
-                </div>
-                {editingPhone ? (
-                  <input
-                    type="tel"
-                    value={phoneInput}
-                    onChange={(e) => setPhoneInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && savePhone()}
-                    autoFocus
-                    className="flex-1 bg-transparent text-[15px] font-bold tracking-[-0.3px] text-ink outline-none"
-                  />
-                ) : (
-                  <div className="flex-1 text-[15px] font-bold tracking-[-0.3px] text-ink">
-                    {phone}
-                  </div>
-                )}
-                {editingPhone ? (
-                  <button
-                    type="button"
-                    onClick={savePhone}
-                    className="rounded-full bg-cta px-3 py-1.5 text-[12px] font-extrabold text-cta-ink"
-                  >
-                    저장
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPhoneInput(phone)
-                      setEditingPhone(true)
-                    }}
-                    className="rounded-full border border-border bg-surface-alt px-3 py-1.5 text-[12px] font-bold text-ink-80"
-                  >
-                    수정
-                  </button>
-                )}
-              </div>
+              <ProfileInfoRow
+                label="전화번호"
+                value={phone}
+                editable
+                editing={editingPhone}
+                inputValue={phoneInput}
+                inputType="tel"
+                onChange={(v) => setPhoneInput(formatPhone(v))}
+                onEdit={() => {
+                  setPhoneInput(phone)
+                  setEditingPhone(true)
+                }}
+                onSave={savePhone}
+                saveDisabled={phoneInput.replace(/\D/g, '').length !== 11}
+              />
+              <div className="mx-4 h-px bg-border" />
+              <ProfileInfoRow label="이메일" value={email} />
             </div>
           </div>
         </>

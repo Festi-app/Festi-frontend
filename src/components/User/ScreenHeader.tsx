@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { I } from '../../tokens'
-import { FestHeaderLogo } from '../FestLogo'
+import { FestivHeaderLogo } from '../Logo'
 
 // ── 메인 탭 공통 헤더 ─────────────────────────────────────────────────────────
 
@@ -14,10 +14,10 @@ export function AppHeader({
   right?: ReactNode
   className?: string
 }) {
-  const color = dark ? '#F2F5F7' : '#141A1F'
+  const color = dark ? '#FFFFFF' : '#141A1F'
   return (
     <div className={`flex items-center justify-between ${className ?? ''}`}>
-      <FestHeaderLogo size={28} color={color} />
+      <FestivHeaderLogo size={28} color={color} />
       {right}
     </div>
   )

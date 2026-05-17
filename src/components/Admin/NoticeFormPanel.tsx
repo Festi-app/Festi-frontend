@@ -1,4 +1,4 @@
-import { FESTI_TOKENS, I } from '../../tokens'
+import { FESTIV_TOKENS, I } from '../../tokens'
 import { cn } from '../../lib/cn'
 import type { NoticeDraft } from './noticeShared'
 
@@ -165,9 +165,9 @@ export function NoticeEmptyPanel({ onNew }: { onNew: () => void }) {
     <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
       <div
         className="flex size-14 items-center justify-center rounded-2xl"
-        style={{ background: FESTI_TOKENS.coralSoft }}
+        style={{ background: FESTIV_TOKENS.coralSoft }}
       >
-        <div className="size-7">{I.megaphone(FESTI_TOKENS.coral)}</div>
+        <div className="size-7">{I.megaphone(FESTIV_TOKENS.coral)}</div>
       </div>
       <div>
         <div className="text-[15px] font-extrabold text-ink">

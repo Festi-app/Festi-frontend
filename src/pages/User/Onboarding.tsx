@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FESTI_TOKENS, I } from '../../tokens'
-import { FestWordmark } from '../../components/FestLogo'
+import { FESTIV_TOKENS, I } from '../../tokens'
+import { FestivWordmark } from '../../components/Logo'
 import { AppHeader } from '../../components/User/ScreenHeader'
 import { InputField } from '../../components/shared/InputField'
 import { PasswordField } from '../../components/shared/PasswordField'
@@ -15,7 +15,7 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
   const [phone, setPhone] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [showToast, setShowToast] = useState(false)
-  const wordmarkColor = dark ? '#F2F5F7' : FESTI_TOKENS.ink
+  const wordmarkColor = dark ? '#F2F5F7' : FESTIV_TOKENS.ink
 
   const errors = {
     name: submitted && name.trim().length === 0 ? '이름을 입력해주세요' : '',
@@ -73,7 +73,7 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
           <div className="text-[26px] font-extrabold leading-tight tracking-[-0.6px] text-ink">
             축제를 더 즐겁게,
             <br />
-            <FestWordmark size={26} color={wordmarkColor} />
+            <FestivWordmark size={26} color={wordmarkColor} />
             <span>와 함께해요.</span>
           </div>
           <div className="mt-2 text-[14px] text-ink-60">
@@ -146,7 +146,7 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
           className="flex w-full items-center justify-center gap-2 rounded-[16px] py-4 text-[16px] font-extrabold tracking-[-0.3px] active:opacity-80"
           style={{
             background: isValid
-              ? FESTI_TOKENS.coral
+              ? FESTIV_TOKENS.coral
               : dark
                 ? '#252A30'
                 : '#D3DBDE',
@@ -172,7 +172,7 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
           <div className="flex items-center gap-2.5 rounded-2xl bg-[#141A1F] px-5 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.25)]">
             <div
               className="flex size-6 shrink-0 items-center justify-center rounded-full"
-              style={{ background: FESTI_TOKENS.pop }}
+              style={{ background: FESTIV_TOKENS.pop }}
             >
               <div className="size-3.5 text-white">{I.check()}</div>
             </div>

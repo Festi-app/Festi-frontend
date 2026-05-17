@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { FESTI_TOKENS } from '../tokens'
+import { FESTIV_TOKENS } from '../tokens'
 
 export type TruckTime = '주간' | '야간'
 export type AssignmentMap = Record<string, string>
@@ -25,7 +25,7 @@ export const TRUCK_ZONES: TruckZoneDef[] = [
     id: 'A',
     label: 'A구역',
     name: '야외무대 좌측',
-    color: FESTI_TOKENS.coral,
+    color: FESTIV_TOKENS.coral,
     slotCount: 1,
     dir: 'col',
     left: '21%',
@@ -40,7 +40,7 @@ export const TRUCK_ZONES: TruckZoneDef[] = [
     id: 'B',
     label: 'B구역',
     name: '상단 구역',
-    color: FESTI_TOKENS.mint,
+    color: FESTIV_TOKENS.mint,
     slotCount: 3,
     dir: 'row',
     left: '22%',
@@ -55,7 +55,7 @@ export const TRUCK_ZONES: TruckZoneDef[] = [
     id: 'C',
     label: 'C구역',
     name: '하단 구역',
-    color: FESTI_TOKENS.sun,
+    color: FESTIV_TOKENS.sun,
     slotCount: 2,
     dir: 'row',
     left: '30.8%',
@@ -70,7 +70,7 @@ export const TRUCK_ZONES: TruckZoneDef[] = [
     id: 'D',
     label: 'D구역',
     name: '우측 열',
-    color: FESTI_TOKENS.grape,
+    color: FESTIV_TOKENS.grape,
     slotCount: 5,
     dir: 'col',
     left: '80%',

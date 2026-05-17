@@ -15,9 +15,11 @@ export type TimetableSlot = {
 interface TimetableStore {
   venue: string
   currentDay: number
+  nowMin: number
   days: Record<number, TimetableSlot[]>
   setVenue: (v: string) => void
   setCurrentDay: (day: number) => void
+  setNowMin: (nowMin: number) => void
   addSlot: (day: number, slot: Omit<TimetableSlot, 'id'>) => void
   updateSlot: (
     day: number,
@@ -31,6 +33,7 @@ interface TimetableStore {
 export const useTimetableStore = create<TimetableStore>((set) => ({
   venue: '베어드홀 대공연장',
   currentDay: 2,
+  nowMin: 17 * 60 + 45,
   days: {
     1: [
       {
@@ -126,6 +129,7 @@ export const useTimetableStore = create<TimetableStore>((set) => ({
 
   setVenue: (venue) => set({ venue }),
   setCurrentDay: (currentDay) => set({ currentDay }),
+  setNowMin: (nowMin) => set({ nowMin }),
 
   addSlot: (day, slot) =>
     set((s) => ({

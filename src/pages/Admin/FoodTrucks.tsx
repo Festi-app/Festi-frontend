@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FESTI_TOKENS, I } from '../../tokens'
+import { FESTIV_TOKENS, I } from '../../tokens'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
@@ -256,7 +256,7 @@ function TruckMapView({ trucks }: { trucks: FoodTruck[] }) {
                         )}
                         style={{
                           background: truck ? '#2E363C' : 'transparent',
-                          color: truck ? '#fff' : FESTI_TOKENS.ink,
+                          color: truck ? '#fff' : FESTIV_TOKENS.ink,
                           ...(isLast
                             ? {}
                             : z.dir === 'row'
@@ -536,7 +536,7 @@ export function AdminFoodTrucks() {
                 onClick={addTruck}
                 className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2.5 text-[12px] font-bold text-ink-60 hover:bg-surface-alt"
               >
-                <div className="size-3.5">{I.plus(FESTI_TOKENS.ink40)}</div>
+                <div className="size-3.5">{I.plus(FESTIV_TOKENS.ink40)}</div>
                 업체 추가
               </button>
             </div>
@@ -557,7 +557,7 @@ export function AdminFoodTrucks() {
                     className="flex items-center gap-1 text-[11px] font-semibold text-alert"
                   >
                     <div className="size-3.5">
-                      {I.trash(FESTI_TOKENS.alert)}
+                      {I.trash(FESTIV_TOKENS.alert)}
                     </div>
                     삭제
                   </button>
@@ -665,7 +665,9 @@ export function AdminFoodTrucks() {
                     onClick={addMenu}
                     className="flex items-center gap-1 text-[12px] font-bold text-cta"
                   >
-                    <div className="size-3.5">{I.plus(FESTI_TOKENS.coral)}</div>
+                    <div className="size-3.5">
+                      {I.plus(FESTIV_TOKENS.coral)}
+                    </div>
                     메뉴 추가
                   </button>
                 </div>
@@ -713,7 +715,7 @@ export function AdminFoodTrucks() {
                           className="flex size-6 shrink-0 items-center justify-center rounded-lg text-ink-40 hover:text-alert"
                         >
                           <div className="size-3.5">
-                            {I.trash(FESTI_TOKENS.ink40)}
+                            {I.trash(FESTIV_TOKENS.ink40)}
                           </div>
                         </button>
                       </div>

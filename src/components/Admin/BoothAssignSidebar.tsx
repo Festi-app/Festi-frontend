@@ -1,5 +1,5 @@
 import { ZONES, NIGHT_ZONES } from '../../data/zones'
-import { FESTI_TOKENS, I, Pill } from '../../tokens'
+import { FESTIV_TOKENS, I, Pill } from '../../tokens'
 import { cn } from '../../lib/cn'
 import {
   type OrgAccount,
@@ -187,7 +187,7 @@ export function BoothAssignSidebar({
                       className="ml-1 mt-0.5 shrink-0"
                     >
                       <div className="size-4">
-                        {I.trash(FESTI_TOKENS.ink40)}
+                        {I.trash(FESTIV_TOKENS.ink40)}
                       </div>
                     </button>
                   </div>
