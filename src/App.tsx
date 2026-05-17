@@ -30,6 +30,7 @@ import { MobileLogin } from './pages/User/Login'
 import { MobileMap } from './pages/User/Map'
 import { MobileMy } from './pages/User/My'
 import { MobileOnboarding } from './pages/User/Onboarding'
+import { MobileOffSeason } from './pages/User/OffSeason'
 import { MobileSplash } from './pages/User/Splash'
 import { BoothAdminLogin } from './pages/BoothAdmin/Login'
 import { BoothAdminRegister } from './pages/BoothAdmin/Register'
@@ -93,6 +94,7 @@ const NAV_SECTIONS = [
     title: '유저',
     links: [
       { to: '/splash', label: '로딩 화면' },
+      { to: '/off-season', label: '비축제 기간' },
       { to: '/login', label: '로그인' },
       { to: '/onboarding', label: '회원가입' },
       { to: '/home', label: '홈' },
@@ -367,6 +369,14 @@ function SplashRoute() {
     </MobileLayout>
   )
 }
+function OffSeasonRoute() {
+  const { dark } = useUI()
+  return (
+    <MobileLayout>
+      <MobileOffSeason dark={dark} />
+    </MobileLayout>
+  )
+}
 function AdminFestivalRoute() {
   const { dark } = useUI()
   return (
@@ -444,6 +454,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/splash" replace />} />
         <Route path="/splash" element={<SplashRoute />} />
+        <Route path="/off-season" element={<OffSeasonRoute />} />
         <Route path="/home" element={<HomeRoute />} />
         <Route path="/map" element={<MapRoute />} />
         <Route path="/booth" element={<BoothRoute />} />

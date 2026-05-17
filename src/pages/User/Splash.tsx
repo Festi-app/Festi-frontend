@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS } from '../../tokens'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
 
+const FESTIVAL_START = new Date('2026-05-10T00:00:00')
+const FESTIVAL_END = new Date('2026-05-12T23:59:59')
+
 export function MobileSplash({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const [out, setOut] = useState(false)
@@ -10,7 +13,10 @@ export function MobileSplash({ dark = false }: { dark?: boolean }) {
   useEffect(() => {
     const t = setTimeout(() => {
       setOut(true)
-      setTimeout(() => navigate('/home', { replace: true }), 400)
+      const now = new Date()
+      const dest =
+        now >= FESTIVAL_START && now <= FESTIVAL_END ? '/home' : '/off-season'
+      setTimeout(() => navigate(dest, { replace: true }), 400)
     }, 2000)
     return () => clearTimeout(t)
   }, [navigate])
