@@ -61,6 +61,7 @@ const STEPS = ['기본 정보', '부스 정보', '대표자 정보']
 export function BoothAdminRegister() {
   const navigate = useNavigate()
   const register = useBoothAdminStore((s) => s.register)
+  const isUsernameTaken = useBoothAdminStore((s) => s.isUsernameTaken)
   const [step, setStep] = useState(1)
 
   // Step 1
@@ -78,9 +79,19 @@ export function BoothAdminRegister() {
   const [nightBoothDesc, setNightBoothDesc] = useState('')
 
   // Step 3
+  const [username, setUsername] = useState('')
+  const [usernameChecked, setUsernameChecked] = useState(false)
+  const [usernameTaken, setUsernameTaken] = useState(false)
   const [repName, setRepName] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
+
+  function handleUsernameBlur() {
+    if (!username.trim()) return
+    const taken = isUsernameTaken(username.trim())
+    setUsernameTaken(taken)
+    setUsernameChecked(true)
+  }
 
   const hasDay = times.includes('주간')
   const hasNight = times.includes('야간')
@@ -103,8 +114,17 @@ export function BoothAdminRegister() {
   }
 
   function handleSubmit() {
-    if (!repName.trim() || !password || password !== passwordConfirm) return
+    if (
+      !username.trim() ||
+      usernameTaken ||
+      !usernameChecked ||
+      !repName.trim() ||
+      !password ||
+      password !== passwordConfirm
+    )
+      return
     register({
+      username: username.trim(),
       password,
       representativeName: repName,
       orgType,
@@ -343,6 +363,33 @@ export function BoothAdminRegister() {
           {step === 3 && (
             <div className="flex flex-col gap-4">
               <div>
+                <FieldLabel required>아이디</FieldLabel>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value)
+                    setUsernameChecked(false)
+                    setUsernameTaken(false)
+                  }}
+                  onBlur={handleUsernameBlur}
+                  placeholder="로그인에 사용할 아이디"
+                  className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+                />
+                {usernameChecked && username.trim() && (
+                  <div
+                    className={cn(
+                      'mt-1.5 text-[11px] font-semibold',
+                      usernameTaken ? 'text-alert' : 'text-pop'
+                    )}
+                  >
+                    {usernameTaken
+                      ? '이미 사용중인 아이디예요'
+                      : '사용 가능한 아이디예요'}
+                  </div>
+                )}
+              </div>
+              <div>
                 <FieldLabel required>대표자 이름</FieldLabel>
                 <TextInput
                   value={repName}
@@ -402,7 +449,12 @@ export function BoothAdminRegister() {
               type="button"
               onClick={handleSubmit}
               disabled={
-                !repName.trim() || !password || password !== passwordConfirm
+                !username.trim() ||
+                !usernameChecked ||
+                usernameTaken ||
+                !repName.trim() ||
+                !password ||
+                password !== passwordConfirm
               }
               className="flex-1 rounded-xl bg-cta py-3 text-[14px] font-extrabold text-white disabled:opacity-40"
             >

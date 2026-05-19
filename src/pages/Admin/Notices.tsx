@@ -7,10 +7,7 @@ import {
   NoticeFormPanel,
   NoticeEmptyPanel,
 } from '../../components/Admin/NoticeFormPanel'
-import {
-  EMPTY_DRAFT,
-  type NoticeDraft,
-} from '../../components/Admin/noticeShared'
+import { EMPTY_DRAFT, type NoticeDraft } from '../../components/Admin/noticeShared'
 import { useNoticeStore } from '../../stores/useNoticeStore'
 import { I } from '../../tokens'
 
@@ -35,7 +32,6 @@ export function AdminNotices() {
     if (!notice) return
     setSelectedId(id)
     setDraft({
-      type: notice.type,
       title: notice.title,
       content: notice.content,
       pinned: notice.pinned,
@@ -77,7 +73,7 @@ export function AdminNotices() {
   return (
     <AdminShell active="notices">
       <AdminTopBar
-        title="공지/이벤트"
+        title="공지"
         sub={`전체 ${notices.length}건 · 고정 ${pinned}건`}
         right={
           <AdminBtn primary icon={I.plus('#fff')} onClick={startCreate}>

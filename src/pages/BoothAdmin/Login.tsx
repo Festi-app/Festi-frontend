@@ -12,12 +12,12 @@ export function BoothAdminLogin() {
   const justRegistered = searchParams.get('registered') === '1'
   const login = useBoothAdminStore((s) => s.login)
 
-  const [orgName, setOrgName] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
 
   function handleLogin() {
-    const ok = login(orgName, password)
+    const ok = login(username, password)
     if (ok) {
       navigate('/booth-admin')
     } else {
@@ -33,7 +33,7 @@ export function BoothAdminLogin() {
             부스 관리자 로그인
           </div>
           <div className="text-[13px] text-ink-60">
-            학번과 비밀번호로 로그인하세요
+            아이디와 비밀번호로 로그인하세요
           </div>
         </div>
 
@@ -47,16 +47,16 @@ export function BoothAdminLogin() {
           <div className="flex flex-col gap-4">
             <div>
               <div className="mb-1.5 text-[12px] font-bold text-ink-60">
-                단체명
+                아이디
               </div>
               <input
                 type="text"
-                value={orgName}
+                value={username}
                 onChange={(e) => {
-                  setOrgName(e.target.value)
+                  setUsername(e.target.value)
                   setError(false)
                 }}
-                placeholder="단체명을 입력하세요"
+                placeholder="아이디를 입력하세요"
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
               />
@@ -80,14 +80,14 @@ export function BoothAdminLogin() {
 
             {error && (
               <div className="rounded-lg bg-alert/10 px-3 py-2 text-[12px] font-semibold text-alert">
-                단체명 또는 비밀번호가 올바르지 않아요
+                아이디 또는 비밀번호가 올바르지 않아요
               </div>
             )}
 
             <button
               type="button"
               onClick={handleLogin}
-              disabled={!orgName.trim() || !password}
+              disabled={!username.trim() || !password}
               className={cn(
                 'rounded-xl py-3 text-[14px] font-extrabold text-white transition-opacity',
                 'bg-cta disabled:opacity-40'
@@ -98,8 +98,8 @@ export function BoothAdminLogin() {
           </div>
 
           <div className="mt-4 text-center text-[11px] text-ink-40">
-            데모 계정: 단체명{' '}
-            <strong className="text-ink-60">컴퓨터학부</strong> / 비밀번호{' '}
+            데모 계정: 아이디{' '}
+            <strong className="text-ink-60">comphub</strong> / 비밀번호{' '}
             <strong className="text-ink-60">1234</strong>
           </div>
         </div>

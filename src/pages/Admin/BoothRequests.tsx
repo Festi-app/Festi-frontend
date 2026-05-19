@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
+import { AdminModal } from '../../components/Admin/AdminModal'
 import {
   useBoothAdminStore,
   type BoothAdminAccount,
   type OperatingTime,
 } from '../../stores/useBoothAdminStore'
+import { useBoothSectionStore } from '../../stores/useBoothSectionStore'
 import { I } from '../../tokens'
-
 import { cn } from '../../lib/cn'
 
 type StatusFilter = 'pending' | 'approved' | 'rejected'
@@ -39,13 +40,13 @@ function AccountCard({
   account,
   onReject,
   onApprove,
+  onAssignClick,
 }: {
   account: BoothAdminAccount
   onReject: (id: string) => void
   onApprove: (id: string) => void
+  onAssignClick: () => void
 }) {
-  const navigate = useNavigate()
-
   const canApprove = account.operatingTimes.every(
     (t) => (locationForTime(account, t) ?? '').trim().length > 0
   )
@@ -105,7 +106,7 @@ function AccountCard({
             </span>
             <button
               type="button"
-              onClick={() => navigate('/admin/booths?step=assign')}
+              onClick={onAssignClick}
               className="flex items-center gap-1 rounded-lg border border-border bg-surface px-2.5 py-1 text-[11px] font-bold text-ink-60 hover:text-ink"
             >
               <span className="size-3">{I.map()}</span>
@@ -194,11 +195,27 @@ function AccountCard({
 }
 
 export function AdminBoothRequests() {
+  const navigate = useNavigate()
   const accounts = useBoothAdminStore((s) => s.accounts)
   const approveAccount = useBoothAdminStore((s) => s.approveAccount)
   const rejectAccount = useBoothAdminStore((s) => s.rejectAccount)
+  const { configuredModes } = useBoothSectionStore()
 
   const [filter, setFilter] = useState<StatusFilter>('pending')
+  const [sectionGateModal, setSectionGateModal] = useState<string[] | null>(
+    null
+  )
+
+  function handleAssignClick(account: BoothAdminAccount) {
+    const missing = account.operatingTimes.filter(
+      (t) => !configuredModes.includes(t)
+    )
+    if (missing.length > 0) {
+      setSectionGateModal(missing)
+    } else {
+      navigate('/admin/booths?step=assign')
+    }
+  }
 
   const pending = accounts.filter((a) => a.status === 'pending')
   const approved = accounts.filter((a) => a.status === 'approved')
@@ -269,11 +286,33 @@ export function AdminBoothRequests() {
                 account={account}
                 onApprove={approveAccount}
                 onReject={rejectAccount}
+                onAssignClick={() => handleAssignClick(account)}
               />
             ))}
           </div>
         )}
       </div>
+
+      <AdminModal
+        open={sectionGateModal !== null}
+        variant="warning"
+        title="구역 설정이 필요해요"
+        body={
+          <>
+            배정하기 전에{' '}
+            <strong>
+              {sectionGateModal
+                ?.map((m) => `${m} 구역`)
+                .join(', ')}
+            </strong>{' '}
+            섹션 개수를 먼저 설정하고 저장해주세요.
+            <br />
+            부스 배치 페이지에서 해당 구역 설정을 완료하세요.
+          </>
+        }
+        confirmLabel="확인"
+        onClose={() => setSectionGateModal(null)}
+      />
     </AdminShell>
   )
 }

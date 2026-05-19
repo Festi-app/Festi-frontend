@@ -4,6 +4,7 @@ import {
   useBoothAdminStore,
   type BoothAdminAccount,
   type NightMenuItem,
+  type DayActivity,
   type BoothCategoryType,
 } from '../../stores/useBoothAdminStore'
 import { FESTIV_TOKENS, I } from '../../tokens'
@@ -82,30 +83,34 @@ function PendingScreen({
   )
 }
 
-// ── Menu row ──────────────────────────────────────────────────────────────────
+// ── Booth item row (shared: menu & activity) ──────────────────────────────────
 
-function MenuRow({
-  menu,
+function BoothItemRow({
   idx,
+  mode,
+  name,
+  desc,
+  price,
+  image,
   onChange,
   onRemove,
 }: {
-  menu: NightMenuItem
   idx: number
-  onChange: (patch: Partial<NightMenuItem>) => void
+  mode: 'menu' | 'activity'
+  name: string
+  desc: string
+  price?: string
+  image?: string
+  onChange: (patch: { name?: string; desc?: string; price?: string; image?: string }) => void
   onRemove: () => void
 }) {
   const imgRef = useRef<HTMLInputElement>(null)
-
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (file) onChange({ image: URL.createObjectURL(file) })
-  }
+  const title = mode === 'menu' ? `메뉴 ${idx + 1}` : `활동 ${idx + 1}`
 
   return (
     <div className="rounded-xl border border-border bg-bg p-3">
       <div className="mb-2 flex items-center justify-between">
-        <div className="text-[11px] font-bold text-ink-40">메뉴 {idx + 1}</div>
+        <div className="text-[11px] font-bold text-ink-40">{title}</div>
         <button
           type="button"
           onClick={onRemove}
@@ -114,21 +119,18 @@ function MenuRow({
           삭제
         </button>
       </div>
-      <div className="grid grid-cols-[auto_1fr] gap-3">
+      <div className="flex gap-3">
+        {/* Square image — self-start prevents flex stretch from making it taller than wide */}
         <button
           type="button"
           onClick={() => imgRef.current?.click()}
-          className="size-16 overflow-hidden rounded-xl border border-border bg-surface-alt"
+          className="size-16 shrink-0 self-start overflow-hidden rounded-xl border border-border bg-surface-alt"
         >
-          {menu.image ? (
-            <img
-              src={menu.image}
-              alt=""
-              className="h-full w-full object-cover"
-            />
+          {image ? (
+            <img src={image} alt="" className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full items-center justify-center text-[10px] text-ink-40">
-              사진
+            <div className="flex h-full w-full items-center justify-center text-[10px] text-ink-40">
+              {mode === 'menu' ? '사진' : '이미지'}
             </div>
           )}
         </button>
@@ -137,26 +139,28 @@ function MenuRow({
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={handleImageChange}
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) onChange({ image: URL.createObjectURL(file) })
+          }}
         />
-
-        <div className="flex flex-col gap-1.5">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <input
-            value={menu.name}
+            value={name}
             onChange={(e) => onChange({ name: e.target.value })}
-            placeholder="메뉴명"
+            placeholder={mode === 'menu' ? '메뉴명' : '활동명'}
             className="w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
           />
           <input
-            value={menu.price}
+            value={price ?? ''}
             onChange={(e) => onChange({ price: e.target.value })}
             placeholder="가격 (예: 8,000원)"
             className="w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
           />
           <input
-            value={menu.desc}
+            value={desc}
             onChange={(e) => onChange({ desc: e.target.value })}
-            placeholder="메뉴 소개"
+            placeholder={mode === 'menu' ? '메뉴 소개' : '활동 소개'}
             className="w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
           />
         </div>
@@ -172,17 +176,26 @@ function InfoTab({ account }: { account: BoothAdminAccount }) {
 
   const [dayName, setDayName] = useState(account.dayBoothName)
   const [dayDesc, setDayDesc] = useState(account.dayBoothDesc)
-  const [dayImgUrl, setDayImgUrl] = useState<string | undefined>(
-    account.dayDetailImage
-  )
+  const [dayImgUrl, setDayImgUrl] = useState<string | undefined>(account.dayDetailImage)
+  const [dayActivities, setDayActivities] = useState<DayActivity[]>(account.dayActivities ?? [])
   const [nightName, setNightName] = useState(account.nightBoothName)
   const [nightDesc, setNightDesc] = useState(account.nightBoothDesc)
+  const [nightImgUrl, setNightImgUrl] = useState<string | undefined>(account.nightDetailImage)
   const [menus, setMenus] = useState<NightMenuItem[]>(account.nightMenus ?? [])
   const [saved, setSaved] = useState(false)
   const dayImgRef = useRef<HTMLInputElement>(null)
+  const nightImgRef = useRef<HTMLInputElement>(null)
 
   const hasDay = account.operatingTimes.includes('주간')
   const hasNight = account.operatingTimes.includes('야간')
+
+  function addActivity() {
+    setDayActivities((prev) => [...prev, { id: uid(), name: '', price: '', desc: '' }])
+  }
+
+  function updateActivity(id: string, patch: Partial<DayActivity>) {
+    setDayActivities((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)))
+  }
 
   function addMenu() {
     setMenus((prev) => [...prev, { id: uid(), name: '', price: '', desc: '' }])
@@ -197,8 +210,10 @@ function InfoTab({ account }: { account: BoothAdminAccount }) {
       dayBoothName: dayName,
       dayBoothDesc: dayDesc,
       dayDetailImage: dayImgUrl,
+      dayActivities,
       nightBoothName: nightName,
       nightBoothDesc: nightDesc,
+      nightDetailImage: nightImgUrl,
       nightMenus: menus,
     })
     setSaved(true)
@@ -312,6 +327,50 @@ function InfoTab({ account }: { account: BoothAdminAccount }) {
                   }}
                 />
               </div>
+
+              {/* Activities */}
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="text-[12px] font-bold text-ink-60">
+                    활동 목록{' '}
+                    <span className="font-normal text-ink-40">
+                      {dayActivities.length}개
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addActivity}
+                    className="text-[12px] font-bold text-cta"
+                  >
+                    + 활동 추가
+                  </button>
+                </div>
+                {dayActivities.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border py-6 text-center text-[12px] text-ink-40">
+                    활동을 추가하세요
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2.5">
+                    {dayActivities.map((activity, idx) => (
+                      <BoothItemRow
+                        key={activity.id}
+                        idx={idx}
+                        mode="activity"
+                        name={activity.name}
+                        price={activity.price}
+                        desc={activity.desc}
+                        image={activity.image}
+                        onChange={(patch) => updateActivity(activity.id, patch)}
+                        onRemove={() =>
+                          setDayActivities((prev) =>
+                            prev.filter((a) => a.id !== activity.id)
+                          )
+                        }
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -351,6 +410,47 @@ function InfoTab({ account }: { account: BoothAdminAccount }) {
                 />
               </div>
 
+              {/* Night overall image */}
+              <div>
+                <div className="mb-1.5 text-[12px] font-bold text-ink-60">
+                  전체 활동 이미지
+                </div>
+                {nightImgUrl ? (
+                  <div className="relative">
+                    <img
+                      src={nightImgUrl}
+                      alt=""
+                      className="h-36 w-full rounded-xl object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setNightImgUrl(undefined)}
+                      className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/50 text-[11px] font-bold text-white"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => nightImgRef.current?.click()}
+                    className="flex h-24 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-bg text-[12px] font-semibold text-ink-40 hover:bg-surface-alt"
+                  >
+                    + 이미지 추가
+                  </button>
+                )}
+                <input
+                  ref={nightImgRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) setNightImgUrl(URL.createObjectURL(file))
+                  }}
+                />
+              </div>
+
               {/* Menus */}
               <div>
                 <div className="mb-2 flex items-center justify-between">
@@ -375,10 +475,14 @@ function InfoTab({ account }: { account: BoothAdminAccount }) {
                 ) : (
                   <div className="flex flex-col gap-2.5">
                     {menus.map((menu, idx) => (
-                      <MenuRow
+                      <BoothItemRow
                         key={menu.id}
-                        menu={menu}
                         idx={idx}
+                        mode="menu"
+                        name={menu.name}
+                        desc={menu.desc}
+                        price={menu.price}
+                        image={menu.image}
                         onChange={(patch) => updateMenu(menu.id, patch)}
                         onRemove={() =>
                           setMenus((prev) =>
