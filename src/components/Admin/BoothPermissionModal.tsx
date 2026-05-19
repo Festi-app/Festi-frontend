@@ -31,9 +31,8 @@ export function BoothPermissionModal({
   onAssign: (orgId: string, category: BoothCategory) => void
 }) {
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState<BoothCategory | null>(
-    time === '야간' ? '활동' : null
-  )
+  const [selectedCategory, setSelectedCategory] =
+    useState<BoothCategory | null>(time === '야간' ? '활동' : null)
   const zone = [...ZONES, ...NIGHT_ZONES].find((z) => z.id === zoneId)!
   const sectionNums = sections.map((s) => s + 1)
   const filteredOrgs = orgs.filter((o) =>

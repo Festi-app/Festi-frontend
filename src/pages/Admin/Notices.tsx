@@ -7,7 +7,10 @@ import {
   NoticeFormPanel,
   NoticeEmptyPanel,
 } from '../../components/Admin/NoticeFormPanel'
-import { EMPTY_DRAFT, type NoticeDraft } from '../../components/Admin/noticeShared'
+import {
+  EMPTY_DRAFT,
+  type NoticeDraft,
+} from '../../components/Admin/noticeShared'
 import { useNoticeStore } from '../../stores/useNoticeStore'
 import { I } from '../../tokens'
 

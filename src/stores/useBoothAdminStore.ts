@@ -196,7 +196,14 @@ export const useBoothAdminStore = create<BoothAdminState>((set, get) => ({
     set((s) => ({
       accounts: [
         ...s.accounts,
-        { ...data, id, status: 'pending', dayActivities: [], nightMenus: [], waitingList: [] },
+        {
+          ...data,
+          id,
+          status: 'pending',
+          dayActivities: [],
+          nightMenus: [],
+          waitingList: [],
+        },
       ],
     }))
   },

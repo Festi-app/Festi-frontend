@@ -156,12 +156,8 @@ export function AdminBooths() {
   const [step, setStep] = useState<'configure' | 'assign'>(
     searchParams.get('step') === 'assign' ? 'assign' : 'configure'
   )
-  const {
-    permissions,
-    addPermission,
-    zoneDivisions,
-    markModeConfigured,
-  } = useBoothSectionStore()
+  const { permissions, addPermission, zoneDivisions, markModeConfigured } =
+    useBoothSectionStore()
   const {
     trucks,
     assignments: truckAssignments,
@@ -188,8 +184,12 @@ export function AdminBooths() {
   const selectedTime: PermTime = mapMode === '야간' ? '야간' : '주간'
   const [truckDay, setTruckDay] = useState(1)
   const [truckTime, setTruckTime] = useState<TruckTime>('야간')
-  const [selectedTruckZone, setSelectedTruckZone] = useState<string | null>(null)
-  const [selectedTruckSlot, setSelectedTruckSlot] = useState<number | null>(null)
+  const [selectedTruckZone, setSelectedTruckZone] = useState<string | null>(
+    null
+  )
+  const [selectedTruckSlot, setSelectedTruckSlot] = useState<number | null>(
+    null
+  )
   const [notice, setNotice] = useState('구역별 섹션 개수를 설정하고 저장하세요')
 
   function handleConfigureSave() {
@@ -200,12 +200,18 @@ export function AdminBooths() {
     setNotice('지도에서 구역을 드래그해 권한을 부여하세요')
   }
 
-  function truckAssignKey(day: number, time: TruckTime, zoneId: string, slot: number) {
+  function truckAssignKey(
+    day: number,
+    time: TruckTime,
+    zoneId: string,
+    slot: number
+  ) {
     return `${day}:${time}:${zoneId}:${slot}`
   }
 
   function assignedTruck(zoneId: string, slot: number) {
-    const id = truckAssignments[truckAssignKey(truckDay, truckTime, zoneId, slot)]
+    const id =
+      truckAssignments[truckAssignKey(truckDay, truckTime, zoneId, slot)]
     return trucks.find((truck) => truck.id === id) ?? null
   }
 
@@ -418,8 +424,14 @@ export function AdminBooths() {
                               ...(isLast
                                 ? {}
                                 : zone.dir === 'row'
-                                  ? { borderRight: '1px solid rgba(20,26,31,0.18)' }
-                                  : { borderBottom: '1px solid rgba(20,26,31,0.18)' }),
+                                  ? {
+                                      borderRight:
+                                        '1px solid rgba(20,26,31,0.18)',
+                                    }
+                                  : {
+                                      borderBottom:
+                                        '1px solid rgba(20,26,31,0.18)',
+                                    }),
                             }}
                           >
                             {truck ? (
@@ -471,8 +483,7 @@ export function AdminBooths() {
                   >
                     {Array.from({ length: divisions }, (_, idx) => {
                       const perm = permissions.find(
-                        (p) =>
-                          p.zoneId === zone.id && p.sections.includes(idx)
+                        (p) => p.zoneId === zone.id && p.sections.includes(idx)
                       )
                       const si = dragState.startIdx
                       const ci = dragState.currentIdx
@@ -563,7 +574,8 @@ export function AdminBooths() {
                           }
                         >
                           <span style={{ color: '#141A1F' }}>
-                            {mapMode === '야간' ? 'N' : 'D'}{idx + 1}
+                            {mapMode === '야간' ? 'N' : 'D'}
+                            {idx + 1}
                           </span>
                           {perm && (
                             <div className="absolute bottom-0.5 right-0.5 size-1 rounded-full bg-white/70" />

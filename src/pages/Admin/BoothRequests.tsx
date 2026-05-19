@@ -301,9 +301,7 @@ export function AdminBoothRequests() {
           <>
             배정하기 전에{' '}
             <strong>
-              {sectionGateModal
-                ?.map((m) => `${m} 구역`)
-                .join(', ')}
+              {sectionGateModal?.map((m) => `${m} 구역`).join(', ')}
             </strong>{' '}
             섹션 개수를 먼저 설정하고 저장해주세요.
             <br />

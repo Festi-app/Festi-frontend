@@ -32,7 +32,10 @@ export function AdminModal({
     >
       <div
         className="w-full max-w-md rounded-3xl bg-surface shadow-[0_24px_60px_rgba(20,26,31,0.28)]"
-        style={{ animation: 'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both' }}
+        style={{
+          animation:
+            'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
+        }}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="px-6 pt-6 pb-5">

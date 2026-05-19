@@ -62,9 +62,7 @@ function DayNightContent({
   const time: PermTime = activeMode === '야간' ? '야간' : '주간'
 
   const slotOrgs = orgs.filter((o) =>
-    o.applications.some(
-      (a) => a.day === selectedDay && a.time === time
-    )
+    o.applications.some((a) => a.day === selectedDay && a.time === time)
   )
 
   return (
@@ -231,7 +229,12 @@ function TruckContent({
     removeAssignment,
   } = useTruckPlacementStore()
 
-  function assignKey(day: number, time: TruckTime, zoneId: string, slot: number) {
+  function assignKey(
+    day: number,
+    time: TruckTime,
+    zoneId: string,
+    slot: number
+  ) {
     return `${day}:${time}:${zoneId}:${slot}`
   }
 
@@ -271,7 +274,9 @@ function TruckContent({
               }}
               className={cn(
                 'flex-1 rounded-lg py-1.5 text-[12px] font-bold transition-colors',
-                truckDay === d ? 'bg-cta text-white' : 'bg-surface-alt text-ink-60'
+                truckDay === d
+                  ? 'bg-cta text-white'
+                  : 'bg-surface-alt text-ink-60'
               )}
             >
               {d}일차
@@ -292,7 +297,9 @@ function TruckContent({
               }}
               className={cn(
                 'flex-1 rounded-lg py-1.5 text-[12px] font-bold transition-colors',
-                truckTime === t ? 'bg-cta text-white' : 'bg-surface-alt text-ink-60'
+                truckTime === t
+                  ? 'bg-cta text-white'
+                  : 'bg-surface-alt text-ink-60'
               )}
             >
               {t}
@@ -310,7 +317,9 @@ function TruckContent({
           {TRUCK_ZONES.map((zone) => {
             const count = truckSlotCounts[zone.id] ?? zone.slotCount
             const filledCount = Array.from({ length: count }, (_, i) =>
-              Boolean(truckAssignments[assignKey(truckDay, truckTime, zone.id, i)])
+              Boolean(
+                truckAssignments[assignKey(truckDay, truckTime, zone.id, i)]
+              )
             ).filter(Boolean).length
             const isSelected = selected.zone === zone.id
 
@@ -324,9 +333,7 @@ function TruckContent({
               >
                 <button
                   type="button"
-                  onClick={() =>
-                    onTruckZoneSelect(isSelected ? null : zone.id)
-                  }
+                  onClick={() => onTruckZoneSelect(isSelected ? null : zone.id)}
                   className="flex w-full items-center gap-2 text-left"
                 >
                   <span
@@ -392,7 +399,12 @@ function TruckContent({
                     disabled={already}
                     onClick={() =>
                       setAssignment(
-                        assignKey(truckDay, truckTime, selected.zone!, selected.slot!),
+                        assignKey(
+                          truckDay,
+                          truckTime,
+                          selected.zone!,
+                          selected.slot!
+                        ),
                         truck.id
                       )
                     }

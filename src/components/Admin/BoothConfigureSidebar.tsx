@@ -24,9 +24,16 @@ function ZoneRow({
 }) {
   return (
     <div className="flex items-center gap-2 rounded-xl border border-border px-3 py-2.5">
-      <div className="size-2.5 shrink-0 rounded-full" style={{ background: color }} />
-      <span className="w-5 shrink-0 text-[11px] font-extrabold text-ink-40">{id}</span>
-      <span className="flex-1 truncate text-[12px] font-bold text-ink">{label}</span>
+      <div
+        className="size-2.5 shrink-0 rounded-full"
+        style={{ background: color }}
+      />
+      <span className="w-5 shrink-0 text-[11px] font-extrabold text-ink-40">
+        {id}
+      </span>
+      <span className="flex-1 truncate text-[12px] font-bold text-ink">
+        {label}
+      </span>
       <div className="flex items-center gap-1">
         <button
           type="button"
@@ -50,7 +57,15 @@ function ZoneRow({
   )
 }
 
-function GroupHeader({ title, total, unit }: { title: string; total: number; unit: string }) {
+function GroupHeader({
+  title,
+  total,
+  unit,
+}: {
+  title: string
+  total: number
+  unit: string
+}) {
   return (
     <div className="mb-2 flex items-center gap-2">
       <span className="text-[11px] font-extrabold uppercase tracking-wider text-ink-40">
@@ -58,7 +73,8 @@ function GroupHeader({ title, total, unit }: { title: string; total: number; uni
       </span>
       <div className="flex-1 border-t border-border" />
       <span className="text-[10px] text-ink-40">
-        총 {total}{unit}
+        총 {total}
+        {unit}
       </span>
     </div>
   )

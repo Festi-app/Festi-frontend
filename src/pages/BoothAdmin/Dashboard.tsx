@@ -101,7 +101,12 @@ function BoothItemRow({
   desc: string
   price?: string
   image?: string
-  onChange: (patch: { name?: string; desc?: string; price?: string; image?: string }) => void
+  onChange: (patch: {
+    name?: string
+    desc?: string
+    price?: string
+    image?: string
+  }) => void
   onRemove: () => void
 }) {
   const imgRef = useRef<HTMLInputElement>(null)
@@ -176,11 +181,17 @@ function InfoTab({ account }: { account: BoothAdminAccount }) {
 
   const [dayName, setDayName] = useState(account.dayBoothName)
   const [dayDesc, setDayDesc] = useState(account.dayBoothDesc)
-  const [dayImgUrl, setDayImgUrl] = useState<string | undefined>(account.dayDetailImage)
-  const [dayActivities, setDayActivities] = useState<DayActivity[]>(account.dayActivities ?? [])
+  const [dayImgUrl, setDayImgUrl] = useState<string | undefined>(
+    account.dayDetailImage
+  )
+  const [dayActivities, setDayActivities] = useState<DayActivity[]>(
+    account.dayActivities ?? []
+  )
   const [nightName, setNightName] = useState(account.nightBoothName)
   const [nightDesc, setNightDesc] = useState(account.nightBoothDesc)
-  const [nightImgUrl, setNightImgUrl] = useState<string | undefined>(account.nightDetailImage)
+  const [nightImgUrl, setNightImgUrl] = useState<string | undefined>(
+    account.nightDetailImage
+  )
   const [menus, setMenus] = useState<NightMenuItem[]>(account.nightMenus ?? [])
   const [saved, setSaved] = useState(false)
   const dayImgRef = useRef<HTMLInputElement>(null)
@@ -190,11 +201,16 @@ function InfoTab({ account }: { account: BoothAdminAccount }) {
   const hasNight = account.operatingTimes.includes('야간')
 
   function addActivity() {
-    setDayActivities((prev) => [...prev, { id: uid(), name: '', price: '', desc: '' }])
+    setDayActivities((prev) => [
+      ...prev,
+      { id: uid(), name: '', price: '', desc: '' },
+    ])
   }
 
   function updateActivity(id: string, patch: Partial<DayActivity>) {
-    setDayActivities((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)))
+    setDayActivities((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, ...patch } : a))
+    )
   }
 
   function addMenu() {
