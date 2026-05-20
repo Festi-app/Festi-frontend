@@ -3,25 +3,27 @@ import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I } from '../../tokens'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
 import { Toast } from '../../components/shared/Toast'
+import { useUserStore } from '../../stores/useUserStore'
 
 export function MobileLogin({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const { userId: storedUserId, setUserId: storeSetUserId } = useUserStore()
+  const [userId, setUserId] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [loginFailed, setLoginFailed] = useState(false)
 
   const wordmarkColor = dark ? '#F2F5F7' : FESTIV_TOKENS.ink
   const muted = dark ? '#8B939B' : '#5E676D'
-  const isValid =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length >= 1
+  const isValid = userId.trim().length > 0 && password.length >= 1
 
   function handleLogin() {
     if (!isValid) return
     setLoading(true)
     setTimeout(() => {
       setLoading(false)
-      if (email === 'test@test.com') {
+      if (userId === storedUserId) {
+        storeSetUserId(userId)
         navigate('/home', { replace: true })
       } else {
         setLoginFailed(true)
@@ -56,7 +58,7 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
             로그인
           </div>
           <div className="mt-1 text-[13px]" style={{ color: muted }}>
-            이메일과 비밀번호를 입력해주세요.
+            아이디와 비밀번호를 입력해주세요.
           </div>
         </div>
 
@@ -64,10 +66,10 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
           <div className="flex items-center gap-2 rounded-[14px] border border-border bg-bg px-4 py-3.5">
             <div className="size-4.5 shrink-0 text-ink-40">{I.user()}</div>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@email.com"
+              type="text"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              placeholder="아이디를 입력해주세요"
               className="flex-1 bg-transparent text-[15px] font-medium text-ink outline-none placeholder:text-ink-40"
             />
           </div>
@@ -94,7 +96,7 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
             className="mt-3 text-center text-[11px]"
             style={{ color: muted }}
           >
-            테스트 성공: test@test.com
+            테스트 성공: test
           </div>
         </div>
       </div>
@@ -117,7 +119,7 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
       {loginFailed && (
         <Toast
           bottom="bottom-12"
-          message="이메일 또는 비밀번호가 올바르지 않습니다."
+          message="아이디 또는 비밀번호가 올바르지 않습니다."
           icon={
             <div className="flex size-8 items-center justify-center rounded-full bg-alert/20">
               <svg viewBox="0 0 16 16" width="14" height="14" fill="none">

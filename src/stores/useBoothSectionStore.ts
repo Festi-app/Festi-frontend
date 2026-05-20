@@ -15,6 +15,7 @@ export interface BoothPermission {
   category: BoothCategory
   day: PermDay
   time: PermTime
+  boothId?: number
 }
 
 interface BoothSectionState {

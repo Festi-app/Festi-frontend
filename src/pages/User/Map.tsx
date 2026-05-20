@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import type { TouchEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   DAY_GRADIENT,
   FESTIV_TOKENS,
@@ -8,14 +8,24 @@ import {
   NIGHT_GRADIENT,
   Pill,
 } from '../../tokens'
-import { Stat } from '../../components/User/Stat'
-
+import { StatGrid } from '../../components/User/StatGrid'
+import { BoothDetailContent } from './Detail'
+import {
+  DAY_BOOTHS,
+  NIGHT_BOOTHS,
+  TRUCK_BOOTHS,
+  TRUCK_BOOTH_MENUS,
+  DAY_BOOTH_MENUS,
+  NIGHT_BOOTH_MENUS,
+} from '../../data/booths'
+import { MAP_MARKERS } from '../../data/markers'
 import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import soongsilNightMap from '../../assets/soongsil-night-map.png'
 import soongsilTruckMap from '../../assets/soongsil-truck-map.png'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { ZONES, NIGHT_ZONES } from '../../data/zones'
-import { AppHeader } from '../../components/User/ScreenHeader'
+
+const ALL_BOOTH_ZONES = [...ZONES, ...NIGHT_ZONES]
 import { useDayNightStore } from '../../stores/useDayNightStore'
 import {
   useBoothSectionStore,
@@ -46,22 +56,31 @@ function MapSheet({
   children,
   sheetDragY,
   sheetDismissing,
+  expanded,
+  expandable = true,
   onTouchStart,
   onTouchMove,
   onTouchEnd,
-  onDismiss,
+  onToggleExpand,
 }: {
   children: React.ReactNode
   sheetDragY: number
   sheetDismissing: boolean
+  expanded: boolean
+  expandable?: boolean
   onTouchStart: (e: TouchEvent) => void
   onTouchMove: (e: TouchEvent) => void
   onTouchEnd: (e: TouchEvent) => void
   onDismiss: () => void
+  onToggleExpand: () => void
 }) {
   return (
     <div
-      className="absolute inset-x-0 bottom-0 z-10 rounded-t-3xl border-t border-border bg-surface px-4.5 pt-2.5 pb-25 shadow-[0_-8px_32px_rgba(15,42,51,0.18)]"
+      className={`absolute flex flex-col bg-surface ${
+        expanded
+          ? 'inset-x-0 bottom-0 z-40 h-[70%] rounded-t-3xl shadow-[0_-8px_32px_rgba(15,42,51,0.18)]'
+          : 'inset-x-0 bottom-0 z-10 rounded-t-3xl border-t border-border px-4.5 pt-2.5 pb-25 shadow-[0_-8px_32px_rgba(15,42,51,0.18)]'
+      }`}
       style={{
         animation:
           sheetDragY > 0
@@ -70,19 +89,39 @@ function MapSheet({
               ? 'festi-sheet-out 0.22s ease both'
               : 'festi-sheet-in 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both',
         transform: sheetDragY > 0 ? `translateY(${sheetDragY}px)` : undefined,
-        transition: sheetDragY > 0 ? 'none' : undefined,
       }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
+      onClick={(e) => e.stopPropagation()}
     >
-      <button
-        type="button"
-        onClick={onDismiss}
-        className="mx-auto mb-3 block h-1 w-9 rounded-full bg-ink-20"
-        aria-label="닫기"
-      />
-      {children}
+      {expanded ? (
+        <div className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-3">
+          <button
+            type="button"
+            onClick={onToggleExpand}
+            className="flex size-8 items-center justify-center rounded-full bg-surface-alt text-ink"
+          >
+            <div className="size-4">{I.chev(undefined, 'l')}</div>
+          </button>
+        </div>
+      ) : (
+        <div className="mx-auto mb-3 flex h-5 w-full items-center justify-center">
+          {expandable ? (
+            <button
+              type="button"
+              onClick={onToggleExpand}
+              className="h-full w-full flex items-center justify-center"
+              aria-label="펼쳐서 상세보기"
+            >
+              <div className="h-1 w-9 rounded-full bg-ink-20" />
+            </button>
+          ) : (
+            <div className="h-1 w-9 rounded-full bg-ink-20 opacity-30" />
+          )}
+        </div>
+      )}
+      <div className={expanded ? 'min-h-0 flex-1' : ''}>{children}</div>
     </div>
   )
 }
@@ -92,6 +131,7 @@ function BoothPinHeader({
   badgeText,
   badgeFontSize = 'text-[13px]',
   pill,
+  pill2,
   name,
   sub,
 }: {
@@ -99,11 +139,12 @@ function BoothPinHeader({
   badgeText: React.ReactNode
   badgeFontSize?: string
   pill: { color: string; ink: string; content: React.ReactNode }
+  pill2?: { color: string; ink: string; content: React.ReactNode }
   name: string
   sub?: React.ReactNode
 }) {
   return (
-    <div className="flex items-center gap-2.75">
+    <div className="flex items-start gap-3">
       <div
         className={`flex size-11 shrink-0 items-center justify-center rounded-full ${badgeFontSize} font-extrabold text-white`}
         style={{
@@ -114,16 +155,21 @@ function BoothPinHeader({
         {badgeText}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="mb-0.5">
-          <Pill color={pill.color} ink={pill.ink} style={{ fontSize: 10 }}>
+        <div className="mb-1.5 flex flex-wrap gap-1.5">
+          <Pill color={pill.color} ink={pill.ink}>
             {pill.content}
           </Pill>
+          {pill2 && (
+            <Pill color={pill2.color} ink={pill2.ink}>
+              {pill2.content}
+            </Pill>
+          )}
         </div>
-        <div className="overflow-hidden text-ellipsis whitespace-nowrap text-base font-extrabold tracking-[-0.3px] text-ink">
+        <div className="text-2xl leading-[1.2] font-extrabold tracking-[-0.7px] text-ink">
           {name}
         </div>
         {sub && (
-          <div className="mt-0.5 text-[12px] font-semibold text-ink-60">
+          <div className="mt-1.5 text-[13px] leading-normal text-ink-60">
             {sub}
           </div>
         )}
@@ -133,41 +179,35 @@ function BoothPinHeader({
 }
 
 function WaitingActions({
-  onDetail,
   onWaiting,
   disabled,
   waitBadge,
 }: {
-  onDetail: () => void
   onWaiting?: () => void
   disabled?: boolean
   waitBadge?: number
 }) {
+  if (!onWaiting) return null
   return (
-    <div className="mt-2.5 flex gap-1.5">
+    <div className="mt-3">
       <button
         type="button"
-        onClick={onDetail}
+        onClick={onWaiting}
         disabled={disabled}
-        className="flex-1 rounded-[14px] border border-border bg-surface-alt p-3 text-center text-[13px] font-bold text-ink disabled:opacity-40"
+        className="flex w-full items-center justify-between rounded-[20px] bg-cta px-5 py-4 text-left shadow-[0_8px_22px_rgba(0,198,224,0.4)] disabled:opacity-40"
       >
-        상세보기
-      </button>
-      {onWaiting && (
-        <button
-          type="button"
-          onClick={onWaiting}
-          disabled={disabled}
-          className="flex flex-2 items-center justify-center gap-1.5 rounded-[14px] bg-cta p-3 text-center text-sm font-extrabold tracking-[-0.3px] text-cta-ink shadow-[0_8px_22px_rgba(0,198,224,0.4)] disabled:opacity-40"
-        >
-          웨이팅 걸기
-          {waitBadge !== undefined && waitBadge > 0 && (
-            <span className="rounded-full bg-alert px-1.75 py-0.5 text-[11px] font-extrabold text-white">
-              {waitBadge}팀
-            </span>
+        <div>
+          <div className="text-[17px] font-extrabold tracking-[-0.4px] text-cta-ink">
+            웨이팅 걸기
+          </div>
+          {waitBadge !== undefined && (
+            <div className="text-[11px] font-semibold text-cta-ink/70">
+              현재 {waitBadge === 0 ? '없음' : `${waitBadge}팀`} 대기
+            </div>
           )}
-        </button>
-      )}
+        </div>
+        <div className="size-4.5">{I.chev('#fff', 'r')}</div>
+      </button>
     </div>
   )
 }
@@ -176,6 +216,7 @@ function WaitingActions({
 
 export function MobileMap({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const { isDay, setIsDay } = useDayNightStore()
   const {
     assignments,
@@ -208,13 +249,25 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   } | null>(null)
   const [sheetDismissing, setSheetDismissing] = useState(false)
   const [sheetDragY, setSheetDragY] = useState(0)
-  const [listOpen, setListOpen] = useState(false)
-  const [listTab, setListTab] = useState<'day' | 'night' | 'truck'>('night')
+  const [sheetExpanded, setSheetExpanded] = useState(false)
+  const [sheetExpandable, setSheetExpandable] = useState(true)
+  const [listOpen, setListOpen] = useState(() => {
+    const s = location.state as { openList?: boolean } | null
+    return s?.openList ?? false
+  })
+  const [listTab, setListTab] = useState<'day' | 'night' | 'truck'>(() => {
+    const s = location.state as { tab?: 'day' | 'night' | 'truck' } | null
+    return s?.tab ?? 'night'
+  })
+  const [selectedUserTruck, setSelectedUserTruck] = useState<
+    (typeof TRUCK_BOOTHS)[0] | null
+  >(null)
   const [listCatFilter, setListCatFilter] = useState<string | null>(null)
   const lastTouchDist = useRef<number | null>(null)
   const lastOffset = useRef({ x: 0, y: 0 })
   const dragStart = useRef<{ x: number; y: number } | null>(null)
   const sheetDragStart = useRef<number | null>(null)
+  const rawSheetDragRef = useRef(0)
   // 데스크탑에서 테스트하기 위해 추가한 마우스 드래그 ref
   const mouseDragStart = useRef<{ x: number; y: number } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -247,9 +300,8 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     ? (boothPermissions.find((p) => p.id === selectedBoothPermId) ?? null)
     : null
   const selectedBoothZone = selectedBoothCell
-    ? ([...ZONES, ...NIGHT_ZONES].find(
-        (zone) => zone.id === selectedBoothCell.zoneId
-      ) ?? null)
+    ? (ALL_BOOTH_ZONES.find((zone) => zone.id === selectedBoothCell.zoneId) ??
+      null)
     : null
   const selectedBoothCellPerm = selectedBoothCell
     ? (boothPermissions.find(
@@ -261,6 +313,43 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       ) ?? null)
     : selectedBoothPerm
 
+  const linkedBooth = useMemo(() => {
+    if (!selectedBoothCell) return null
+    return (
+      (activeBoothTime === '야간' ? NIGHT_BOOTHS : DAY_BOOTHS).find(
+        (b) =>
+          b.zoneId === selectedBoothCell.zoneId &&
+          b.sections?.includes(selectedBoothCell.slot)
+      ) ?? null
+    )
+  }, [selectedBoothCell, activeBoothTime])
+
+  const linkedMenus = useMemo(() => {
+    if (!linkedBooth) return []
+    return (
+      activeBoothTime === '야간' ? NIGHT_BOOTH_MENUS : DAY_BOOTH_MENUS
+    ).filter((m) => m.boothId === linkedBooth.id)
+  }, [linkedBooth, activeBoothTime])
+
+  const linkedTruckBooth = useMemo(() => {
+    if (!selectedSection) return null
+    return (
+      TRUCK_BOOTHS.find(
+        (b) =>
+          b.zoneId === selectedSection.zoneId &&
+          b.sections?.includes(selectedSection.slot)
+      ) ?? null
+    )
+  }, [selectedSection])
+
+  const linkedTruckMenus = useMemo(
+    () =>
+      linkedTruckBooth
+        ? TRUCK_BOOTH_MENUS.filter((m) => m.boothId === linkedTruckBooth.id)
+        : [],
+    [linkedTruckBooth]
+  )
+
   function changeMapView(next: MobileMapView) {
     setMapView(next)
     if (next === 'day') setIsDay(true)
@@ -269,6 +358,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     setSelectedSection(null)
     setSelectedBoothPermId(null)
     setSelectedBoothCell(null)
+    setSheetExpanded(false)
     setListOpen(false)
   }
 
@@ -358,12 +448,14 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   }
 
   function dismissSheet() {
+    setSheetExpanded(false)
     setSheetDismissing(true)
     setTimeout(() => {
       setSelectedId(null)
       setSelectedSection(null)
       setSelectedBoothPermId(null)
       setSelectedBoothCell(null)
+      setSelectedUserTruck(null)
       setSheetDismissing(false)
       setSheetDragY(0)
     }, 220)
@@ -372,19 +464,31 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   function handleSheetTouchStart(e: TouchEvent) {
     e.stopPropagation()
     sheetDragStart.current = e.touches[0].clientY
+    rawSheetDragRef.current = 0
   }
 
   function handleSheetTouchMove(e: TouchEvent) {
     e.stopPropagation()
     if (sheetDragStart.current === null) return
     const dy = e.touches[0].clientY - sheetDragStart.current
+    rawSheetDragRef.current = dy
     if (dy > 0) setSheetDragY(dy)
   }
 
   function handleSheetTouchEnd(e: TouchEvent) {
     e.stopPropagation()
-    if (sheetDragY > 60) {
-      dismissSheet()
+    const dy = rawSheetDragRef.current
+    rawSheetDragRef.current = 0
+    if (dy > 60) {
+      if (sheetExpanded) {
+        setSheetExpanded(false)
+      } else {
+        dismissSheet()
+      }
+      setSheetDragY(0)
+    } else if (dy < -60 && !sheetExpanded && sheetExpandable) {
+      setSheetExpanded(true)
+      setSheetDragY(0)
     } else {
       setSheetDragY(0)
     }
@@ -392,6 +496,17 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   }
 
   function openList() {
+    if (listOpen) {
+      setListOpen(false)
+      return
+    }
+    setSelectedId(null)
+    setSelectedSection(null)
+    setSelectedBoothCell(null)
+    setSelectedBoothPermId(null)
+    setSelectedUserTruck(null)
+    setSheetExpanded(false)
+    setSheetDismissing(false)
     setListTab(
       mapView === 'truck' ? 'truck' : mapView === 'day' ? 'day' : 'night'
     )
@@ -419,103 +534,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     mouseDragStart.current = null
   }
 
-  const markers = [
-    {
-      id: 6,
-      x: 47,
-      y: 32,
-      type: 'day',
-      name: '학생회 굿즈샵',
-      wait: 0,
-      cat: '판매',
-    },
-    {
-      id: 8,
-      x: 55,
-      y: 32,
-      type: 'day',
-      name: '플리마켓',
-      wait: 1,
-      cat: '판매',
-    },
-    {
-      id: 12,
-      x: 73,
-      y: 32,
-      type: 'day',
-      name: '타로 카페',
-      wait: 3,
-      cat: '체험',
-    },
-    {
-      id: 77,
-      x: 25,
-      y: 41,
-      type: 'special',
-      name: '본부 부스',
-      wait: 0,
-      cat: '안내',
-    },
-    {
-      id: 16,
-      x: 32,
-      y: 43,
-      type: 'night',
-      name: '컴공 칵테일바',
-      wait: 7,
-      cat: '주점',
-      hot: true,
-    },
-    {
-      id: 22,
-      x: 53,
-      y: 43,
-      type: 'night',
-      name: '의약학부 주점',
-      wait: 5,
-      cat: '주점',
-    },
-    {
-      id: 73,
-      x: 22,
-      y: 56,
-      type: 'night',
-      name: '국문과 술집',
-      wait: 4,
-      cat: '주점',
-    },
-    {
-      id: 47,
-      x: 85,
-      y: 55,
-      type: 'night',
-      name: '미디어 라멘',
-      wait: 5,
-      cat: '면류',
-    },
-    {
-      id: 38,
-      x: 75,
-      y: 60,
-      type: 'night',
-      name: '체대 곱창',
-      wait: 3,
-      cat: '야식',
-    },
-    {
-      id: 53,
-      x: 85,
-      y: 69,
-      type: 'night',
-      name: '아랍어 비빔',
-      wait: 2,
-      cat: '식사',
-    },
-  ]
-
   // 구역 오버레이용 데이터 (핀 마커 대신 구역 박스로 표시)
   const truckTime = isDay ? '주간' : '야간'
-  const allMarkers = [...markers]
+  const allMarkers = useMemo(() => [...MAP_MARKERS], [])
 
   const selectedMarker =
     selectedId !== null
@@ -527,8 +548,6 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     if (listTab === 'night') return m.type === 'night'
     return m.type === 'truck'
   })
-
-  const listCategories = [...new Set(listMarkersBase.map((m) => m.cat))]
 
   const listMarkers = listCatFilter
     ? listMarkersBase.filter((m) => m.cat === listCatFilter)
@@ -569,20 +588,21 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     return { color: FESTIV_TOKENS.alert, label: `${w}팀` }
   }
 
-  const searchResults = allMarkers.filter((m) => {
+  const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
-    if (!q) return true
-    return (
-      m.name.toLowerCase().includes(q) ||
-      String(m.id).includes(q) ||
-      m.cat.toLowerCase().includes(q)
+    if (!q) return allMarkers
+    return allMarkers.filter(
+      (m) =>
+        m.name.toLowerCase().includes(q) ||
+        String(m.id).includes(q) ||
+        m.cat.toLowerCase().includes(q)
     )
-  })
+  }, [searchQuery, allMarkers])
 
   return (
     <div
       ref={containerRef}
-      className="relative h-full w-full overflow-hidden bg-[#E8F4F5] font-festi dark:bg-[#0B1A1F]"
+      className="relative h-full w-full overflow-hidden overscroll-none bg-[#E8F4F5] font-festi dark:bg-[#0B1A1F]"
     >
       {/* Zoomable map layer */}
       <div
@@ -595,6 +615,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onClick={() => {
+          setSheetExpanded(false)
           if (
             selectedId !== null ||
             selectedSection !== null ||
@@ -676,6 +697,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                           setSelectedBoothPermId(perm?.id ?? null)
                           setSelectedId(null)
                           setSelectedSection(null)
+                          setSheetExpanded(false)
+                          setSheetExpandable(!!perm)
+                          setListOpen(false)
                         }}
                         className="relative flex min-h-0 min-w-0 flex-1 select-none items-center justify-center text-[7px] font-extrabold transition-[background,box-shadow,opacity]"
                         style={{
@@ -694,9 +718,6 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                         }}
                       >
                         {idx + 1}
-                        {perm && (
-                          <span className="absolute bottom-0.5 right-0.5 size-1 rounded-full bg-white/70" />
-                        )}
                       </button>
                     )
                   })}
@@ -747,18 +768,21 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                           setSelectedId(null)
                           setSelectedBoothCell(null)
                           setSelectedBoothPermId(null)
+                          setSheetExpanded(false)
+                          setSheetExpandable(!!truck)
+                          setListOpen(false)
                         }}
                         className="flex min-h-0 min-w-0 flex-1 select-none items-center justify-center font-extrabold"
                         style={{
                           fontSize: '7px',
                           background: selSlot
-                            ? '#141A1F'
+                            ? zone.color
                             : truck
-                              ? '#2E363C'
+                              ? zone.color + 'CC'
                               : 'transparent',
-                          color: selSlot || truck ? '#fff' : FESTIV_TOKENS.ink,
+                          color: FESTIV_TOKENS.ink,
                           boxShadow: selSlot
-                            ? 'inset 0 0 0 2px rgba(255,255,255,0.85)'
+                            ? 'inset 0 0 0 2px rgba(255,255,255,0.9)'
                             : undefined,
                           ...(isLast
                             ? {}
@@ -800,8 +824,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       </div>
 
       {/* Top header */}
-      <div className="absolute inset-x-0 top-0 z-10 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(255,255,255,0)_100%)] px-4 pt-13.5 pb-2 dark:bg-[linear-gradient(180deg,rgba(11,26,31,0.97)_0%,rgba(11,26,31,0)_100%)]">
-        <AppHeader dark={dark} className="mt-2 mb-2.5" />
+      <div className="absolute inset-x-0 top-0 z-10 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(255,255,255,0)_100%)] px-4 pt-5 pb-2 dark:bg-[linear-gradient(180deg,rgba(11,26,31,0.97)_0%,rgba(11,26,31,0)_100%)]">
         <div className="mb-2 flex items-center gap-2.5">
           <button
             type="button"
@@ -955,6 +978,93 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
           </div>
         )}
 
+      {/* Bottom sheet - selected user truck */}
+      {(selectedUserTruck !== null ||
+        (sheetDismissing &&
+          selectedId === null &&
+          selectedSection === null &&
+          selectedBoothCell === null)) &&
+        selectedUserTruck &&
+        (() => {
+          const truckZoneEntry = Object.entries(assignments).find(
+            ([key, id]) =>
+              key.startsWith(truckTime + ':') &&
+              id === String(selectedUserTruck.id)
+          )
+          const truckAreaFromStore = truckZoneEntry
+            ? (() => {
+                const [, zoneId, slotStr] = truckZoneEntry[0].split(':')
+                const zone = TRUCK_ZONES.find((z) => z.id === zoneId)
+                return zone
+                  ? `${zone.name} ${Number(slotStr) + 1}번`
+                  : undefined
+              })()
+            : undefined
+          const truckArea = truckAreaFromStore ?? selectedUserTruck.section
+          return (
+            <MapSheet
+              sheetDragY={sheetDragY}
+              sheetDismissing={sheetDismissing}
+              expanded={sheetExpanded}
+              onTouchStart={handleSheetTouchStart}
+              onTouchMove={handleSheetTouchMove}
+              onTouchEnd={handleSheetTouchEnd}
+              onDismiss={dismissSheet}
+              onToggleExpand={() => setSheetExpanded((v) => !v)}
+            >
+              {!sheetExpanded && (
+                <>
+                  <BoothPinHeader
+                    color={FESTIV_TOKENS.sun}
+                    badgeText={selectedUserTruck.id}
+                    badgeFontSize="text-[15px]"
+                    pill={{
+                      color: FESTIV_TOKENS.sunSoft ?? '#FFF5D6',
+                      ink: FESTIV_TOKENS.sun,
+                      content: '푸드트럭',
+                    }}
+                    pill2={
+                      truckArea
+                        ? {
+                            color: '#F1F7F8',
+                            ink: '#2E363C',
+                            content: truckArea,
+                          }
+                        : undefined
+                    }
+                    name={selectedUserTruck.name}
+                    sub={selectedUserTruck.desc}
+                  />
+                  <StatGrid
+                    className="mt-3"
+                    stats={[
+                      { label: '운영 날짜', value: '전일 운영' },
+                      { label: '운영 시간', value: selectedUserTruck.hours },
+                    ]}
+                  />
+                </>
+              )}
+              {sheetExpanded && (
+                <div className="relative h-full overflow-hidden">
+                  <div className="h-full overflow-y-auto overscroll-none px-5 pt-4 pb-27.5">
+                    <BoothDetailContent
+                      type="truck"
+                      name={selectedUserTruck.name}
+                      id={selectedUserTruck.id}
+                      hours={selectedUserTruck.hours}
+                      desc={selectedUserTruck.desc}
+                      area={truckArea}
+                      menus={TRUCK_BOOTH_MENUS.filter(
+                        (m) => m.boothId === selectedUserTruck.id
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+            </MapSheet>
+          )
+        })()}
+
       {/* Bottom sheet - selected zone section */}
       {(selectedSection !== null || (sheetDismissing && selectedId === null)) &&
         (() => {
@@ -972,59 +1082,56 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
             <MapSheet
               sheetDragY={sheetDragY}
               sheetDismissing={sheetDismissing}
+              expanded={sheetExpanded}
+              expandable={!!(truck || linkedTruckBooth)}
               onTouchStart={handleSheetTouchStart}
               onTouchMove={handleSheetTouchMove}
               onTouchEnd={handleSheetTouchEnd}
               onDismiss={dismissSheet}
+              onToggleExpand={() =>
+                sheetExpanded ? setSheetExpanded(false) : setSheetExpanded(true)
+              }
             >
               {zone && (
                 <>
-                  <BoothPinHeader
-                    color={zone.color}
-                    badgeText={selectedSection ? selectedSection.slot + 1 : '—'}
-                    pill={{
-                      color: zone.color + '22',
-                      ink: zone.color,
-                      content: `푸드트럭 · ${zone.name}`,
-                    }}
-                    name={truck ? truck.name : '비어있는 섹션'}
-                  />
-
-                  {truck ? (
-                    <div className="mt-3 rounded-xl bg-surface-alt p-3">
-                      <div className="mb-2 text-[11px] font-extrabold text-ink-40">
-                        메뉴
-                      </div>
-                      {truck.menus.length === 0 ? (
-                        <div className="text-[12px] text-ink-40">
-                          메뉴 정보 없음
-                        </div>
-                      ) : (
-                        <div className="flex flex-col gap-1.5">
-                          {truck.menus.slice(0, 5).map((m) => (
-                            <div
-                              key={m.id}
-                              className="flex items-center justify-between"
-                            >
-                              <span className="text-[13px] font-semibold text-ink">
-                                {m.name}
-                              </span>
-                              <span className="text-[13px] text-ink-60">
-                                {m.price}
-                              </span>
-                            </div>
-                          ))}
-                          {truck.menus.length > 5 && (
-                            <div className="text-[11px] text-ink-40">
-                              +{truck.menus.length - 5}개 더
-                            </div>
-                          )}
+                  {!sheetExpanded && (
+                    <>
+                      <BoothPinHeader
+                        color={zone.color}
+                        badgeText={
+                          selectedSection ? selectedSection.slot + 1 : '—'
+                        }
+                        pill={{
+                          color: zone.color + '22',
+                          ink: zone.color,
+                          content: `푸드트럭 · ${zone.name}`,
+                        }}
+                        name={
+                          truck?.name ??
+                          linkedTruckBooth?.name ??
+                          '비어있는 섹션'
+                        }
+                      />
+                      {!truck && !linkedTruckBooth && (
+                        <div className="mt-3 rounded-xl bg-surface-alt px-4 py-3 text-center text-[12px] text-ink-40">
+                          이 섹션에 배정된 푸드트럭이 없어요
                         </div>
                       )}
-                    </div>
-                  ) : (
-                    <div className="mt-3 rounded-xl bg-surface-alt px-4 py-3 text-center text-[12px] text-ink-40">
-                      이 섹션에 배정된 푸드트럭이 없어요
+                    </>
+                  )}
+                  {sheetExpanded && linkedTruckBooth && (
+                    <div className="relative h-full overflow-hidden">
+                      <div className="h-full overflow-y-auto overscroll-none px-5 pt-4 pb-27.5">
+                        <BoothDetailContent
+                          type="truck"
+                          name={truck?.name ?? linkedTruckBooth.name}
+                          id={linkedTruckBooth.id}
+                          hours={linkedTruckBooth.hours}
+                          desc={linkedTruckBooth.desc}
+                          area={zone.name}
+                          menus={linkedTruckMenus}
+                        />
+                      </div>
                     </div>
                   )}
                 </>
@@ -1038,41 +1145,94 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         <MapSheet
           sheetDragY={sheetDragY}
           sheetDismissing={sheetDismissing}
+          expanded={sheetExpanded}
+          expandable={!!(selectedBoothCellPerm || linkedBooth)}
           onTouchStart={handleSheetTouchStart}
           onTouchMove={handleSheetTouchMove}
           onTouchEnd={handleSheetTouchEnd}
           onDismiss={dismissSheet}
+          onToggleExpand={() => setSheetExpanded((v) => !v)}
         >
-          <BoothPinHeader
-            color={selectedBoothCellPerm?.color ?? selectedBoothZone.color}
-            badgeText={selectedBoothCell ? selectedBoothCell.slot + 1 : '—'}
-            pill={{
-              color:
-                (selectedBoothCellPerm?.color ?? selectedBoothZone.color) +
-                '22',
-              ink: selectedBoothCellPerm?.color ?? selectedBoothZone.color,
-              content: `${selectedDayNumber}일차 · ${activeBoothTime} · ${selectedBoothZone.name}`,
-            }}
-            name={
-              selectedBoothCellPerm
-                ? selectedBoothCellPerm.orgName
-                : '등록된 부스 없음'
-            }
-            sub={
-              <>
-                {selectedBoothCell
-                  ? `${selectedBoothCell.slot + 1}번 섹션`
-                  : '섹션'}
-                {selectedBoothCellPerm &&
-                  ` · ${selectedBoothCellPerm.category}`}
-              </>
-            }
-          />
-          <WaitingActions
-            onDetail={() => navigate('/booth')}
-            onWaiting={() => navigate('/waiting/register')}
-            disabled={!selectedBoothCellPerm}
-          />
+          {!sheetExpanded && (
+            <>
+              <BoothPinHeader
+                color={selectedBoothCellPerm?.color ?? selectedBoothZone.color}
+                badgeText={selectedBoothCell ? selectedBoothCell.slot + 1 : '—'}
+                pill={{
+                  color:
+                    (selectedBoothCellPerm?.color ?? selectedBoothZone.color) +
+                    '22',
+                  ink: selectedBoothCellPerm?.color ?? selectedBoothZone.color,
+                  content: `${selectedDayNumber}일차 · ${activeBoothTime} · ${selectedBoothZone.name}`,
+                }}
+                name={
+                  selectedBoothCellPerm?.orgName ??
+                  linkedBooth?.name ??
+                  '비어있는 섹션'
+                }
+                sub={
+                  selectedBoothCellPerm ? (
+                    <>
+                      {selectedBoothCell
+                        ? `${selectedBoothCell.slot + 1}번 섹션`
+                        : '섹션'}
+                      {` · ${selectedBoothCellPerm.category}`}
+                    </>
+                  ) : linkedBooth ? (
+                    <>
+                      {selectedBoothCell
+                        ? `${selectedBoothCell.slot + 1}번 섹션`
+                        : '섹션'}
+                    </>
+                  ) : undefined
+                }
+              />
+              {!selectedBoothCellPerm && !linkedBooth && (
+                <div className="mt-3 rounded-xl bg-surface-alt px-4 py-3 text-center text-[12px] text-ink-40">
+                  이 섹션에 배정된 부스가 없어요
+                </div>
+              )}
+              <WaitingActions
+                onWaiting={
+                  mapView === 'night' && selectedBoothCellPerm
+                    ? () =>
+                        navigate(
+                          `/waiting/register?id=${selectedBoothCellPerm.id}`
+                        )
+                    : undefined
+                }
+                disabled={!selectedBoothCellPerm}
+              />
+            </>
+          )}
+          {sheetExpanded && (selectedBoothCellPerm || linkedBooth) && (
+            <div className="relative h-full overflow-hidden">
+              <div className="h-full overflow-y-auto overscroll-none px-5 pt-4 pb-27.5">
+                {linkedBooth ? (
+                  <BoothDetailContent
+                    type={activeBoothTime === '야간' ? 'night' : 'day'}
+                    name={linkedBooth.name}
+                    id={linkedBooth.id}
+                    cat={linkedBooth.cat}
+                    hours={linkedBooth.hours}
+                    desc={linkedBooth.desc}
+                    area={selectedBoothZone.name}
+                    menus={linkedMenus}
+                  />
+                ) : selectedBoothCellPerm ? (
+                  <div className="pt-4 text-center text-[13px] text-ink-40">
+                    <div className="mb-1 text-[15px] font-bold text-ink">
+                      {selectedBoothCellPerm.orgName}
+                    </div>
+                    <div>
+                      {selectedBoothCellPerm.category} ·{' '}
+                      {selectedBoothZone.name}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
         </MapSheet>
       )}
 
@@ -1081,58 +1241,120 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         <MapSheet
           sheetDragY={sheetDragY}
           sheetDismissing={sheetDismissing}
+          expanded={sheetExpanded}
+          expandable
           onTouchStart={handleSheetTouchStart}
           onTouchMove={handleSheetTouchMove}
           onTouchEnd={handleSheetTouchEnd}
           onDismiss={dismissSheet}
+          onToggleExpand={() => setSheetExpanded((v) => !v)}
         >
-          <BoothPinHeader
-            color={typeColor(selectedMarker.type)}
-            badgeText={selectedMarker.id}
-            badgeFontSize="text-[15px]"
-            pill={{
-              color: typePillColors(selectedMarker.type).bg,
-              ink: typePillColors(selectedMarker.type).ink,
-              content: `${typeLabel(selectedMarker.type)} · ${selectedMarker.cat}`,
-            }}
-            name={selectedMarker.name}
-          />
-
-          {selectedMarker.type !== 'truck' && (
-            <div className="mt-2.5 flex gap-1.5 rounded-xl bg-surface-alt p-2">
-              <Stat
-                label="대기"
-                value={
-                  selectedMarker.wait === 0
-                    ? '없음'
-                    : `${selectedMarker.wait}팀`
-                }
-                color={waitStatus(selectedMarker.wait).color}
-                dark={dark}
-              />
-              <div className="w-px bg-border" />
-              <Stat
-                label="예상"
-                value={
-                  selectedMarker.wait === 0
-                    ? '바로입장'
-                    : `${selectedMarker.wait * 3}분`
-                }
-                dark={dark}
-              />
-              <div className="w-px bg-border" />
-            </div>
+          {/* ── 미확장: 컴팩트 카드 ── */}
+          {!sheetExpanded && (
+            <>
+              <>
+                <BoothPinHeader
+                  color={typeColor(selectedMarker.type)}
+                  badgeText={selectedMarker.id}
+                  badgeFontSize="text-[15px]"
+                  pill={{
+                    color: typePillColors(selectedMarker.type).bg,
+                    ink: typePillColors(selectedMarker.type).ink,
+                    content: typeLabel(selectedMarker.type),
+                  }}
+                  pill2={{
+                    color:
+                      BOOTH_CATEGORY_THEMES[selectedMarker.cat as BoothCategory]
+                        ?.soft ?? '#F1F7F8',
+                    ink: '#141A1F',
+                    content: selectedMarker.cat,
+                  }}
+                  name={selectedMarker.name}
+                  sub={selectedMarker.desc}
+                />
+                <StatGrid
+                  className="mt-3"
+                  stats={[
+                    { label: '운영 날짜', value: '전일 운영' },
+                    { label: '운영 시간', value: selectedMarker.hours ?? '—' },
+                  ]}
+                />
+                {selectedMarker.type === 'night' && (
+                  <WaitingActions
+                    onWaiting={() =>
+                      navigate(`/waiting/register?id=${selectedMarker.id}`)
+                    }
+                    waitBadge={selectedMarker.wait}
+                  />
+                )}
+              </>
+            </>
           )}
 
-          <WaitingActions
-            onDetail={() => navigate('/booth')}
-            onWaiting={
-              selectedMarker.type !== 'truck'
-                ? () => navigate('/waiting/register')
-                : undefined
-            }
-            waitBadge={selectedMarker.wait}
-          />
+          {/* ── 확장: 상세 페이지 레이아웃 ── */}
+          {sheetExpanded && (
+            <div className="relative h-full overflow-hidden">
+              {/* 스크롤 바디 */}
+              <div
+                className={`h-full overflow-y-auto overscroll-none px-5 pt-4 ${selectedMarker.type === 'night' ? 'pb-44' : 'pb-28'}`}
+              >
+                <BoothDetailContent
+                  dark={dark}
+                  name={selectedMarker.name}
+                  cat={selectedMarker.cat}
+                  id={selectedMarker.id}
+                  wait={selectedMarker.wait}
+                  type={selectedMarker.type}
+                  hours={selectedMarker.hours}
+                  desc={selectedMarker.desc}
+                  menus={
+                    selectedMarker.type === 'night'
+                      ? NIGHT_BOOTH_MENUS.filter(
+                          (m) => m.boothId === selectedMarker.id
+                        )
+                      : DAY_BOOTH_MENUS.filter(
+                          (m) => m.boothId === selectedMarker.id
+                        )
+                  }
+                  catPill={
+                    selectedMarker.type !== 'night' &&
+                    BOOTH_CATEGORY_THEMES[selectedMarker.cat as BoothCategory]
+                      ? {
+                          color:
+                            BOOTH_CATEGORY_THEMES[
+                              selectedMarker.cat as BoothCategory
+                            ].soft,
+                          ink: '#141A1F',
+                        }
+                      : undefined
+                  }
+                />
+              </div>
+
+              {/* 스티키 CTA - 야간만 */}
+              {selectedMarker.type === 'night' && (
+                <div className="absolute inset-x-0 bottom-0 z-20 bg-[linear-gradient(180deg,transparent_0%,var(--color-surface)_35%)] px-5 pt-3 pb-24">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate(`/waiting/register?id=${selectedMarker.id}`)
+                    }
+                    className="flex w-full items-center justify-between rounded-[20px] bg-cta px-5 py-4 text-left shadow-[0_8px_22px_rgba(0,198,224,0.4)]"
+                  >
+                    <div>
+                      <div className="text-[17px] font-extrabold tracking-[-0.4px] text-cta-ink">
+                        웨이팅 걸기
+                      </div>
+                      <div className="text-[11px] font-semibold text-cta-ink/70">
+                        현재 {selectedMarker.wait}팀 대기
+                      </div>
+                    </div>
+                    <div className="size-4.5">{I.chev('#fff', 'r')}</div>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </MapSheet>
       )}
 
@@ -1192,101 +1414,128 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               })}
             </div>
 
-            {/* Category filter chips */}
-            {listCategories.length > 1 && (
-              <div className="flex gap-1.5 overflow-x-auto px-4 pb-2.5 scrollbar-none">
-                <button
-                  type="button"
-                  onClick={() => setListCatFilter(null)}
-                  className={`shrink-0 rounded-full border px-3 py-1.5 text-[12px] font-bold tracking-[-0.2px] ${
-                    listCatFilter === null
-                      ? 'border-ink bg-ink text-white dark:border-white dark:bg-white dark:text-ink'
-                      : 'border-border bg-surface-alt text-ink-60'
-                  }`}
-                >
-                  전체
-                </button>
-                {listCategories.map((cat) => (
+            {/* Category filter chips — 주간만, 고정 4종 */}
+            {listTab === 'day' && (
+              <div className="px-4 pb-2.5">
+                <div className="inline-flex items-center gap-0.5 rounded-full bg-white/65 px-1.5 py-1.5 shadow-[0_1px_6px_rgba(20,26,31,0.08)] backdrop-blur-sm dark:bg-[#13262D]/65">
                   <button
                     type="button"
-                    key={cat}
-                    onClick={() => setListCatFilter(cat)}
-                    className={`shrink-0 rounded-full border px-3 py-1.5 text-[12px] font-bold tracking-[-0.2px] ${
-                      listCatFilter === cat
-                        ? 'border-ink bg-ink text-white dark:border-white dark:bg-white dark:text-ink'
-                        : 'border-border bg-surface-alt text-ink-60'
+                    onClick={() => setListCatFilter(null)}
+                    className={`rounded-full px-3 py-1 text-[11px] font-bold tracking-[-0.2px] transition-colors ${
+                      listCatFilter === null
+                        ? 'bg-ink text-white dark:bg-white dark:text-ink'
+                        : 'text-ink-60'
                     }`}
                   >
-                    {cat}
+                    전체
                   </button>
-                ))}
-              </div>
-            )}
-
-            {/* List */}
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-27.5">
-              {listMarkers.length === 0 ? (
-                <div className="py-10 text-center text-sm text-ink-40">
-                  부스가 없습니다
-                </div>
-              ) : (
-                <div className="flex flex-col divide-y divide-border">
-                  {listMarkers.map((m) => {
-                    const ws = waitStatus(m.wait)
-                    const pinColor = typeColor(m.type)
+                  {BOOTH_CATEGORIES.map((cat) => {
+                    const theme = BOOTH_CATEGORY_THEMES[cat]
+                    const active = listCatFilter === cat
                     return (
                       <button
-                        key={m.id}
                         type="button"
-                        onClick={() => {
-                          setListOpen(false)
-                          setSelectedId(m.id)
-                          setSelectedSection(null)
-                          setSelectedBoothCell(null)
-                          setSelectedBoothPermId(null)
-                        }}
-                        className="flex items-center gap-3 py-3.5 text-left"
+                        key={cat}
+                        onClick={() => setListCatFilter(cat)}
+                        className="flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold tracking-[-0.2px] transition-colors"
+                        style={
+                          active
+                            ? { background: theme.color, color: '#141A1F' }
+                            : { color: '#5E676D' }
+                        }
                       >
-                        <div
-                          className="flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
-                          style={{ background: pinColor }}
-                        >
-                          {m.id}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[14px] font-bold tracking-[-0.3px] text-ink">
-                              {m.name}
-                            </span>
-                            {m.hot && (
-                              <span className="rounded bg-alert px-1.25 py-px text-[8px] font-extrabold tracking-[0.3px] text-white">
-                                HOT
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-0.5 text-[11px] text-ink-60">
-                            {m.cat}
-                          </div>
-                        </div>
-                        {m.type !== 'truck' && (
-                          <div className="flex items-center gap-1">
-                            <span
-                              className="size-1.5 rounded-full"
-                              style={{ background: ws.color }}
-                            />
-                            <span
-                              className="text-[13px] font-extrabold"
-                              style={{ color: ws.color }}
-                            >
-                              {ws.label}
-                            </span>
-                          </div>
-                        )}
+                        <span
+                          className="size-1.5 shrink-0 rounded-full"
+                          style={{ background: theme.color }}
+                        />
+                        {cat}
                       </button>
                     )
                   })}
                 </div>
-              )}
+              </div>
+            )}
+
+            {/* List */}
+            <div className="relative min-h-0 flex-1">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-[linear-gradient(180deg,transparent_0%,var(--color-surface)_100%)]" />
+              <div className="h-full overflow-y-auto overscroll-none px-4 pb-27.5">
+                {listTab === 'truck' ? (
+                  <div className="flex flex-col divide-y divide-border">
+                    {TRUCK_BOOTHS.map((truck) => (
+                      <button
+                        key={truck.id}
+                        type="button"
+                        onClick={() => {
+                          setListOpen(false)
+                          setSelectedUserTruck(truck)
+                          setSelectedId(null)
+                          setSelectedSection(null)
+                          setSelectedBoothCell(null)
+                          setSelectedBoothPermId(null)
+                          setSheetExpanded(false)
+                        }}
+                        className="flex w-full items-center gap-3 py-3.5 text-left"
+                      >
+                        <div
+                          className="flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
+                          style={{ background: FESTIV_TOKENS.sun }}
+                        >
+                          {truck.id}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
+                            {truck.name}
+                          </div>
+                          <div className="mt-0.5 text-[11px] text-ink-60">
+                            {truck.hours}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : listMarkers.length === 0 ? (
+                  <div className="py-10 text-center text-sm text-ink-40">
+                    부스가 없습니다
+                  </div>
+                ) : (
+                  <div className="flex flex-col divide-y divide-border">
+                    {listMarkers.map((m) => {
+                      const pinColor = typeColor(m.type)
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => {
+                            setListOpen(false)
+                            setSelectedId(m.id)
+                            setSelectedSection(null)
+                            setSelectedBoothCell(null)
+                            setSelectedBoothPermId(null)
+                            setSheetExpanded(false)
+                          }}
+                          className="flex items-center gap-3 py-3.5 text-left"
+                        >
+                          <div
+                            className="flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
+                            style={{ background: pinColor }}
+                          >
+                            {m.id}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
+                              {m.name}
+                            </div>
+                            <div className="mt-0.5 text-[11px] text-ink-60">
+                              {m.cat}
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </>
@@ -1350,7 +1599,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               </button>
             </div>
 
-            <div className="mt-3 max-h-72 overflow-y-auto">
+            <div className="mt-3 max-h-72 overflow-y-auto overscroll-none">
               {searchResults.length === 0 ? (
                 <div className="py-8 text-center text-sm text-ink-40">
                   검색 결과가 없습니다
@@ -1370,6 +1619,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                           setSelectedSection(null)
                           setSelectedBoothCell(null)
                           setSelectedBoothPermId(null)
+                          setSheetExpanded(false)
                         }}
                         className="flex items-center gap-3 rounded-[14px] px-3 py-3 text-left transition-colors hover:bg-surface-alt active:bg-surface-alt"
                       >

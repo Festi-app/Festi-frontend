@@ -9,12 +9,12 @@ export function WaitingTicketCard({
   boothName,
   boothId,
   boothTone,
+  boothArea,
   registered,
   waitNo,
   callNo,
   progressPct,
   aheadTeams,
-  etaMin,
   onCancel,
   onClick,
 }: {
@@ -22,12 +22,12 @@ export function WaitingTicketCard({
   boothName: string
   boothId: number
   boothTone: string
+  boothArea: string
   registered: string
   waitNo: number
   callNo: number
   progressPct: number
   aheadTeams: number
-  etaMin: number
   onCancel: () => void
   onClick?: () => void
 }) {
@@ -117,9 +117,6 @@ export function WaitingTicketCard({
             <span className="opacity-70">
               앞에 <strong className="text-white">{aheadTeams}팀</strong> 남음
             </span>
-            <span className="opacity-70">
-              예상 대기 <strong className="text-white">~{etaMin}분</strong>
-            </span>
           </div>
         </div>
       </div>
@@ -139,15 +136,18 @@ export function WaitingTicketCard({
       {/* 부스 정보 + 취소 */}
       <div className="relative flex items-center gap-3">
         <div className="size-11 shrink-0 overflow-hidden rounded-xl">
-          <PhotoSlot label="" tone={boothTone} radius={12} />
+          <PhotoSlot label="" tone={boothTone} radius={12} ratio="1/1" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[15px] font-extrabold tracking-[-0.3px]">
-            {boothName}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[15px] font-extrabold tracking-[-0.3px]">
+              {boothName}
+            </span>
+            <span className="text-[11px] font-normal opacity-50">
+              {boothArea} #{boothId}
+            </span>
           </div>
-          <div className="mt-0.5 text-[11px] opacity-70">
-            #{boothId} · {registered}
-          </div>
+          <div className="mt-0.5 text-[11px] opacity-70">{registered}</div>
         </div>
         <button
           type="button"

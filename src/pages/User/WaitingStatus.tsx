@@ -2,29 +2,21 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { FestiTabBar } from '../../components/User/Navbar'
-import { AppHeader, SubHeader } from '../../components/User/ScreenHeader'
+import { SubHeader } from '../../components/User/ScreenHeader'
 import { WaitingTicketCard } from '../../components/User/WaitingTicket'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
 import { QuickEntrySection } from '../../components/User/QuickEntrySection'
-
-type Waiting = {
-  boothId: number
-  boothName: string
-  boothTone: string
-  registered: string
-  waitNo: number
-  callNo: number
-  progressPct: number
-  aheadTeams: number
-  etaMin: number
-}
+import {
+  useWaitingStore,
+  type ActiveWaiting,
+} from '../../stores/useWaitingStore'
 
 function WaitingBoothCard({
   waiting: w,
   ink60,
   onClick,
 }: {
-  waiting: Waiting
+  waiting: ActiveWaiting
   ink60: string
   onClick: () => void
 }) {
@@ -42,7 +34,7 @@ function WaitingBoothCard({
       className="flex w-full items-center gap-3 rounded-[18px] border border-border bg-surface p-3 text-left transition-transform duration-100 active:scale-[0.98]"
     >
       <div className="size-13 shrink-0 overflow-hidden rounded-[14px]">
-        <PhotoSlot label="" tone={w.boothTone} radius={14} />
+        <PhotoSlot label="" tone={w.boothTone} radius={14} ratio="1/1" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1">
@@ -53,7 +45,7 @@ function WaitingBoothCard({
             대기중
           </Pill>
           <Pill color="transparent" ink={ink60}>
-            #{w.boothId}
+            앞에 {w.aheadTeams}팀
           </Pill>
         </div>
         <div className="mt-1 flex items-center gap-1.5 text-sm font-bold tracking-[-0.3px] text-ink">
@@ -64,66 +56,20 @@ function WaitingBoothCard({
             />
           )}
           {w.boothName}
+          <span className="text-[11px] font-normal text-ink-40">
+            {w.boothArea} #{w.boothId}
+          </span>
         </div>
-        <div className="mt-0.5 text-[11px] text-ink-60">
-          앞에 {w.aheadTeams}팀 · ~{w.etaMin}분
-        </div>
+        <div className="mt-0.5 text-[11px] text-ink-60">{w.registered}</div>
       </div>
       <div className="size-3.5 text-ink-40">{I.chev(undefined, 'r')}</div>
     </button>
   )
 }
 
-const INITIAL_WAITINGS: Waiting[] = [
-  {
-    boothId: 16,
-    boothName: '컴공과 칵테일 바',
-    boothTone: 'rose',
-    registered: '4인 · 21:14 등록',
-    waitNo: 34,
-    callNo: 30,
-    progressPct: 60,
-    aheadTeams: 2,
-    etaMin: 14,
-  },
-  {
-    boothId: 38,
-    boothName: '체대 곱창집',
-    boothTone: 'mint',
-    registered: '2인 · 21:05 등록',
-    waitNo: 22,
-    callNo: 10,
-    progressPct: 45,
-    aheadTeams: 12,
-    etaMin: 38,
-  },
-  {
-    boothId: 47,
-    boothName: '미디어부 라멘',
-    boothTone: 'sun',
-    registered: '3인 · 20:58 등록',
-    waitNo: 18,
-    callNo: 15,
-    progressPct: 83,
-    aheadTeams: 3,
-    etaMin: 10,
-  },
-  {
-    boothId: 22,
-    boothName: '의약학부 주점',
-    boothTone: 'grape',
-    registered: '2인 · 20:45 등록',
-    waitNo: 41,
-    callNo: 33,
-    progressPct: 80,
-    aheadTeams: 8,
-    etaMin: 25,
-  },
-]
-
 export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
-  const [waitings, setWaitings] = useState<Waiting[]>(INITIAL_WAITINGS)
+  const { waitings, cancelWaiting } = useWaitingStore()
   const [confirmCancel, setConfirmCancel] = useState(false)
   const ink60 = dark ? '#8B939B' : '#5E676D'
 
@@ -131,31 +77,27 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
   const others = waitings.slice(1)
 
   function cancelMain() {
-    setWaitings((prev) => prev.slice(1))
+    if (main) cancelWaiting(main.boothId)
     setConfirmCancel(false)
   }
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
-      <div className="shrink-0 px-5 pt-13.5 pb-3.5">
-        <AppHeader dark={dark} className="mt-1.5 mb-1" />
-      </div>
-
       {main ? (
-        <div className="min-h-0 flex-1 overflow-auto px-5 pt-1 pb-27.5">
+        <div className="min-h-0 flex-1 overflow-auto overscroll-none px-5 pt-5 pb-27.5">
           <WaitingTicketCard
             dark={dark}
             boothName={main.boothName}
             boothId={main.boothId}
             boothTone={main.boothTone}
+            boothArea={main.boothArea}
             registered={main.registered}
             waitNo={main.waitNo}
             callNo={main.callNo}
             progressPct={main.progressPct}
             aheadTeams={main.aheadTeams}
-            etaMin={main.etaMin}
             onCancel={() => setConfirmCancel(true)}
-            onClick={() => navigate('/waiting/detail')}
+            onClick={() => navigate(`/waiting/detail?id=${main.boothId}`)}
           />
 
           {main.aheadTeams <= 3 && (
@@ -174,25 +116,38 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
             </div>
           )}
 
-          {others.length > 0 && (
-            <>
-              <SubHeader title="다른 웨이팅" right={`${others.length}건`} />
-              <div className="flex flex-col gap-2.5">
-                {others.map((w) => (
-                  <WaitingBoothCard
-                    key={w.boothId}
-                    waiting={w}
-                    ink60={ink60}
-                    onClick={() => navigate('/waiting/detail')}
-                  />
-                ))}
+          <SubHeader
+            title="다른 웨이팅"
+            right={others.length > 0 ? `${others.length}건` : undefined}
+          />
+          {others.length > 0 ? (
+            <div className="flex flex-col gap-2.5">
+              {others.map((w) => (
+                <WaitingBoothCard
+                  key={w.boothId}
+                  waiting={w}
+                  ink60={ink60}
+                  onClick={() => navigate(`/waiting/detail?id=${w.boothId}`)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="mb-2 flex size-12 items-center justify-center rounded-full bg-surface-alt text-ink-40">
+                <div className="size-5">{I.ticket()}</div>
               </div>
-            </>
+              <div className="text-[13px] font-bold text-ink-60">
+                다른 웨이팅이 없습니다
+              </div>
+              <div className="mt-0.5 text-[11px] text-ink-40">
+                웨이팅을 추가로 등록해 보세요
+              </div>
+            </div>
           )}
         </div>
       ) : (
-        <>
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center text-center">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex flex-1 flex-col items-center justify-center px-5 text-center">
             <div className="mb-3 flex size-16 items-center justify-center rounded-full bg-surface-alt text-ink-40">
               <div className="size-7">{I.ticket()}</div>
             </div>
@@ -203,10 +158,10 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
               부스 웨이팅을 등록해 보세요
             </div>
           </div>
-          <div className="pb-27.5">
-            <QuickEntrySection dark={dark} compact />
+          <div className="shrink-0 pb-27.5">
+            <QuickEntrySection compact />
           </div>
-        </>
+        </div>
       )}
 
       <FestiTabBar active="wait" dark={dark} />

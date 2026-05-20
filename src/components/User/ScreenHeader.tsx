@@ -47,8 +47,8 @@ export function ScreenHeader({
 }) {
   const navigate = useNavigate()
   return (
-    <div className="shrink-0 border-b border-border bg-surface px-5 pt-13.5 pb-4">
-      <div className="mt-1.5 flex items-center gap-2">
+    <div className="shrink-0 border-b border-border bg-surface px-5 pt-5 pb-4">
+      <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={() => navigate(-1)}

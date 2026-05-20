@@ -1,11 +1,9 @@
+import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS } from '../../tokens'
-import {
-  FestivMark,
-  FestivWordmark,
-  FestivHeaderLogo,
-} from '../../components/Logo'
+import { FestivMark, FestivWordmark } from '../../components/Logo'
 
-const FESTIVAL_START = new Date('2026-05-10T00:00:00')
+const FESTIVAL_START = new Date('2026-05-20T00:00:00')
+const PREVIEW_START = new Date('2026-05-17T00:00:00')
 
 function getDDayInfo() {
   const now = new Date()
@@ -13,12 +11,14 @@ function getDDayInfo() {
     const diff = Math.ceil(
       (FESTIVAL_START.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     )
-    return { type: 'before' as const, days: diff }
+    const canPreview = now >= PREVIEW_START
+    return { type: 'before' as const, days: diff, canPreview }
   }
-  return { type: 'after' as const }
+  return { type: 'after' as const, days: 0, canPreview: false }
 }
 
 export function MobileOffSeason({ dark = false }: { dark?: boolean }) {
+  const navigate = useNavigate()
   const dday = getDDayInfo()
 
   const bg = dark
@@ -104,12 +104,23 @@ export function MobileOffSeason({ dark = false }: { dark?: boolean }) {
         )}
       </div>
 
+      {dday.canPreview && (
+        <button
+          type="button"
+          onClick={() => navigate('/home')}
+          className="mt-6 rounded-[18px] px-8 py-3.5 text-[14px] font-extrabold tracking-[-0.3px] text-white shadow-[0_8px_22px_rgba(0,198,224,0.35)] transition-transform duration-100 active:scale-[0.97]"
+          style={{ background: FESTIV_TOKENS.coral }}
+        >
+          축제 미리 즐기기
+        </button>
+      )}
+
       <div
         className="absolute bottom-10 flex flex-col items-center gap-1.5"
         style={{ color: dark ? FESTIV_TOKENS.ink40 : FESTIV_TOKENS.ink60 }}
       >
         <span className="text-[12px] font-medium">축제를 더 즐겁게,</span>
-        <FestivHeaderLogo
+        <FestivWordmark
           size={14}
           color={dark ? FESTIV_TOKENS.ink40 : FESTIV_TOKENS.ink60}
         />

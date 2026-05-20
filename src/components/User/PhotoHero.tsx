@@ -30,7 +30,7 @@ export function PhotoHero({
         style={{ aspectRatio: 'auto' }}
       />
       <div className="absolute inset-x-0 top-0 h-27.5 bg-[linear-gradient(180deg,rgba(15,42,51,0.4)_0%,rgba(15,42,51,0)_100%)]" />
-      <div className="absolute top-13.5 right-4 left-4 flex items-center justify-between">
+      <div className="absolute top-4 right-4 left-4 flex items-center justify-between">
         <button
           type="button"
           onClick={onBack}

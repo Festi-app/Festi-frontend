@@ -5,24 +5,60 @@ import { ScreenHeader } from '../../components/User/ScreenHeader'
 import { FieldLabel } from '../../components/shared/FieldLabel'
 import { Toast } from '../../components/shared/Toast'
 import { NotificationSettings } from '../../components/User/NotificationSettings'
+import { useWaitingStore } from '../../stores/useWaitingStore'
+import { useUserStore } from '../../stores/useUserStore'
+import { NIGHT_BOOTHS } from '../../data/booths'
 
 const NOTIFICATION_ROWS = [
   { label: '내 차례 3팀 전 알림', sub: '카카오톡 + 푸시' },
   { label: '내 차례 호출 알림', sub: '진동 + 사운드' },
 ]
 
-export function MobileWaitingRegister({ dark = false }: { dark?: boolean }) {
+export function MobileWaitingRegister({
+  dark = false,
+  id,
+}: {
+  dark?: boolean
+  id?: number
+}) {
+  const booth = NIGHT_BOOTHS.find((b) => b.id === id) ?? NIGHT_BOOTHS[0]
   const navigate = useNavigate()
+  const { waitings, addWaiting } = useWaitingStore()
+  const { phone } = useUserStore()
   const [people, setPeople] = useState(4)
   const [notifications, setNotifications] = useState([true, true])
   const [showToast, setShowToast] = useState(false)
+  const [showLimitToast, setShowLimitToast] = useState(false)
   const surfaceAlt = dark ? '#252A30' : '#F1F7F8'
   const ink80 = dark ? '#CDD5DA' : '#2E363C'
 
   function handleRegister() {
+    if (waitings.length >= 3) {
+      setShowLimitToast(true)
+      setTimeout(() => setShowLimitToast(false), 2200)
+      return
+    }
+    const now = new Date()
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    const aheadTeams = booth.wait ?? 0
+    const waitNo = aheadTeams + (waitings.length + 1)
+    addWaiting({
+      boothId: booth.id,
+      boothName: booth.name,
+      boothTone: booth.tone,
+      boothArea: booth.area,
+      registered: `${people}인 · ${timeStr} 등록`,
+      waitNo,
+      callNo: waitNo - aheadTeams - 1,
+      progressPct:
+        aheadTeams === 0
+          ? 100
+          : Math.round(((waitNo - aheadTeams) / waitNo) * 100),
+      aheadTeams,
+    })
     setShowToast(true)
     setTimeout(() => {
-      navigate('/waiting/detail', { replace: true })
+      navigate(`/waiting/detail?id=${booth.id}`, { replace: true })
     }, 1800)
   }
 
@@ -34,26 +70,26 @@ export function MobileWaitingRegister({ dark = false }: { dark?: boolean }) {
         {/* Booth card */}
         <button
           type="button"
-          onClick={() => navigate('/booth')}
+          onClick={() => navigate(`/booth?type=night&id=${booth.id}`)}
           className="flex w-full gap-3 rounded-[18px] border border-border bg-surface p-3 text-left"
         >
           <div className="size-14 shrink-0 overflow-hidden rounded-[14px]">
-            <PhotoSlot label="" tone="rose" radius={14} />
+            <PhotoSlot label="" tone={booth.tone} radius={14} ratio="1/1" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex gap-1">
               <Pill color={FESTIV_TOKENS.alert} ink="#fff">
-                #16
+                #{booth.id}
               </Pill>
               <Pill color={surfaceAlt} ink={ink80}>
-                야간 주점
+                야간 {booth.cat}
               </Pill>
             </div>
             <div className="mt-1 text-[15px] font-extrabold tracking-[-0.3px] text-ink">
-              컴공과 칵테일 바
+              {booth.name}
             </div>
             <div className="mt-0.5 text-[11px] text-ink-60">
-              현재 7팀 대기 · 예상 22분
+              현재 {booth.wait}팀 대기
             </div>
           </div>
         </button>
@@ -139,7 +175,7 @@ export function MobileWaitingRegister({ dark = false }: { dark?: boolean }) {
           className="w-full rounded-[20px] bg-cta px-5 py-4 text-center text-cta-ink shadow-[0_8px_22px_rgba(0,198,224,0.4)] transition-transform duration-100 active:scale-[0.98]"
         >
           <div className="text-[11px] font-semibold opacity-70">
-            {people}명 · 010-2354-8821
+            {people}명 · {phone}
           </div>
           <div className="mt-0.5 text-[17px] font-extrabold tracking-[-0.4px]">
             웨이팅 등록하기
@@ -155,7 +191,7 @@ export function MobileWaitingRegister({ dark = false }: { dark?: boolean }) {
           />
           <Toast
             message="웨이팅 등록이 완료되었습니다"
-            sub={`컴공과 칵테일 바 · ${people}명`}
+            sub={`${booth.name} · ${people}명`}
             icon={
               <div className="flex size-8 items-center justify-center rounded-full bg-pop shadow-[0_0_0_3px_rgba(34,195,106,0.25)]">
                 <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
@@ -171,6 +207,31 @@ export function MobileWaitingRegister({ dark = false }: { dark?: boolean }) {
             }
           />
         </>
+      )}
+
+      {showLimitToast && (
+        <Toast
+          message="웨이팅은 최대 3개까지 등록할 수 있어요"
+          icon={
+            <div className="flex size-8 items-center justify-center rounded-full bg-alert/20">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                <path
+                  d="M8 5v4M8 11h.01"
+                  stroke={FESTIV_TOKENS.alert}
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="6"
+                  stroke={FESTIV_TOKENS.alert}
+                  strokeWidth="1.6"
+                />
+              </svg>
+            </div>
+          }
+        />
       )}
     </div>
   )
