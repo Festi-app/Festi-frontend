@@ -32,7 +32,7 @@ export function BoothPermissionModal({
 }) {
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] =
-    useState<BoothCategory | null>(null)
+    useState<BoothCategory | null>(time === '야간' ? '활동' : null)
   const zone = [...ZONES, ...NIGHT_ZONES].find((z) => z.id === zoneId)!
   const sectionNums = sections.map((s) => s + 1)
   const filteredOrgs = orgs.filter((o) =>
@@ -59,7 +59,7 @@ export function BoothPermissionModal({
               권한 부여
             </div>
             <div className="mt-0.5 text-xs text-ink-60">
-              {zone.name} · {day}일차 {time} · {sectionNums.length}개 섹션
+              {zone.id} · {day}일차 {time} · {sectionNums.length}개 섹션
               {sectionNums.length <= 6 && ` (${sectionNums.join(', ')}번)`}
             </div>
           </div>
@@ -72,31 +72,33 @@ export function BoothPermissionModal({
           </button>
         </div>
 
-        <div className="border-b border-border px-4 py-3">
-          <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
-            부스 유형
+        {time !== '야간' && (
+          <div className="border-b border-border px-4 py-3">
+            <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
+              부스 유형
+            </div>
+            <div className="grid grid-cols-4 gap-1.5">
+              {(Object.keys(CATEGORY_COLORS) as BoothCategory[]).map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  className={cn(
+                    'rounded-xl py-2 text-[12px] font-bold transition-all',
+                    selectedCategory === cat ? 'text-white' : 'text-ink-60'
+                  )}
+                  style={
+                    selectedCategory === cat
+                      ? { background: CATEGORY_COLORS[cat] }
+                      : { background: `${CATEGORY_COLORS[cat]}22` }
+                  }
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-4 gap-1.5">
-            {(Object.keys(CATEGORY_COLORS) as BoothCategory[]).map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setSelectedCategory(cat)}
-                className={cn(
-                  'rounded-xl py-2 text-[12px] font-bold transition-all',
-                  selectedCategory === cat ? 'text-white' : 'text-ink-60'
-                )}
-                style={
-                  selectedCategory === cat
-                    ? { background: CATEGORY_COLORS[cat] }
-                    : { background: `${CATEGORY_COLORS[cat]}22` }
-                }
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
+        )}
 
         <div className="flex-1 overflow-y-auto px-4 py-3">
           <div className="mb-2.5 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
@@ -174,7 +176,7 @@ export function BoothPermissionModal({
               selectedCategory &&
               onAssign(selectedOrgId, selectedCategory)
             }
-            disabled={!selectedOrgId || !selectedCategory}
+            disabled={!selectedOrgId || (time !== '야간' && !selectedCategory)}
             className="flex-1 rounded-xl bg-coral py-3 text-sm font-extrabold text-white disabled:opacity-40"
           >
             권한 부여
