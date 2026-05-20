@@ -256,8 +256,11 @@ export const useTruckPlacementStore = create<TruckPlacementState>((set) => ({
     set((state) => {
       const next = { ...state.assignments }
       for (const k of Object.keys(next)) {
-        const [, zId, sIdx] = k.split(':')
-        if (zId === zoneId && parseInt(sIdx) >= fromIdx) delete next[k]
+        const parts = k.split(':')
+        // key format: day:time:zoneId:slotIdx
+        const zId = parts[2]
+        const sIdx = parseInt(parts[3])
+        if (zId === zoneId && sIdx >= fromIdx) delete next[k]
       }
       return { assignments: next }
     }),

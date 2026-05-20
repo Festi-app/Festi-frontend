@@ -1,106 +1,279 @@
+import { useState } from 'react'
 import { ZONES, NIGHT_ZONES } from '../../data/zones'
+import { TRUCK_ZONES } from '../../stores/useTruckPlacementStore'
+import { useBoothSectionStore } from '../../stores/useBoothSectionStore'
+import { useTruckPlacementStore } from '../../stores/useTruckPlacementStore'
+import { AdminModal } from './AdminModal'
 import { I } from '../../tokens'
+import { cn } from '../../lib/cn'
 
-export function BoothConfigureSidebar({
-  zoneDivisions,
-  setZoneDivisions,
-  mapMode,
-  onSave,
+function ZoneRow({
+  id,
+  label,
+  color,
+  value,
+  onDecrement,
+  onIncrement,
 }: {
-  zoneDivisions: Record<string, number>
-  setZoneDivisions: (
-    fn: (prev: Record<string, number>) => Record<string, number>
-  ) => void
-  mapMode: '주간' | '야간'
-  onSave: () => void
+  id: string
+  label: string
+  color: string
+  value: number
+  onDecrement: () => void
+  onIncrement: () => void
 }) {
-  const zones = mapMode === '주간' ? ZONES : NIGHT_ZONES
-  const total = zones.reduce((a, z) => a + zoneDivisions[z.id], 0)
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-border px-3 py-2.5">
+      <div
+        className="size-2.5 shrink-0 rounded-full"
+        style={{ background: color }}
+      />
+      <span className="w-5 shrink-0 text-[11px] font-extrabold text-ink-40">
+        {id}
+      </span>
+      <span className="flex-1 truncate text-[12px] font-bold text-ink">
+        {label}
+      </span>
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={onDecrement}
+          className="flex size-6 items-center justify-center rounded-lg border border-ink-20 text-sm leading-none text-ink-60"
+        >
+          −
+        </button>
+        <span className="w-7 text-center text-[13px] font-extrabold text-ink">
+          {value}
+        </span>
+        <button
+          type="button"
+          onClick={onIncrement}
+          className="flex size-6 items-center justify-center rounded-lg border border-ink-20 text-sm leading-none text-ink-60"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function GroupHeader({
+  title,
+  total,
+  unit,
+}: {
+  title: string
+  total: number
+  unit: string
+}) {
+  return (
+    <div className="mb-2 flex items-center gap-2">
+      <span className="text-[11px] font-extrabold uppercase tracking-wider text-ink-40">
+        {title}
+      </span>
+      <div className="flex-1 border-t border-border" />
+      <span className="text-[10px] text-ink-40">
+        총 {total}
+        {unit}
+      </span>
+    </div>
+  )
+}
+
+export function BoothConfigureSidebar({ onSave }: { onSave: () => void }) {
+  const {
+    zoneDivisions,
+    setZoneDivisions,
+    permissions,
+    clearPermissionsForZoneBeyond,
+  } = useBoothSectionStore()
+  const {
+    slotCounts: truckSlotCounts,
+    setSlotCount: setTruckSlotCount,
+    cleanupZoneSlots,
+  } = useTruckPlacementStore()
+
+  const [draftDivisions, setDraftDivisions] = useState<Record<string, number>>(
+    () => ({ ...zoneDivisions })
+  )
+  const [draftTruckSlots, setDraftTruckSlots] = useState<
+    Record<string, number>
+  >(() => ({ ...truckSlotCounts }))
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  const allZones = [...ZONES, ...NIGHT_ZONES]
+
+  function changeDayNight(zoneId: string, delta: number) {
+    const zone = allZones.find((z) => z.id === zoneId)
+    setDraftDivisions((prev) => {
+      const current = prev[zoneId] ?? zone?.defaultCount ?? 1
+      const next = Math.max(1, current + delta)
+      if (next === current) return prev
+      return { ...prev, [zoneId]: next }
+    })
+  }
+
+  function changeTruck(zoneId: string, delta: number) {
+    const zone = TRUCK_ZONES.find((z) => z.id === zoneId)
+    setDraftTruckSlots((prev) => {
+      const current = prev[zoneId] ?? zone?.slotCount ?? 1
+      const next = Math.max(1, Math.min(8, current + delta))
+      if (next === current) return prev
+      return { ...prev, [zoneId]: next }
+    })
+  }
+
+  function applyAndSave() {
+    const newDivisions: Record<string, number> = {}
+    for (const zone of allZones) {
+      const current = zoneDivisions[zone.id] ?? zone.defaultCount
+      const next = draftDivisions[zone.id] ?? zone.defaultCount
+      newDivisions[zone.id] = next
+      if (next < current) clearPermissionsForZoneBeyond(zone.id, next)
+    }
+    setZoneDivisions(() => newDivisions)
+
+    for (const zone of TRUCK_ZONES) {
+      const current = truckSlotCounts[zone.id] ?? zone.slotCount
+      const next = draftTruckSlots[zone.id] ?? zone.slotCount
+      setTruckSlotCount(zone.id, next)
+      if (next < current) cleanupZoneSlots(zone.id, next)
+    }
+
+    onSave()
+  }
+
+  function handleSave() {
+    const hasDecrease =
+      allZones.some((zone) => {
+        const current = zoneDivisions[zone.id] ?? zone.defaultCount
+        const next = draftDivisions[zone.id] ?? zone.defaultCount
+        return next < current
+      }) ||
+      TRUCK_ZONES.some((zone) => {
+        const current = truckSlotCounts[zone.id] ?? zone.slotCount
+        const next = draftTruckSlots[zone.id] ?? zone.slotCount
+        return next < current
+      })
+
+    if (permissions.length > 0 && hasDecrease) {
+      setShowConfirm(true)
+    } else {
+      applyAndSave()
+    }
+  }
+
+  const dayTotal = ZONES.reduce(
+    (s, z) => s + (draftDivisions[z.id] ?? z.defaultCount),
+    0
+  )
+  const nightTotal = NIGHT_ZONES.reduce(
+    (s, z) => s + (draftDivisions[z.id] ?? z.defaultCount),
+    0
+  )
+  const truckTotal = TRUCK_ZONES.reduce(
+    (s, z) => s + (draftTruckSlots[z.id] ?? z.slotCount),
+    0
+  )
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-surface">
+    <aside className="flex w-72 shrink-0 flex-col border-r border-border bg-surface">
       <div className="border-b border-border px-5 py-4">
         <div className="text-[15px] font-extrabold text-ink">구역 설정</div>
         <div className="mt-0.5 text-[11px] text-ink-60">
-          구역별 세부 섹션 개수를 설정하세요
+          주간·야간·푸드트럭 섹션 수를 한번에 설정하세요
         </div>
+        {permissions.length > 0 && (
+          <div className="mt-2.5 flex items-center gap-1.5 rounded-lg bg-alert/8 px-2.5 py-1.5 text-[10px] font-semibold text-alert">
+            <span>⚠</span>
+            섹션 수를 줄이면 저장 시 기존 배정 권한이 초기화될 수 있어요
+          </div>
+        )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto p-4">
-        {zones.map((zone) => {
-          const val = zoneDivisions[zone.id]
-          return (
-            <div key={zone.id} className="rounded-xl border border-border p-3">
-              <div className="mb-2 flex items-center gap-2">
-                <div
-                  className="size-2.5 shrink-0 rounded-full"
-                  style={{ background: zone.color }}
-                />
-                <span className="flex-1 text-[13px] font-extrabold text-ink">
-                  {zone.name}
-                </span>
-                <span className="text-[11px] text-ink-40">구역 {zone.id}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[12px] text-ink-60">섹션 수</span>
-                <div className="ml-auto flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setZoneDivisions((prev) => ({
-                        ...prev,
-                        [zone.id]: Math.max(1, prev[zone.id] - 1),
-                      }))
-                    }
-                    className="flex size-6 items-center justify-center rounded-lg border border-ink-20 text-base leading-none text-ink-60"
-                  >
-                    −
-                  </button>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={val}
-                    onChange={(e) => {
-                      const n = parseInt(e.target.value, 10)
-                      if (!isNaN(n) && n >= 1)
-                        setZoneDivisions((prev) => ({ ...prev, [zone.id]: n }))
-                      else if (e.target.value === '')
-                        setZoneDivisions((prev) => ({ ...prev, [zone.id]: 0 }))
-                    }}
-                    className="w-9 rounded-lg border border-ink-20 bg-transparent text-center text-[13px] font-extrabold text-ink focus:border-cta focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setZoneDivisions((prev) => ({
-                        ...prev,
-                        [zone.id]: prev[zone.id] + 1,
-                      }))
-                    }
-                    className="flex size-6 items-center justify-center rounded-lg border border-ink-20 text-base leading-none text-ink-60"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </div>
-          )
-        })}
+      <div className="flex-1 overflow-y-auto p-4">
+        {/* 주간 */}
+        <div className="mb-5">
+          <GroupHeader title="주간 구역" total={dayTotal} unit="섹션" />
+          <div className="flex flex-col gap-1.5">
+            {ZONES.map((zone) => (
+              <ZoneRow
+                key={zone.id}
+                id={zone.id}
+                label={zone.name}
+                color={zone.color}
+                value={draftDivisions[zone.id] ?? zone.defaultCount}
+                onDecrement={() => changeDayNight(zone.id, -1)}
+                onIncrement={() => changeDayNight(zone.id, 1)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* 야간 */}
+        <div className="mb-5">
+          <GroupHeader title="야간 구역" total={nightTotal} unit="섹션" />
+          <div className="flex flex-col gap-1.5">
+            {NIGHT_ZONES.map((zone) => (
+              <ZoneRow
+                key={zone.id}
+                id={zone.id}
+                label={zone.name}
+                color={zone.color}
+                value={draftDivisions[zone.id] ?? zone.defaultCount}
+                onDecrement={() => changeDayNight(zone.id, -1)}
+                onIncrement={() => changeDayNight(zone.id, 1)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* 푸드트럭 */}
+        <div>
+          <GroupHeader title="푸드트럭" total={truckTotal} unit="슬롯" />
+          <div className="flex flex-col gap-1.5">
+            {TRUCK_ZONES.map((zone) => (
+              <ZoneRow
+                key={zone.id}
+                id={zone.id}
+                label={zone.name}
+                color={zone.color}
+                value={draftTruckSlots[zone.id] ?? zone.slotCount}
+                onDecrement={() => changeTruck(zone.id, -1)}
+                onIncrement={() => changeTruck(zone.id, 1)}
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="border-t border-border p-4">
-        <div className="mb-2.5 text-center text-[12px] text-ink-60">
-          총 <strong className="text-ink">{total}개</strong> 섹션
-        </div>
         <button
           type="button"
-          onClick={onSave}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-coral py-3 text-[14px] font-extrabold text-white"
+          onClick={handleSave}
+          className={cn(
+            'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-extrabold text-white',
+            'bg-coral'
+          )}
         >
           <div className="size-4">{I.check('#fff')}</div>
           저장 · 권한 부여 단계로
         </button>
       </div>
+
+      <AdminModal
+        open={showConfirm}
+        variant="warning"
+        title="기존 배정 권한이 변경될 수 있어요"
+        body="섹션 수를 줄인 구역의 기존 배정 권한 일부가 삭제돼요. 계속 진행하시겠어요?"
+        confirmLabel="저장하기"
+        cancelLabel="취소"
+        onConfirm={() => {
+          setShowConfirm(false)
+          applyAndSave()
+        }}
+        onClose={() => setShowConfirm(false)}
+      />
     </aside>
   )
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import { FESTIV_TOKENS, I } from '../../tokens'
 import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
+import { useFestivalStore } from '../../stores/useFestivalStore'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
@@ -134,9 +135,15 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   const [locationDraft, setLocationDraft] = useState('')
   const approvedBooths = accounts.filter((a) => a.status === 'approved')
 
+  const {
+    startDate: storedStart,
+    endDate: storedEnd,
+    setDates,
+  } = useFestivalStore()
+
   const [notice, setNotice] = useState('기본 정보와 일정, 운영 시간을 관리해요')
-  const [startDate, setStartDate] = useState('2026-05-20')
-  const [endDate, setEndDate] = useState('2026-05-22')
+  const [startDate, setStartDate] = useState(storedStart)
+  const [endDate, setEndDate] = useState(storedEnd)
   const [selectedDay, setSelectedDay] = useState('2일차')
   const [days, setDays] = useState<DayConfig[]>([
     {
@@ -204,7 +211,10 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
             <AdminBtn
               primary
               icon={I.check('#fff')}
-              onClick={() => setNotice('저장 완료 · 사용자 화면에 반영됐어요')}
+              onClick={() => {
+                setDates(startDate, endDate)
+                setNotice('저장 완료 · 사용자 화면에 반영됐어요')
+              }}
             >
               저장
             </AdminBtn>

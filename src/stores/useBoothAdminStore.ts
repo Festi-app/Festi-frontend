@@ -12,6 +12,14 @@ export interface NightMenuItem {
   image?: string
 }
 
+export interface DayActivity {
+  id: string
+  name: string
+  price: string
+  desc: string
+  image?: string
+}
+
 export interface WaitingEntry {
   id: string
   number: number
@@ -24,6 +32,7 @@ export interface WaitingEntry {
 
 export interface BoothAdminAccount {
   id: string
+  username: string
   password: string
   representativeName: string
   orgType: OrgType
@@ -38,6 +47,8 @@ export interface BoothAdminAccount {
   dayLocation?: string
   nightLocation?: string
   dayDetailImage?: string
+  dayActivities: DayActivity[]
+  nightDetailImage?: string
   nightMenus: NightMenuItem[]
   waitingList: WaitingEntry[]
 }
@@ -48,10 +59,16 @@ interface BoothAdminState {
   register: (
     data: Omit<
       BoothAdminAccount,
-      'id' | 'status' | 'dayDetailImage' | 'nightMenus' | 'waitingList'
+      | 'id'
+      | 'status'
+      | 'dayDetailImage'
+      | 'dayActivities'
+      | 'nightMenus'
+      | 'waitingList'
     >
   ) => void
-  login: (orgName: string, password: string) => boolean
+  login: (username: string, password: string) => boolean
+  isUsernameTaken: (username: string) => boolean
   logout: () => void
   updateInfo: (
     patch: Partial<
@@ -60,8 +77,10 @@ interface BoothAdminState {
         | 'dayBoothName'
         | 'dayBoothDesc'
         | 'dayDetailImage'
+        | 'dayActivities'
         | 'nightBoothName'
         | 'nightBoothDesc'
+        | 'nightDetailImage'
         | 'nightMenus'
       >
     >
@@ -135,6 +154,7 @@ export const useBoothAdminStore = create<BoothAdminState>((set, get) => ({
   accounts: [
     {
       id: 'seed1',
+      username: 'comphub',
       password: '1234',
       representativeName: '홍길동',
       orgType: '동아리/소모임',
@@ -148,6 +168,7 @@ export const useBoothAdminStore = create<BoothAdminState>((set, get) => ({
       status: 'approved',
       dayLocation: 'A구역 3번',
       nightLocation: 'N2구역 1번',
+      dayActivities: [],
       nightMenus: [
         { id: 'm1', name: '생맥주', price: '3,000', desc: '시원한 생맥주' },
         { id: 'm2', name: '소주', price: '4,000', desc: '참이슬 한 병' },
@@ -156,6 +177,7 @@ export const useBoothAdminStore = create<BoothAdminState>((set, get) => ({
     },
     {
       id: 'seed2',
+      username: 'bizschool',
       password: '1234',
       representativeName: '김철수',
       orgType: '단과대/학과',
@@ -167,6 +189,7 @@ export const useBoothAdminStore = create<BoothAdminState>((set, get) => ({
       nightBoothName: '',
       nightBoothDesc: '',
       status: 'pending',
+      dayActivities: [],
       nightMenus: [],
       waitingList: [],
     },
@@ -178,14 +201,21 @@ export const useBoothAdminStore = create<BoothAdminState>((set, get) => ({
     set((s) => ({
       accounts: [
         ...s.accounts,
-        { ...data, id, status: 'pending', nightMenus: [], waitingList: [] },
+        {
+          ...data,
+          id,
+          status: 'pending',
+          dayActivities: [],
+          nightMenus: [],
+          waitingList: [],
+        },
       ],
     }))
   },
 
-  login: (orgName, password) => {
+  login: (username, password) => {
     const account = get().accounts.find(
-      (a) => a.orgName === orgName && a.password === password
+      (a) => a.username === username && a.password === password
     )
     if (account) {
       set({ currentAccountId: account.id })
@@ -193,6 +223,9 @@ export const useBoothAdminStore = create<BoothAdminState>((set, get) => ({
     }
     return false
   },
+
+  isUsernameTaken: (username) =>
+    get().accounts.some((a) => a.username === username),
 
   logout: () => set({ currentAccountId: null }),
 

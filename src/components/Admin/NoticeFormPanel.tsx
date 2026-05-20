@@ -4,8 +4,6 @@ import type { NoticeDraft } from './noticeShared'
 
 export type { NoticeDraft }
 
-const TYPE_OPTIONS = ['공지', '이벤트'] as const
-
 function Toggle({
   checked,
   onChange,
@@ -27,7 +25,7 @@ function Toggle({
         <div
           className={cn(
             'absolute top-0.75 size-4 rounded-full bg-white shadow-sm transition-all',
-            checked ? 'left-[18px]' : 'left-0.75'
+            checked ? 'left-4.5' : 'left-0.75'
           )}
         />
       </div>
@@ -66,32 +64,6 @@ export function NoticeFormPanel({
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-5">
-        {/* Type selector */}
-        <div className="mb-5">
-          <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
-            유형
-          </div>
-          <div className="flex gap-2">
-            {TYPE_OPTIONS.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => onChange({ type: t })}
-                className={cn(
-                  'rounded-xl px-4 py-2 text-[13px] font-bold transition-all',
-                  draft.type === t
-                    ? t === '공지'
-                      ? 'bg-cta text-white'
-                      : 'bg-sun text-[#141A1F]'
-                    : 'bg-surface-alt text-ink-60'
-                )}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Title */}
         <div className="mb-5">
           <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
@@ -148,7 +120,7 @@ export function NoticeFormPanel({
           type="button"
           onClick={onSave}
           disabled={!isValid}
-          className="flex-[2] rounded-xl bg-cta py-3 text-[14px] font-extrabold text-white disabled:opacity-40"
+          className="flex-2 rounded-xl bg-cta py-3 text-[14px] font-extrabold text-white disabled:opacity-40"
         >
           <div className="flex items-center justify-center gap-1.5">
             <div className="size-4">{I.check('#fff')}</div>

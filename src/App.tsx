@@ -33,6 +33,15 @@ import { BoothAdminRegister } from './pages/BoothAdmin/Register'
 import { BoothAdminDashboard } from './pages/BoothAdmin/Dashboard'
 import { useDayNightStore } from './stores/useDayNightStore'
 
+// ── Standalone (PWA home screen) detection ────────────────────────────────
+
+function isStandalone(): boolean {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as { standalone?: boolean }).standalone === true
+  )
+}
+
 // ── Dark mode class sync ──────────────────────────────────────────────────
 
 function DarkSync(): null {
@@ -89,7 +98,6 @@ const NAV_SECTIONS = [
       { to: '/map', label: '배치도' },
       { to: '/waiting', label: '웨이팅' },
       { to: '/me', label: '마이' },
-      { to: '', label: '-' },
       { to: '/waiting/register', label: '웨이팅 등록' },
       { to: '/waiting/detail', label: '웨이팅 상세' },
       { to: '/booths?type=day', label: '주간 부스 목록' },
@@ -171,6 +179,7 @@ function Nav() {
   const { pathname } = useLocation()
   const isAdmin =
     pathname.startsWith('/admin') || pathname.startsWith('/booth-admin')
+  if (isStandalone()) return null
   return (
     <>
       {/* Desktop sidebar */}

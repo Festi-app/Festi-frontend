@@ -1,25 +1,26 @@
-import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS } from '../../tokens'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
+import { useFestivalStore } from '../../stores/useFestivalStore'
 
-const FESTIVAL_START = new Date('2026-05-20T00:00:00')
-const PREVIEW_START = new Date('2026-05-17T00:00:00')
-
-function getDDayInfo() {
+function getDDayInfo(startDate: string, endDate: string) {
   const now = new Date()
-  if (now < FESTIVAL_START) {
+  const start = new Date(startDate + 'T00:00:00')
+  const end = new Date(endDate + 'T23:59:59')
+  if (now < start) {
     const diff = Math.ceil(
-      (FESTIVAL_START.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      (start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     )
-    const canPreview = now >= PREVIEW_START
-    return { type: 'before' as const, days: diff, canPreview }
+    return { type: 'before' as const, days: diff }
   }
-  return { type: 'after' as const, days: 0, canPreview: false }
+  if (now > end) {
+    return { type: 'after' as const }
+  }
+  return { type: 'during' as const }
 }
 
 export function MobileOffSeason({ dark = false }: { dark?: boolean }) {
-  const navigate = useNavigate()
-  const dday = getDDayInfo()
+  const { startDate, endDate } = useFestivalStore()
+  const dday = getDDayInfo(startDate, endDate)
 
   const bg = dark
     ? `linear-gradient(160deg, #1A2028 0%, #0F1216 100%)`
@@ -103,17 +104,6 @@ export function MobileOffSeason({ dark = false }: { dark?: boolean }) {
           </>
         )}
       </div>
-
-      {dday.canPreview && (
-        <button
-          type="button"
-          onClick={() => navigate('/home')}
-          className="mt-6 rounded-[18px] px-8 py-3.5 text-[14px] font-extrabold tracking-[-0.3px] text-white shadow-[0_8px_22px_rgba(0,198,224,0.35)] transition-transform duration-100 active:scale-[0.97]"
-          style={{ background: FESTIV_TOKENS.coral }}
-        >
-          축제 미리 즐기기
-        </button>
-      )}
 
       <div
         className="absolute bottom-10 flex flex-col items-center gap-1.5"
