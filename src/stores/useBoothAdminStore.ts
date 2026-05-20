@@ -59,7 +59,12 @@ interface BoothAdminState {
   register: (
     data: Omit<
       BoothAdminAccount,
-      'id' | 'status' | 'dayDetailImage' | 'nightMenus' | 'waitingList'
+      | 'id'
+      | 'status'
+      | 'dayDetailImage'
+      | 'dayActivities'
+      | 'nightMenus'
+      | 'waitingList'
     >
   ) => void
   login: (username: string, password: string) => boolean
