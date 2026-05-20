@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS } from '../../tokens'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
-
-const FESTIVAL_START = new Date('2026-05-10T00:00:00')
-const FESTIVAL_END = new Date('2026-05-12T23:59:59')
+// import { useFestivalStore, isFestivalActive } from '../../stores/useFestivalStore'
 
 export function MobileSplash({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
@@ -13,9 +11,10 @@ export function MobileSplash({ dark = false }: { dark?: boolean }) {
   useEffect(() => {
     const t = setTimeout(() => {
       setOut(true)
-      const now = new Date()
-      const dest =
-        now >= FESTIVAL_START && now <= FESTIVAL_END ? '/home' : '/off-season'
+      // 개발 중: 항상 홈으로 이동 — 실서비스 시 아래 주석 해제 후 위 줄 제거
+      const dest = '/home'
+      // const { startDate, endDate } = useFestivalStore.getState()
+      // const dest = isFestivalActive(startDate, endDate) ? '/home' : '/off-season'
       setTimeout(() => navigate(dest, { replace: true }), 400)
     }, 2000)
     return () => clearTimeout(t)

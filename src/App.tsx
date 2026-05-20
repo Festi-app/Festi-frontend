@@ -37,6 +37,15 @@ import { BoothAdminRegister } from './pages/BoothAdmin/Register'
 import { BoothAdminDashboard } from './pages/BoothAdmin/Dashboard'
 import { useDayNightStore } from './stores/useDayNightStore'
 
+// ── Standalone (PWA home screen) detection ────────────────────────────────
+
+function isStandalone(): boolean {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as { standalone?: boolean }).standalone === true
+  )
+}
+
 // ── Global UI state ───────────────────────────────────────────────────────
 
 interface UIState {
@@ -175,6 +184,7 @@ function NavLinks({
 
 function Nav() {
   const [open, setOpen] = useState(false)
+  if (isStandalone()) return null
   return (
     <>
       {/* Desktop sidebar */}
@@ -244,9 +254,22 @@ export { ALL_NAV_LINKS }
 
 function MobileLayout({ children }: { children: ReactNode }) {
   const { key } = useLocation()
+  const standalone = isStandalone()
   return (
-    <div className="min-h-screen bg-bg md:ml-45 md:flex md:items-start md:justify-center md:px-6 md:py-10">
-      <div className="relative mt-14 h-[calc(100dvh-3.5rem)] w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]">
+    <div
+      className={
+        standalone
+          ? 'h-dvh bg-bg'
+          : 'min-h-screen bg-bg md:ml-45 md:flex md:items-start md:justify-center md:px-6 md:py-10'
+      }
+    >
+      <div
+        className={
+          standalone
+            ? 'relative h-full w-full overflow-hidden'
+            : 'relative mt-14 h-[calc(100dvh-3.5rem)] w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]'
+        }
+      >
         <div
           key={key}
           className="h-full w-full"
@@ -374,7 +397,8 @@ function OffSeasonRoute() {
   return (
     <MobileLayout>
       <MobileOffSeason dark={dark} />
-    </MobileLayout>
+    </Mobi
+    leLayout>
   )
 }
 function AdminFestivalRoute() {
