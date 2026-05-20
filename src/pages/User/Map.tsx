@@ -22,7 +22,7 @@ import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import soongsilNightMap from '../../assets/soongsil-night-map.png'
 import soongsilTruckMap from '../../assets/soongsil-truck-map.png'
 import { FestiTabBar } from '../../components/User/Navbar'
-import { ZONES, NIGHT_ZONES } from '../../data/zones'
+import { ZONES, NIGHT_ZONES, getZoneName } from '../../data/zones'
 import { useDayNightStore } from '../../stores/useDayNightStore'
 import {
   useBoothSectionStore,
