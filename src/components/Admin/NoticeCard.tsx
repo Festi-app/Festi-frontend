@@ -1,11 +1,6 @@
-import { FESTIV_TOKENS, I } from '../../tokens'
+import { I } from '../../tokens'
 import { cn } from '../../lib/cn'
 import type { Notice } from '../../stores/useNoticeStore'
-
-const TYPE_STYLE: Record<Notice['type'], { bg: string; ink: string }> = {
-  공지: { bg: FESTIV_TOKENS.coralSoft, ink: FESTIV_TOKENS.coral },
-  이벤트: { bg: FESTIV_TOKENS.sunSoft, ink: '#9A7A00' },
-}
 
 export function NoticeCard({
   notice,
@@ -20,8 +15,6 @@ export function NoticeCard({
   onTogglePin: () => void
   onDelete: () => void
 }) {
-  const ts = TYPE_STYLE[notice.type]
-
   return (
     <button
       type="button"
@@ -34,12 +27,6 @@ export function NoticeCard({
       )}
     >
       <div className="mb-2 flex items-center gap-2">
-        <span
-          className="rounded-lg px-2 py-0.5 text-[10px] font-extrabold"
-          style={{ background: ts.bg, color: ts.ink }}
-        >
-          {notice.type}
-        </span>
         {notice.pinned && (
           <span className="text-[10px] font-bold text-ink-40">📌 고정</span>
         )}
@@ -70,7 +57,7 @@ export function NoticeCard({
             )}
           >
             <div className="size-3.5">
-              {I.star(notice.pinned ? FESTIV_TOKENS.ink : FESTIV_TOKENS.ink40)}
+              {I.star(notice.pinned ? '#141A1F' : '#C5CDD6')}
             </div>
           </button>
           <button
