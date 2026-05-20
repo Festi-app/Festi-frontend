@@ -18,14 +18,11 @@ import {
   DAY_BOOTH_MENUS,
   NIGHT_BOOTH_MENUS,
 } from '../../data/booths'
-import { MAP_MARKERS } from '../../data/markers'
 import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import soongsilNightMap from '../../assets/soongsil-night-map.png'
 import soongsilTruckMap from '../../assets/soongsil-truck-map.png'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { ZONES, NIGHT_ZONES } from '../../data/zones'
-
-const ALL_BOOTH_ZONES = [...ZONES, ...NIGHT_ZONES]
 import { useDayNightStore } from '../../stores/useDayNightStore'
 import {
   useBoothSectionStore,
@@ -37,6 +34,9 @@ import {
   TRUCK_ZONES,
   useTruckPlacementStore,
 } from '../../stores/useTruckPlacementStore'
+import { useWaitingStore } from '../../stores/useWaitingStore'
+
+const ALL_BOOTH_ZONES = [...ZONES, ...NIGHT_ZONES, ...TRUCK_ZONES]
 
 type MobileMapView = 'day' | 'night' | 'truck'
 
@@ -78,7 +78,7 @@ function MapSheet({
     <div
       className={`absolute flex flex-col bg-surface ${
         expanded
-          ? 'inset-x-0 bottom-0 z-40 h-[70%] rounded-t-3xl shadow-[0_-8px_32px_rgba(15,42,51,0.18)]'
+          ? 'inset-x-0 bottom-0 z-40 h-[80%] overflow-hidden rounded-t-3xl shadow-[0_-8px_32px_rgba(15,42,51,0.18)]'
           : 'inset-x-0 bottom-0 z-10 rounded-t-3xl border-t border-border px-4.5 pt-2.5 pb-25 shadow-[0_-8px_32px_rgba(15,42,51,0.18)]'
       }`}
       style={{
@@ -182,32 +182,69 @@ function WaitingActions({
   onWaiting,
   disabled,
   waitBadge,
+  alreadyWaiting,
 }: {
   onWaiting?: () => void
   disabled?: boolean
   waitBadge?: number
+  alreadyWaiting?: boolean
 }) {
   if (!onWaiting) return null
+  const noWait = waitBadge == null || waitBadge === 0
   return (
     <div className="mt-3">
-      <button
-        type="button"
-        onClick={onWaiting}
-        disabled={disabled}
-        className="flex w-full items-center justify-between rounded-[20px] bg-cta px-5 py-4 text-left shadow-[0_8px_22px_rgba(0,198,224,0.4)] disabled:opacity-40"
-      >
-        <div>
-          <div className="text-[17px] font-extrabold tracking-[-0.4px] text-cta-ink">
-            웨이팅 걸기
-          </div>
-          {waitBadge !== undefined && (
-            <div className="text-[11px] font-semibold text-cta-ink/70">
-              현재 {waitBadge === 0 ? '없음' : `${waitBadge}팀`} 대기
+      {alreadyWaiting ? (
+        <div className="flex w-full items-center justify-between rounded-[20px] bg-[#D0D5D8] px-5 py-4 dark:bg-[#2F353B]">
+          <div>
+            <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-ink-60 dark:text-ink-40">
+              이미 웨이팅 중
             </div>
-          )}
+            <div className="text-[11px] font-semibold text-ink-40">
+              웨이팅 상세에서 확인할 수 있어요
+            </div>
+          </div>
+          <div className="size-4.5">{I.chev(undefined, 'r')}</div>
         </div>
-        <div className="size-4.5">{I.chev('#fff', 'r')}</div>
-      </button>
+      ) : noWait ? (
+        <div className="flex w-full items-center justify-between rounded-[20px] bg-pop px-5 py-4">
+          <div>
+            <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-white">
+              지금 바로 입장해주세요!
+            </div>
+            <div className="text-[11px] font-semibold text-white/70">
+              대기 없이 바로 입장 가능합니다
+            </div>
+          </div>
+          <div className="size-4.5 text-white">
+            <svg viewBox="0 0 16 16" width="18" height="18" fill="none">
+              <path
+                d="M3 8l3.5 3.5L13 4.5"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={onWaiting}
+          disabled={disabled}
+          className="flex w-full items-center justify-between rounded-[20px] bg-cta px-5 py-4 text-left shadow-[0_8px_22px_rgba(0,198,224,0.4)] disabled:opacity-40"
+        >
+          <div>
+            <div className="text-[17px] font-extrabold tracking-[-0.4px] text-cta-ink">
+              웨이팅 걸기
+            </div>
+            <div className="text-[11px] font-semibold text-cta-ink/70">
+              현재 {waitBadge}팀 대기
+            </div>
+          </div>
+          <div className="size-4.5">{I.chev('#fff', 'r')}</div>
+        </button>
+      )}
     </div>
   )
 }
@@ -226,6 +263,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   } = useTruckPlacementStore()
   const { permissions: boothPermissions, zoneDivisions } =
     useBoothSectionStore()
+  const { waitings } = useWaitingStore()
   const [selectedFestivalDay, setSelectedFestivalDay] = useState('2일차')
   const CURRENT_DAY_LABEL = '2일차'
   const [dayDropdownOpen, setDayDropdownOpen] = useState(false)
@@ -271,6 +309,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   // 데스크탑에서 테스트하기 위해 추가한 마우스 드래그 ref
   const mouseDragStart = useRef<{ x: number; y: number } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const pendingPanRef = useRef<{ x: number; y: number; scale: number } | null>(
+    null
+  )
 
   const MIN_SCALE = 1
   const MAX_SCALE = 3.5
@@ -362,10 +403,107 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     setListOpen(false)
   }
 
+  function selectBoothOnMap(
+    booth: { zoneId?: string; sections?: number[]; id: number },
+    boothType: 'day' | 'night' | 'truck'
+  ) {
+    const zoneId = booth.zoneId
+    const slot = booth.sections?.[0] ?? 0
+
+    // 선택 상태 초기화 및 설정
+    setListOpen(false)
+    setSheetExpanded(false)
+    setSelectedId(null)
+    setSelectedUserTruck(null)
+
+    if (boothType === 'truck') {
+      setSelectedSection(zoneId ? { zoneId, slot } : null)
+      setSelectedBoothCell(null)
+      setSelectedBoothPermId(null)
+      setSheetExpandable(true)
+    } else {
+      const time: PermTime = boothType === 'night' ? '야간' : '주간'
+      const perm = boothPermissions.find(
+        (p) =>
+          p.zoneId === zoneId &&
+          p.day === selectedDayNumber &&
+          p.time === time &&
+          (booth.sections?.some((s) => p.sections.includes(s)) ?? false)
+      )
+      setSelectedBoothCell(zoneId ? { zoneId, slot } : null)
+      setSelectedBoothPermId(perm?.id ?? null)
+      setSelectedSection(null)
+      setSheetExpandable(true)
+    }
+
+    if (boothType === 'day') setIsDay(true)
+    if (boothType === 'night') setIsDay(false)
+
+    // 지도 패닝 계산
+    const el = containerRef.current
+    if (el && zoneId) {
+      const targetZones =
+        boothType === 'day'
+          ? ZONES
+          : boothType === 'night'
+            ? NIGHT_ZONES
+            : TRUCK_ZONES
+      const zone = targetZones.find((z) => z.id === zoneId)
+      if (zone) {
+        const cw = el.clientWidth
+        const ch = el.clientHeight
+        const ratio =
+          boothType === 'day'
+            ? 998 / 1072
+            : boothType === 'night'
+              ? 846 / 1430
+              : 590 / 822
+        const imgH = cw * ratio
+        const zoneLeft = parseFloat(zone.left) / 100
+        const zoneTop = parseFloat(zone.top) / 100
+        const zoneW = parseFloat(zone.width) / 100
+        const zoneH = parseFloat(zone.height) / 100
+        const zx = (zoneLeft + zoneW / 2) * cw
+        const zy = (ch - imgH) / 2 + (zoneTop + zoneH / 2) * imgH
+        const targetScale = 2
+        const maxX = Math.max(0, ((targetScale - 1) * cw) / 2)
+        const maxY = Math.max(0, (imgH * targetScale) / 2 - ch * 0.2)
+        const clampedX = Math.max(
+          -maxX,
+          Math.min(maxX, (cw / 2 - zx) * targetScale)
+        )
+        const clampedY = Math.max(
+          -maxY,
+          Math.min(maxY, (ch / 2 - zy) * targetScale)
+        )
+
+        if (boothType !== mapView) {
+          pendingPanRef.current = {
+            x: clampedX,
+            y: clampedY,
+            scale: targetScale,
+          }
+        } else {
+          setScale(targetScale)
+          setOffset({ x: clampedX, y: clampedY })
+        }
+      }
+    }
+
+    setMapView(boothType)
+  }
+
   // 진입 및 지도 변경 시 이미지가 화면 세로를 최대한 채우는 스케일로 시작
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
+    if (pendingPanRef.current) {
+      const { x, y, scale: s } = pendingPanRef.current
+      pendingPanRef.current = null
+      setScale(s)
+      setOffset({ x, y })
+      return
+    }
     const imageH = el.clientWidth * activeMapRatio
     setScale(Math.min(MAX_SCALE, el.clientHeight / imageH))
     setOffset({ x: 0, y: 0 })
@@ -536,7 +674,14 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
 
   // 구역 오버레이용 데이터 (핀 마커 대신 구역 박스로 표시)
   const truckTime = isDay ? '주간' : '야간'
-  const allMarkers = useMemo(() => [...MAP_MARKERS], [])
+  const allMarkers = useMemo(
+    () => [
+      ...DAY_BOOTHS.map((b) => ({ ...b, type: b.type })),
+      ...NIGHT_BOOTHS.map((b) => ({ ...b, type: b.type })),
+      ...TRUCK_BOOTHS.map((b) => ({ ...b, type: 'truck' as const })),
+    ],
+    []
+  )
 
   const selectedMarker =
     selectedId !== null
@@ -550,7 +695,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   })
 
   const listMarkers = listCatFilter
-    ? listMarkersBase.filter((m) => m.cat === listCatFilter)
+    ? listMarkersBase.filter((m) => m.category === listCatFilter)
     : listMarkersBase
 
   const typeColor = (type: string) =>
@@ -561,19 +706,6 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         : type === 'special'
           ? FESTIV_TOKENS.grape
           : FESTIV_TOKENS.pop
-
-  const typePillColors = (type: string): { bg: string; ink: string } => {
-    if (type === 'truck')
-      return { bg: FESTIV_TOKENS.sunSoft ?? '#FFF5D6', ink: FESTIV_TOKENS.sun }
-    if (type === 'night')
-      return { bg: FESTIV_TOKENS.alertSoft, ink: FESTIV_TOKENS.alert }
-    if (type === 'special')
-      return {
-        bg: FESTIV_TOKENS.grapeSoft ?? '#EDE7F8',
-        ink: FESTIV_TOKENS.grape,
-      }
-    return { bg: FESTIV_TOKENS.popSoft ?? '#E6FBF5', ink: FESTIV_TOKENS.pop }
-  }
 
   const typeLabel = (type: string) => {
     if (type === 'truck') return '푸드트럭'
@@ -595,7 +727,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       (m) =>
         m.name.toLowerCase().includes(q) ||
         String(m.id).includes(q) ||
-        m.cat.toLowerCase().includes(q)
+        (m.category ?? '').toLowerCase().includes(q)
     )
   }, [searchQuery, allMarkers])
 
@@ -685,7 +817,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                     )
                     const selected =
                       selectedBoothCell?.zoneId === zone.id &&
-                      selectedBoothCell.slot === idx
+                      (linkedBooth?.zoneId === zone.id
+                        ? (linkedBooth.sections?.includes(idx) ?? false)
+                        : selectedBoothCell.slot === idx)
                     const isLast = idx === divisions - 1
                     return (
                       <button
@@ -756,7 +890,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                       : null
                     const selSlot =
                       selectedSection?.zoneId === zone.id &&
-                      selectedSection?.slot === idx
+                      (linkedTruckBooth?.zoneId === zone.id
+                        ? (linkedTruckBooth.sections?.includes(idx) ?? false)
+                        : selectedSection.slot === idx)
                     const isLast = idx === count - 1
                     return (
                       <button
@@ -1001,6 +1137,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               })()
             : undefined
           const truckArea = truckAreaFromStore ?? selectedUserTruck.section
+          const truckZoneColor =
+            TRUCK_ZONES.find((z) => z.id === selectedUserTruck.zoneId)?.color ??
+            FESTIV_TOKENS.sun
           return (
             <MapSheet
               sheetDragY={sheetDragY}
@@ -1015,7 +1154,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               {!sheetExpanded && (
                 <>
                   <BoothPinHeader
-                    color={FESTIV_TOKENS.sun}
+                    color={truckZoneColor}
                     badgeText={selectedUserTruck.id}
                     badgeFontSize="text-[15px]"
                     pill={{
@@ -1033,27 +1172,32 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                         : undefined
                     }
                     name={selectedUserTruck.name}
-                    sub={selectedUserTruck.desc}
+                    sub={selectedUserTruck.description}
                   />
                   <StatGrid
                     className="mt-3"
                     stats={[
                       { label: '운영 날짜', value: '전일 운영' },
-                      { label: '운영 시간', value: selectedUserTruck.hours },
+                      {
+                        label: '운영 시간',
+                        value: selectedUserTruck.operatingHours,
+                      },
                     ]}
                   />
                 </>
               )}
               {sheetExpanded && (
                 <div className="relative h-full overflow-hidden">
-                  <div className="h-full overflow-y-auto overscroll-none px-5 pt-4 pb-27.5">
+                  <div className="h-full overflow-y-auto overscroll-none px-5 pt-4 pb-28">
                     <BoothDetailContent
                       type="truck"
                       name={selectedUserTruck.name}
                       id={selectedUserTruck.id}
-                      hours={selectedUserTruck.hours}
-                      desc={selectedUserTruck.desc}
+                      sections={selectedUserTruck.sections}
+                      operatingHours={selectedUserTruck.operatingHours}
+                      description={selectedUserTruck.description}
                       area={truckArea}
+                      circleColor={truckZoneColor}
                       menus={TRUCK_BOOTH_MENUS.filter(
                         (m) => m.boothId === selectedUserTruck.id
                       )}
@@ -1096,23 +1240,19 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                 <>
                   {!sheetExpanded && (
                     <>
-                      <BoothPinHeader
-                        color={zone.color}
-                        badgeText={
-                          selectedSection ? selectedSection.slot + 1 : '—'
-                        }
-                        pill={{
-                          color: zone.color + '22',
-                          ink: zone.color,
-                          content: `푸드트럭 · ${zone.name}`,
-                        }}
-                        name={
-                          truck?.name ??
-                          linkedTruckBooth?.name ??
-                          '비어있는 섹션'
-                        }
-                      />
-                      {!truck && !linkedTruckBooth && (
+                      {linkedTruckBooth ? (
+                        <BoothDetailContent
+                          dark={dark}
+                          type="truck"
+                          name={truck?.name ?? linkedTruckBooth.name}
+                          id={linkedTruckBooth.id}
+                          sections={linkedTruckBooth.sections}
+                          operatingHours={linkedTruckBooth.operatingHours}
+                          description={linkedTruckBooth.description}
+                          area={zone.name}
+                          circleColor={zone.color}
+                        />
+                      ) : (
                         <div className="mt-3 rounded-xl bg-surface-alt px-4 py-3 text-center text-[12px] text-ink-40">
                           이 섹션에 배정된 푸드트럭이 없어요
                         </div>
@@ -1121,15 +1261,18 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                   )}
                   {sheetExpanded && linkedTruckBooth && (
                     <div className="relative h-full overflow-hidden">
-                      <div className="h-full overflow-y-auto overscroll-none px-5 pt-4 pb-27.5">
+                      <div className="h-full overflow-y-auto overscroll-none px-5 pt-4 pb-28">
                         <BoothDetailContent
+                          dark={dark}
                           type="truck"
                           name={truck?.name ?? linkedTruckBooth.name}
                           id={linkedTruckBooth.id}
-                          hours={linkedTruckBooth.hours}
-                          desc={linkedTruckBooth.desc}
+                          sections={linkedTruckBooth.sections}
+                          operatingHours={linkedTruckBooth.operatingHours}
+                          description={linkedTruckBooth.description}
                           area={zone.name}
                           menus={linkedTruckMenus}
+                          circleColor={zone.color}
                         />
                       </div>
                     </div>
@@ -1155,82 +1298,144 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         >
           {!sheetExpanded && (
             <>
-              <BoothPinHeader
-                color={selectedBoothCellPerm?.color ?? selectedBoothZone.color}
-                badgeText={selectedBoothCell ? selectedBoothCell.slot + 1 : '—'}
-                pill={{
-                  color:
-                    (selectedBoothCellPerm?.color ?? selectedBoothZone.color) +
-                    '22',
-                  ink: selectedBoothCellPerm?.color ?? selectedBoothZone.color,
-                  content: `${selectedDayNumber}일차 · ${activeBoothTime} · ${selectedBoothZone.name}`,
-                }}
-                name={
-                  selectedBoothCellPerm?.orgName ??
-                  linkedBooth?.name ??
-                  '비어있는 섹션'
-                }
-                sub={
-                  selectedBoothCellPerm ? (
-                    <>
-                      {selectedBoothCell
-                        ? `${selectedBoothCell.slot + 1}번 섹션`
-                        : '섹션'}
-                      {` · ${selectedBoothCellPerm.category}`}
-                    </>
-                  ) : linkedBooth ? (
-                    <>
-                      {selectedBoothCell
-                        ? `${selectedBoothCell.slot + 1}번 섹션`
-                        : '섹션'}
-                    </>
-                  ) : undefined
-                }
-              />
-              {!selectedBoothCellPerm && !linkedBooth && (
+              {linkedBooth ? (
+                <BoothDetailContent
+                  dark={dark}
+                  type={activeBoothTime === '야간' ? 'night' : 'day'}
+                  name={linkedBooth.name}
+                  id={linkedBooth.id}
+                  sections={linkedBooth.sections}
+                  category={linkedBooth.category}
+                  operatingHours={linkedBooth.operatingHours}
+                  days={linkedBooth.days}
+                  description={linkedBooth.description}
+                  area={selectedBoothZone.name}
+                  circleColor={selectedBoothZone.color}
+                />
+              ) : selectedBoothCellPerm ? (
+                <BoothDetailContent
+                  dark={dark}
+                  type={activeBoothTime === '야간' ? 'night' : 'day'}
+                  name={selectedBoothCellPerm.orgName}
+                  id={selectedBoothCellPerm.id}
+                  category={selectedBoothCellPerm.category}
+                  area={selectedBoothZone.name}
+                  circleColor={selectedBoothZone.color}
+                />
+              ) : (
                 <div className="mt-3 rounded-xl bg-surface-alt px-4 py-3 text-center text-[12px] text-ink-40">
                   이 섹션에 배정된 부스가 없어요
                 </div>
               )}
-              <WaitingActions
-                onWaiting={
-                  mapView === 'night' && selectedBoothCellPerm
-                    ? () =>
-                        navigate(
-                          `/waiting/register?id=${selectedBoothCellPerm.id}`
-                        )
-                    : undefined
-                }
-                disabled={!selectedBoothCellPerm}
-              />
+              {mapView === 'night' && linkedBooth && (
+                <WaitingActions
+                  onWaiting={() =>
+                    navigate(`/waiting/register?id=${linkedBooth.id}`)
+                  }
+                  waitBadge={linkedBooth.wait}
+                  alreadyWaiting={waitings.some(
+                    (w) => w.boothId === linkedBooth.id
+                  )}
+                />
+              )}
             </>
           )}
           {sheetExpanded && (selectedBoothCellPerm || linkedBooth) && (
             <div className="relative h-full overflow-hidden">
-              <div className="h-full overflow-y-auto overscroll-none px-5 pt-4 pb-27.5">
+              <div
+                className={`h-full overflow-y-auto overscroll-none px-5 pt-4 ${mapView === 'night' && linkedBooth ? 'pb-44' : 'pb-28'}`}
+              >
                 {linkedBooth ? (
                   <BoothDetailContent
+                    dark={dark}
                     type={activeBoothTime === '야간' ? 'night' : 'day'}
                     name={linkedBooth.name}
                     id={linkedBooth.id}
-                    cat={linkedBooth.cat}
-                    hours={linkedBooth.hours}
-                    desc={linkedBooth.desc}
+                    sections={linkedBooth.sections}
+                    category={linkedBooth.category}
+                    operatingHours={linkedBooth.operatingHours}
+                    days={linkedBooth.days}
+                    description={linkedBooth.description}
                     area={selectedBoothZone.name}
                     menus={linkedMenus}
+                    zoneId={selectedBoothZone.id}
+                    circleColor={selectedBoothZone.color}
                   />
                 ) : selectedBoothCellPerm ? (
-                  <div className="pt-4 text-center text-[13px] text-ink-40">
-                    <div className="mb-1 text-[15px] font-bold text-ink">
-                      {selectedBoothCellPerm.orgName}
-                    </div>
-                    <div>
-                      {selectedBoothCellPerm.category} ·{' '}
-                      {selectedBoothZone.name}
-                    </div>
-                  </div>
+                  <BoothDetailContent
+                    dark={dark}
+                    type={activeBoothTime === '야간' ? 'night' : 'day'}
+                    name={selectedBoothCellPerm.orgName}
+                    id={selectedBoothCellPerm.id}
+                    cat={selectedBoothCellPerm.category}
+                    area={selectedBoothZone.name}
+                    zoneId={selectedBoothZone.id}
+                    circleColor={selectedBoothZone.color}
+                  />
                 ) : null}
               </div>
+              {mapView === 'night' && linkedBooth && (
+                <div className="absolute inset-x-0 bottom-0 z-20 bg-[linear-gradient(180deg,transparent_0%,var(--color-surface)_35%)] px-5 pt-3 pb-24">
+                  {waitings.some((w) => w.boothId === linkedBooth.id) ? (
+                    <div className="flex w-full items-center justify-between rounded-[20px] bg-[#D0D5D8] px-5 py-4 dark:bg-[#2F353B]">
+                      <div>
+                        <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-ink-60 dark:text-ink-40">
+                          이미 웨이팅 중
+                        </div>
+                        <div className="text-[11px] font-semibold text-ink-40">
+                          웨이팅 상세에서 확인할 수 있어요
+                        </div>
+                      </div>
+                      <div className="size-4.5">{I.chev(undefined, 'r')}</div>
+                    </div>
+                  ) : linkedBooth.wait == null || linkedBooth.wait === 0 ? (
+                    <div className="flex w-full items-center justify-between rounded-[20px] bg-pop px-5 py-4">
+                      <div>
+                        <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-white">
+                          지금 바로 입장해주세요!
+                        </div>
+                        <div className="text-[11px] font-semibold text-white/70">
+                          대기 없이 바로 입장 가능합니다
+                        </div>
+                      </div>
+                      <div className="size-4.5 text-white">
+                        <svg
+                          viewBox="0 0 16 16"
+                          width="18"
+                          height="18"
+                          fill="none"
+                        >
+                          <path
+                            d="M3 8l3.5 3.5L13 4.5"
+                            stroke="currentColor"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate(`/waiting/register?id=${linkedBooth.id}`)
+                      }
+                      className="flex w-full items-center justify-between rounded-[20px] bg-cta px-5 py-4 text-left shadow-[0_8px_22px_rgba(0,198,224,0.4)]"
+                    >
+                      <div>
+                        <div className="text-[17px] font-extrabold tracking-[-0.4px] text-cta-ink">
+                          웨이팅 걸기
+                        </div>
+                        <div className="text-[11px] font-semibold text-cta-ink/70">
+                          현재 {linkedBooth.wait}팀 대기
+                        </div>
+                      </div>
+                      <div className="size-4.5">{I.chev('#fff', 'r')}</div>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </MapSheet>
@@ -1252,46 +1457,40 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
           {/* ── 미확장: 컴팩트 카드 ── */}
           {!sheetExpanded && (
             <>
-              <>
-                <BoothPinHeader
-                  color={typeColor(selectedMarker.type)}
-                  badgeText={selectedMarker.id}
-                  badgeFontSize="text-[15px]"
-                  pill={{
-                    color: typePillColors(selectedMarker.type).bg,
-                    ink: typePillColors(selectedMarker.type).ink,
-                    content: typeLabel(selectedMarker.type),
-                  }}
-                  pill2={{
-                    color:
-                      BOOTH_CATEGORY_THEMES[selectedMarker.cat as BoothCategory]
-                        ?.soft ?? '#F1F7F8',
-                    ink: '#141A1F',
-                    content: selectedMarker.cat,
-                  }}
-                  name={selectedMarker.name}
-                  sub={selectedMarker.desc}
+              <BoothDetailContent
+                dark={dark}
+                type={selectedMarker.type}
+                id={selectedMarker.id}
+                sections={selectedMarker.sections}
+                name={selectedMarker.name}
+                category={selectedMarker.category}
+                operatingHours={selectedMarker.operatingHours}
+                days={selectedMarker.days}
+                description={selectedMarker.description}
+                area={
+                  ALL_BOOTH_ZONES.find((z) => z.id === selectedMarker.zoneId)
+                    ?.name ?? selectedMarker.area
+                }
+                circleColor={
+                  ALL_BOOTH_ZONES.find((z) => z.id === selectedMarker.zoneId)
+                    ?.color
+                }
+              />
+              {selectedMarker.type === 'night' && (
+                <WaitingActions
+                  onWaiting={() =>
+                    navigate(`/waiting/register?id=${selectedMarker.id}`)
+                  }
+                  waitBadge={selectedMarker.wait}
+                  alreadyWaiting={waitings.some(
+                    (w) => w.boothId === selectedMarker.id
+                  )}
                 />
-                <StatGrid
-                  className="mt-3"
-                  stats={[
-                    { label: '운영 날짜', value: '전일 운영' },
-                    { label: '운영 시간', value: selectedMarker.hours ?? '—' },
-                  ]}
-                />
-                {selectedMarker.type === 'night' && (
-                  <WaitingActions
-                    onWaiting={() =>
-                      navigate(`/waiting/register?id=${selectedMarker.id}`)
-                    }
-                    waitBadge={selectedMarker.wait}
-                  />
-                )}
-              </>
+              )}
             </>
           )}
 
-          {/* ── 확장: 상세 페이지 레이아웃 ── */}
+          {/* ── 확장: 상세 ── */}
           {sheetExpanded && (
             <div className="relative h-full overflow-hidden">
               {/* 스크롤 바디 */}
@@ -1300,57 +1499,99 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               >
                 <BoothDetailContent
                   dark={dark}
-                  name={selectedMarker.name}
-                  cat={selectedMarker.cat}
-                  id={selectedMarker.id}
-                  wait={selectedMarker.wait}
                   type={selectedMarker.type}
-                  hours={selectedMarker.hours}
-                  desc={selectedMarker.desc}
+                  id={selectedMarker.id}
+                  sections={selectedMarker.sections}
+                  name={selectedMarker.name}
+                  category={selectedMarker.category}
+                  operatingHours={selectedMarker.operatingHours}
+                  days={selectedMarker.days}
+                  description={selectedMarker.description}
+                  area={
+                    ALL_BOOTH_ZONES.find((z) => z.id === selectedMarker.zoneId)
+                      ?.name ?? selectedMarker.area
+                  }
+                  circleColor={
+                    ALL_BOOTH_ZONES.find((z) => z.id === selectedMarker.zoneId)
+                      ?.color
+                  }
                   menus={
                     selectedMarker.type === 'night'
                       ? NIGHT_BOOTH_MENUS.filter(
                           (m) => m.boothId === selectedMarker.id
                         )
-                      : DAY_BOOTH_MENUS.filter(
-                          (m) => m.boothId === selectedMarker.id
-                        )
-                  }
-                  catPill={
-                    selectedMarker.type !== 'night' &&
-                    BOOTH_CATEGORY_THEMES[selectedMarker.cat as BoothCategory]
-                      ? {
-                          color:
-                            BOOTH_CATEGORY_THEMES[
-                              selectedMarker.cat as BoothCategory
-                            ].soft,
-                          ink: '#141A1F',
-                        }
-                      : undefined
+                      : selectedMarker.type === 'truck'
+                        ? TRUCK_BOOTH_MENUS.filter(
+                            (m) => m.boothId === selectedMarker.id
+                          )
+                        : DAY_BOOTH_MENUS.filter(
+                            (m) => m.boothId === selectedMarker.id
+                          )
                   }
                 />
               </div>
-
               {/* 스티키 CTA - 야간만 */}
               {selectedMarker.type === 'night' && (
                 <div className="absolute inset-x-0 bottom-0 z-20 bg-[linear-gradient(180deg,transparent_0%,var(--color-surface)_35%)] px-5 pt-3 pb-24">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate(`/waiting/register?id=${selectedMarker.id}`)
-                    }
-                    className="flex w-full items-center justify-between rounded-[20px] bg-cta px-5 py-4 text-left shadow-[0_8px_22px_rgba(0,198,224,0.4)]"
-                  >
-                    <div>
-                      <div className="text-[17px] font-extrabold tracking-[-0.4px] text-cta-ink">
-                        웨이팅 걸기
+                  {waitings.some((w) => w.boothId === selectedMarker.id) ? (
+                    <div className="flex w-full items-center justify-between rounded-[20px] bg-[#D0D5D8] px-5 py-4 dark:bg-[#2F353B]">
+                      <div>
+                        <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-ink-60 dark:text-ink-40">
+                          이미 웨이팅 중
+                        </div>
+                        <div className="text-[11px] font-semibold text-ink-40">
+                          웨이팅 상세에서 확인할 수 있어요
+                        </div>
                       </div>
-                      <div className="text-[11px] font-semibold text-cta-ink/70">
-                        현재 {selectedMarker.wait}팀 대기
+                      <div className="size-4.5">{I.chev(undefined, 'r')}</div>
+                    </div>
+                  ) : selectedMarker.wait == null ||
+                    selectedMarker.wait === 0 ? (
+                    <div className="flex w-full items-center justify-between rounded-[20px] bg-pop px-5 py-4">
+                      <div>
+                        <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-white">
+                          지금 바로 입장해주세요!
+                        </div>
+                        <div className="text-[11px] font-semibold text-white/70">
+                          대기 없이 바로 입장 가능합니다
+                        </div>
+                      </div>
+                      <div className="size-4.5 text-white">
+                        <svg
+                          viewBox="0 0 16 16"
+                          width="18"
+                          height="18"
+                          fill="none"
+                        >
+                          <path
+                            d="M3 8l3.5 3.5L13 4.5"
+                            stroke="currentColor"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
                       </div>
                     </div>
-                    <div className="size-4.5">{I.chev('#fff', 'r')}</div>
-                  </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate(`/waiting/register?id=${selectedMarker.id}`)
+                      }
+                      className="flex w-full items-center justify-between rounded-[20px] bg-cta px-5 py-4 text-left shadow-[0_8px_22px_rgba(0,198,224,0.4)]"
+                    >
+                      <div>
+                        <div className="text-[17px] font-extrabold tracking-[-0.4px] text-cta-ink">
+                          웨이팅 걸기
+                        </div>
+                        <div className="text-[11px] font-semibold text-cta-ink/70">
+                          현재 {selectedMarker.wait}팀 대기
+                        </div>
+                      </div>
+                      <div className="size-4.5">{I.chev('#fff', 'r')}</div>
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -1462,37 +1703,35 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               <div className="h-full overflow-y-auto overscroll-none px-4 pb-27.5">
                 {listTab === 'truck' ? (
                   <div className="flex flex-col divide-y divide-border">
-                    {TRUCK_BOOTHS.map((truck) => (
-                      <button
-                        key={truck.id}
-                        type="button"
-                        onClick={() => {
-                          setListOpen(false)
-                          setSelectedUserTruck(truck)
-                          setSelectedId(null)
-                          setSelectedSection(null)
-                          setSelectedBoothCell(null)
-                          setSelectedBoothPermId(null)
-                          setSheetExpanded(false)
-                        }}
-                        className="flex w-full items-center gap-3 py-3.5 text-left"
-                      >
-                        <div
-                          className="flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
-                          style={{ background: FESTIV_TOKENS.sun }}
+                    {TRUCK_BOOTHS.map((truck) => {
+                      const truckZone = ALL_BOOTH_ZONES.find(
+                        (z) => z.id === truck.zoneId
+                      )
+                      const pinColor = truckZone?.color ?? FESTIV_TOKENS.sun
+                      return (
+                        <button
+                          key={truck.id}
+                          type="button"
+                          onClick={() => selectBoothOnMap(truck, 'truck')}
+                          className="flex w-full items-center gap-3 py-3.5 text-left"
                         >
-                          {truck.id}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
-                            {truck.name}
+                          <div
+                            className="flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
+                            style={{ background: pinColor }}
+                          >
+                            {truck.id}
                           </div>
-                          <div className="mt-0.5 text-[11px] text-ink-60">
-                            {truck.hours}
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
+                              {truck.name}
+                            </div>
+                            <div className="mt-0.5 text-[11px] text-ink-60">
+                              {truckZone?.name ?? truck.area}
+                            </div>
                           </div>
-                        </div>
-                      </button>
-                    ))}
+                        </button>
+                      )
+                    })}
                   </div>
                 ) : listMarkers.length === 0 ? (
                   <div className="py-10 text-center text-sm text-ink-40">
@@ -1501,19 +1740,19 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                 ) : (
                   <div className="flex flex-col divide-y divide-border">
                     {listMarkers.map((m) => {
-                      const pinColor = typeColor(m.type)
+                      const pinColor =
+                        ALL_BOOTH_ZONES.find((z) => z.id === m.zoneId)?.color ??
+                        typeColor(m.type)
                       return (
                         <button
                           key={m.id}
                           type="button"
-                          onClick={() => {
-                            setListOpen(false)
-                            setSelectedId(m.id)
-                            setSelectedSection(null)
-                            setSelectedBoothCell(null)
-                            setSelectedBoothPermId(null)
-                            setSheetExpanded(false)
-                          }}
+                          onClick={() =>
+                            selectBoothOnMap(
+                              m,
+                              m.type === 'night' ? 'night' : 'day'
+                            )
+                          }
                           className="flex items-center gap-3 py-3.5 text-left"
                         >
                           <div
@@ -1527,7 +1766,8 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                               {m.name}
                             </div>
                             <div className="mt-0.5 text-[11px] text-ink-60">
-                              {m.cat}
+                              {ALL_BOOTH_ZONES.find((z) => z.id === m.zoneId)
+                                ?.name ?? m.area}
                             </div>
                           </div>
                         </button>
@@ -1553,7 +1793,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
             }}
           />
           <div
-            className="absolute inset-x-0 top-0 z-40 bg-surface px-4 pt-13.5 pb-4 shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
+            className="absolute inset-x-0 top-0 z-40 bg-surface px-4 pt-5 pb-4 shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
             style={{
               animation:
                 'festi-page-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
@@ -1607,7 +1847,10 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               ) : (
                 <div className="flex flex-col gap-1">
                   {searchResults.map((m) => {
-                    const ws = waitStatus(m.wait)
+                    const ws =
+                      m.type === 'night' && m.wait != null
+                        ? waitStatus(m.wait)
+                        : null
                     return (
                       <button
                         key={m.id}
@@ -1625,24 +1868,36 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                       >
                         <div
                           className="flex size-9 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white"
-                          style={{ background: typeColor(m.type) }}
+                          style={{
+                            background:
+                              ALL_BOOTH_ZONES.find((z) => z.id === m.zoneId)
+                                ?.color ?? typeColor(m.type),
+                          }}
                         >
                           {m.id}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
-                            {m.name}
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-[14px] font-bold tracking-[-0.3px] text-ink">
+                              {m.name}
+                            </span>
+                            <span className="shrink-0 text-[11px] font-semibold text-ink-40">
+                              {typeLabel(m.type)}
+                            </span>
                           </div>
                           <div className="mt-0.5 text-[11px] text-ink-60">
-                            {m.cat}
+                            {ALL_BOOTH_ZONES.find((z) => z.id === m.zoneId)
+                              ?.name ?? m.area}
                           </div>
                         </div>
-                        <div
-                          className="text-[13px] font-extrabold"
-                          style={{ color: ws.color }}
-                        >
-                          {ws.label}
-                        </div>
+                        {ws && (
+                          <div
+                            className="text-[13px] font-extrabold"
+                            style={{ color: ws.color }}
+                          >
+                            {ws.label}
+                          </div>
+                        )}
                       </button>
                     )
                   })}

@@ -4,6 +4,7 @@ import { PhotoSlot } from '../../tokens'
 import { ScreenHeader } from '../../components/User/ScreenHeader'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { NIGHT_BOOTHS } from '../../data/booths'
+import { getZoneName } from '../../data/zones'
 import { WaitingTicketCard } from '../../components/User/WaitingTicket'
 import { Toast } from '../../components/shared/Toast'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
@@ -60,7 +61,8 @@ export function MobileWaitingDetail({
             boothName={booth.name}
             boothId={booth.id}
             boothTone={booth.tone}
-            boothArea={booth.area}
+            boothArea={getZoneName(booth.zoneId, booth.type)}
+            boothSections={booth.sections}
             registered={waiting.registered}
             waitNo={waiting.waitNo}
             callNo={waiting.callNo}
@@ -81,7 +83,7 @@ export function MobileWaitingDetail({
                   {booth.name}
                 </div>
                 <div className="mt-0.5 text-xs text-ink-60">
-                  {booth.area} · #{booth.id}
+                  {getZoneName(booth.zoneId, booth.type)} · #{booth.id}
                 </div>
               </div>
               <button
@@ -101,7 +103,7 @@ export function MobileWaitingDetail({
                       ? '없음'
                       : `${booth.wait}팀`,
                 },
-                { l: '운영 시간', v: booth.hours ?? '17시 ~ 22시' },
+                { l: '운영 시간', v: booth.operatingHours ?? '17시 ~ 22시' },
               ].map((x, i) => (
                 <div
                   key={i}

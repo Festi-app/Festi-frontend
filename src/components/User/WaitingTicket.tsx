@@ -10,6 +10,7 @@ export function WaitingTicketCard({
   boothId,
   boothTone,
   boothArea,
+  boothSections,
   registered,
   waitNo,
   callNo,
@@ -23,6 +24,7 @@ export function WaitingTicketCard({
   boothId: number
   boothTone: string
   boothArea: string
+  boothSections?: number[]
   registered: string
   waitNo: number
   callNo: number
@@ -141,11 +143,16 @@ export function WaitingTicketCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <span className="text-[15px] font-extrabold tracking-[-0.3px]">
-              {boothName}
+              #{boothId} {boothName}
             </span>
-            <span className="text-[11px] font-normal opacity-50">
-              {boothArea} #{boothId}
-            </span>
+          </div>
+          <div className="mt-0.5 text-[11px] opacity-60">
+            {boothArea}
+            {boothSections && boothSections.length > 0 && (
+              <span className="ml-1 opacity-80">
+                · {boothSections.map((s) => s + 1).join('·')}번 섹션
+              </span>
+            )}
           </div>
           <div className="mt-0.5 text-[11px] opacity-70">{registered}</div>
         </div>

@@ -197,3 +197,20 @@ export const NIGHT_ZONES: ZoneDef[] = [
 ]
 
 export const ALL_ZONES = [...ZONES, ...NIGHT_ZONES]
+
+// truck zone IDs (A-D) overlap with day zone IDs, so handled separately
+const TRUCK_ZONE_NAMES: Record<string, string> = {
+  A: '야외무대 좌측',
+  B: '상단 구역',
+  C: '하단 구역',
+  D: '우측 열',
+}
+
+export function getZoneName(
+  zoneId?: string,
+  type?: string
+): string | undefined {
+  if (!zoneId) return undefined
+  if (type === 'truck') return TRUCK_ZONE_NAMES[zoneId]
+  return ALL_ZONES.find((z) => z.id === zoneId)?.name
+}

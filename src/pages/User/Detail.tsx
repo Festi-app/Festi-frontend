@@ -8,6 +8,7 @@ import {
   DAY_BOOTH_MENUS,
   TRUCK_BOOTH_MENUS,
 } from '../../data/booths'
+import { getZoneName } from '../../data/zones'
 import type { MenuItem } from '../../data/booths'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
@@ -25,41 +26,60 @@ import { ConfirmModal } from '../../components/User/ConfirmModal'
 export function BoothDetailContent({
   dark = false,
   name,
-  cat = '',
+  category = '',
   id,
+  sections,
   type,
   catPill,
-  hours,
+  operatingHours,
   days,
-  desc,
+  description,
   area,
   menus,
+  circleColor: circleColorProp,
 }: {
   dark?: boolean
   name: string
-  cat?: string
+  category?: string
   id: number
+  sections?: number[] // booth_locations.index[] (0-based) — 구역 내 슬롯 위치
   type: string
   catPill?: { color: string; ink: string }
-  hours?: string
+  operatingHours?: string
   days?: string[]
-  desc?: string
+  description?: string
   area?: string
   menus?: MenuItem[]
+  circleColor?: string
 }) {
   const surfaceAlt = dark ? '#252A30' : '#F1F7F8'
   const ink80 = dark ? '#CDD5DA' : '#2E363C'
   const isTruck = type === 'truck'
   const isNight = type === 'night'
-  const resolvedCatPill = catPill ?? { color: surfaceAlt, ink: ink80 }
   const resolvedMenus = menus ?? []
   const defaultHours = isNight ? '17시 ~ 22시' : isTruck ? '' : '10시 ~ 18시'
 
-  const circleColor = isTruck
-    ? FESTIV_TOKENS.sun
-    : isNight
-      ? FESTIV_TOKENS.alert
-      : FESTIV_TOKENS.pop
+  const CAT_SOFT: Record<string, string> = {
+    정보: FESTIV_TOKENS.mintSoft ?? '#D4F7F8',
+    체험: FESTIV_TOKENS.grapeSoft ?? '#EDE7F8',
+    마켓: FESTIV_TOKENS.sunSoft ?? '#FFF3C2',
+    활동: FESTIV_TOKENS.popSoft ?? '#D9F2E2',
+    주점: FESTIV_TOKENS.alertSoft ?? '#FFE5E5',
+    야식: FESTIV_TOKENS.sunSoft ?? '#FFF3C2',
+  }
+  const resolvedCatPill =
+    catPill ??
+    (category && CAT_SOFT[category]
+      ? { color: CAT_SOFT[category], ink: '#141A1F' }
+      : { color: surfaceAlt, ink: ink80 })
+
+  const circleColor =
+    circleColorProp ??
+    (isTruck
+      ? FESTIV_TOKENS.sun
+      : isNight
+        ? FESTIV_TOKENS.alert
+        : FESTIV_TOKENS.pop)
   const pillBg = isTruck
     ? FESTIV_TOKENS.sunSoft
     : isNight
@@ -76,8 +96,9 @@ export function BoothDetailContent({
     <>
       <div className="mb-4 flex items-start gap-3">
         <div
-          className="flex size-11 shrink-0 items-center justify-center rounded-full text-[15px] font-extrabold text-white"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full font-extrabold text-white"
           style={{
+            fontSize: 15,
             background: circleColor,
             boxShadow: `inset 0 0 0 3px #fff, 0 4px 12px ${circleColor}66`,
           }}
@@ -89,9 +110,9 @@ export function BoothDetailContent({
             <Pill color={pillBg} ink={pillInk}>
               {typeLabel}
             </Pill>
-            {!isNight && !isTruck && cat && (
+            {!isNight && !isTruck && category && (
               <Pill color={resolvedCatPill.color} ink={resolvedCatPill.ink}>
-                {cat}
+                {category}
               </Pill>
             )}
             {area && (
@@ -99,13 +120,18 @@ export function BoothDetailContent({
                 {area}
               </Pill>
             )}
+            {sections && sections.length > 0 && (
+              <Pill color={surfaceAlt} ink={ink80}>
+                {'#' + sections.map((s) => s + 1).join('·')}
+              </Pill>
+            )}
           </div>
           <div className="text-2xl leading-[1.2] font-extrabold tracking-[-0.7px] text-ink">
             {name}
           </div>
-          {desc && (
+          {description && (
             <div className="mt-1.5 text-[13px] leading-normal text-ink-60">
-              {desc}
+              {description}
             </div>
           )}
         </div>
@@ -115,7 +141,7 @@ export function BoothDetailContent({
         className="mt-4"
         stats={[
           { label: '운영 날짜', value: days ? days.join(', ') : '전일 운영' },
-          { label: '운영 시간', value: hours ?? defaultHours },
+          { label: '운영 시간', value: operatingHours ?? defaultHours },
         ]}
       />
 
@@ -127,10 +153,10 @@ export function BoothDetailContent({
               <MenuItemCard
                 key={i}
                 name={m.name}
-                desc={m.desc ?? ''}
+                description={m.description ?? ''}
                 price={m.price ?? 0}
                 tone={m.tone ?? 'leaf'}
-                soldOut={m.soldOut}
+                isSoldOut={m.isSoldOut}
                 showImage
               />
             ))}
@@ -159,6 +185,7 @@ export function MobileBoothDetail({
   const { waitings, cancelWaiting } = useWaitingStore()
   const [toast, setToast] = useState<'saved' | 'unsaved' | null>(null)
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const [showCancelToast, setShowCancelToast] = useState(false)
   const boothType = isNight
     ? ('night' as const)
     : isTruck
@@ -221,13 +248,14 @@ export function MobileBoothDetail({
         <BoothDetailContent
           dark={dark}
           name={boothData.name}
-          cat={boothData.cat}
+          category={boothData.category}
           id={boothData.id}
+          sections={boothData.sections}
           type={type}
-          area={boothData.area}
-          hours={boothData.hours}
+          area={getZoneName(boothData.zoneId, boothData.type)}
+          operatingHours={boothData.operatingHours}
           days={rawBooth?.days}
-          desc={boothData.desc}
+          description={boothData.description}
           menus={menus}
         />
       </div>
@@ -305,9 +333,29 @@ export function MobileBoothDetail({
         onConfirm={() => {
           cancelWaiting(resolvedId)
           setConfirmCancel(false)
+          setShowCancelToast(true)
+          setTimeout(() => setShowCancelToast(false), 2500)
         }}
         onClose={() => setConfirmCancel(false)}
       />
+
+      {showCancelToast && (
+        <Toast
+          message="웨이팅이 취소되었습니다"
+          icon={
+            <div className="flex size-8 items-center justify-center rounded-full bg-alert/20">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                <path
+                  d="M3 3l10 10M13 3L3 13"
+                  stroke="#FF6B6B"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+          }
+        />
+      )}
 
       {toast && (
         <Toast
@@ -388,7 +436,7 @@ export function MobileBoothList() {
                           {b.name}
                         </div>
                         <div className="mt-0.5 text-start text-xs text-ink-60">
-                          {b.area}
+                          {getZoneName(b.zoneId, b.type)}
                         </div>
                       </div>
                       <button
@@ -405,7 +453,7 @@ export function MobileBoothList() {
                         )}
                       </button>
                     </div>
-                    {b.desc && (
+                    {b.description && (
                       <div
                         className="mt-1 text-start text-[11px] text-ink-40"
                         style={{
@@ -415,7 +463,7 @@ export function MobileBoothList() {
                           WebkitLineClamp: 2,
                         }}
                       >
-                        {b.desc}
+                        {b.description}
                       </div>
                     )}
                   </div>

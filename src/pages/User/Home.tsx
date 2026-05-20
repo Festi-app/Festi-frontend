@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { I, PhotoSlot } from '../../tokens'
 import { DAY_BOOTHS, NIGHT_BOOTHS, TRUCK_BOOTHS } from '../../data/booths'
+import { getZoneName } from '../../data/zones'
 import { useTimetableStore } from '../../stores/useTimetableStore'
 import { SectionHeader } from '../../components/User/SectionHeader'
 import { WaitingCarousel } from '../../components/User/WaitingCarousel'
@@ -81,10 +82,12 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                   <div className="text-[15px] font-bold tracking-[-0.3px] text-ink">
                     {b.name}
                   </div>
-                  <div className="mt-0.5 text-xs text-ink-60">{b.area}</div>
-                  {b.desc && (
+                  <div className="mt-0.5 text-xs text-ink-60">
+                    {getZoneName(b.zoneId, b.type)}
+                  </div>
+                  {b.description && (
                     <div className="mt-1 truncate text-[11px] text-ink-40">
-                      {b.desc}
+                      {b.description}
                     </div>
                   )}
                 </div>
@@ -118,10 +121,12 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                   <div className="text-[15px] font-bold tracking-[-0.3px] text-ink">
                     {b.name}
                   </div>
-                  <div className="mt-0.5 text-xs text-ink-60">{b.area}</div>
-                  {b.desc && (
+                  <div className="mt-0.5 text-xs text-ink-60">
+                    {getZoneName(b.zoneId, b.type)}
+                  </div>
+                  {b.description && (
                     <div className="mt-1 truncate text-[11px] text-ink-40">
-                      {b.desc}
+                      {b.description}
                     </div>
                   )}
                 </div>
@@ -180,10 +185,12 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                   <div className="text-[15px] font-bold tracking-[-0.3px] text-ink">
                     {t.name}
                   </div>
-                  <div className="mt-0.5 text-xs text-ink-60">{t.area}</div>
-                  {t.desc && (
+                  <div className="mt-0.5 text-xs text-ink-60">
+                    {getZoneName(t.zoneId, t.type)}
+                  </div>
+                  {t.description && (
                     <div className="mt-1 truncate text-[11px] text-ink-40">
-                      {t.desc}
+                      {t.description}
                     </div>
                   )}
                 </div>

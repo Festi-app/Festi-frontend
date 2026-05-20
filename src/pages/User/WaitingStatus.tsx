@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { FestiTabBar } from '../../components/User/Navbar'
-import { SubHeader } from '../../components/User/ScreenHeader'
 import { WaitingTicketCard } from '../../components/User/WaitingTicket'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
 import { QuickEntrySection } from '../../components/User/QuickEntrySection'
@@ -55,9 +54,12 @@ function WaitingBoothCard({
               style={{ animation: 'festi-ping 1.4s ease-in-out infinite' }}
             />
           )}
-          {w.boothName}
+          #{w.boothId} {w.boothName}
           <span className="text-[11px] font-normal text-ink-40">
-            {w.boothArea} #{w.boothId}
+            {w.boothArea}
+            {w.boothSections && w.boothSections.length > 0 && (
+              <> · {w.boothSections.map((s) => s + 1).join('·')}번</>
+            )}
           </span>
         </div>
         <div className="mt-0.5 text-[11px] text-ink-60">{w.registered}</div>
@@ -71,6 +73,7 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { waitings, cancelWaiting } = useWaitingStore()
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const [infoTip, setInfoTip] = useState(false)
   const ink60 = dark ? '#8B939B' : '#5E676D'
 
   const main = waitings[0] ?? null
@@ -91,6 +94,7 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
             boothId={main.boothId}
             boothTone={main.boothTone}
             boothArea={main.boothArea}
+            boothSections={main.boothSections}
             registered={main.registered}
             waitNo={main.waitNo}
             callNo={main.callNo}
@@ -116,10 +120,33 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
             </div>
           )}
 
-          <SubHeader
-            title="다른 웨이팅"
-            right={others.length > 0 ? `${others.length}건` : undefined}
-          />
+          <div className="flex items-center justify-between px-0.5 pb-2 pt-5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[13px] font-bold text-ink-60">
+                다른 웨이팅
+              </span>
+              <button
+                type="button"
+                onClick={() => setInfoTip((v) => !v)}
+                className="relative flex size-4 items-center justify-center rounded-full border border-ink-20 text-[9px] font-bold text-ink-40"
+              >
+                i
+                {infoTip && (
+                  <div className="absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/4 rounded-[10px] bg-[#141A1F] px-3 py-2 text-left text-[11px] font-semibold leading-normal text-white shadow-lg">
+                    <div className="whitespace-nowrap">
+                      웨이팅은 최대 3개 부스까지 가능합니다
+                    </div>
+                    <div className="absolute top-full left-1/4 border-4 border-transparent border-t-[#141A1F]" />
+                  </div>
+                )}
+              </button>
+            </div>
+            {others.length > 0 && (
+              <span className="text-[13px] font-semibold text-ink-40">
+                {others.length}건
+              </span>
+            )}
+          </div>
           {others.length > 0 ? (
             <div className="flex flex-col gap-2.5">
               {others.map((w) => (

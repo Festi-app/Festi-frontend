@@ -5,6 +5,7 @@ export type ActiveWaiting = {
   boothName: string
   boothTone: string
   boothArea: string
+  boothSections?: number[]
   registered: string
   waitNo: number
   callNo: number
@@ -24,7 +25,8 @@ export const useWaitingStore = create<WaitingStore>((set) => ({
       boothId: 16,
       boothName: '컴공과 칵테일 바',
       boothTone: 'rose',
-      boothArea: 'A구역',
+      boothArea: '베어드홀 앞',
+      boothSections: [0, 1],
       registered: '4인 · 21:14 등록',
       waitNo: 34,
       callNo: 32,
@@ -35,7 +37,8 @@ export const useWaitingStore = create<WaitingStore>((set) => ({
       boothId: 38,
       boothName: '체대 곱창집',
       boothTone: 'leaf',
-      boothArea: 'B구역',
+      boothArea: '조만식·신양관 사이',
+      boothSections: [1, 2],
       registered: '2인 · 21:05 등록',
       waitNo: 22,
       callNo: 20,
@@ -46,7 +49,8 @@ export const useWaitingStore = create<WaitingStore>((set) => ({
       boothId: 47,
       boothName: '미디어부 라멘바',
       boothTone: 'grape',
-      boothArea: 'C구역',
+      boothArea: '형남공학관 앞',
+      boothSections: [0, 1],
       registered: '3인 · 20:58 등록',
       waitNo: 18,
       callNo: 15,

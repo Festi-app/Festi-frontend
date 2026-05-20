@@ -8,6 +8,7 @@ import { NotificationSettings } from '../../components/User/NotificationSettings
 import { useWaitingStore } from '../../stores/useWaitingStore'
 import { useUserStore } from '../../stores/useUserStore'
 import { NIGHT_BOOTHS } from '../../data/booths'
+import { getZoneName } from '../../data/zones'
 
 const NOTIFICATION_ROWS = [
   { label: '내 차례 3팀 전 알림', sub: '카카오톡 + 푸시' },
@@ -46,7 +47,8 @@ export function MobileWaitingRegister({
       boothId: booth.id,
       boothName: booth.name,
       boothTone: booth.tone,
-      boothArea: booth.area,
+      boothArea: getZoneName(booth.zoneId, booth.type),
+      boothSections: booth.sections,
       registered: `${people}인 · ${timeStr} 등록`,
       waitNo,
       callNo: waitNo - aheadTeams - 1,
@@ -82,7 +84,7 @@ export function MobileWaitingRegister({
                 #{booth.id}
               </Pill>
               <Pill color={surfaceAlt} ink={ink80}>
-                야간 {booth.cat}
+                야간 {booth.category}
               </Pill>
             </div>
             <div className="mt-1 text-[15px] font-extrabold tracking-[-0.3px] text-ink">

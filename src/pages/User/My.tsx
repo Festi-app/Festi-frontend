@@ -11,6 +11,7 @@ import {
   type BoothType,
 } from '../../stores/useFavoritesStore'
 import { NIGHT_BOOTHS, DAY_BOOTHS, TRUCK_BOOTHS } from '../../data/booths'
+import { getZoneName } from '../../data/zones'
 import { useUI } from '../../stores/useUIStore'
 import { formatPhone } from '../../lib/format'
 
@@ -117,37 +118,22 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
               <div className="mt-0.5 text-[13px] text-ink-60">{phone}</div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setProfileOpen(true)}
-            className="rounded-full border border-border bg-surface-alt px-3 py-1.5 text-[12px] font-bold text-ink-80"
-          >
-            수정
-          </button>
-        </div>
-        {/* 테마 설정 */}
-        <div className="flex items-center justify-between border-t border-border px-5 py-3.5">
-          <div className="flex items-center gap-2.5">
-            <div className="size-4.5 text-ink-60">
-              {isDark ? I.moon() : I.sun()}
-            </div>
-            <span className="text-[14px] font-semibold text-ink">
-              {isDark ? '다크 모드' : '라이트 모드'}
-            </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setDark(!isDark)}
+              className="flex size-8 items-center justify-center rounded-full border border-border bg-surface-alt text-ink-60"
+            >
+              <div className="size-4">{isDark ? I.moon() : I.sun()}</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setProfileOpen(true)}
+              className="rounded-full border border-border bg-surface-alt px-3 py-1.5 text-[12px] font-bold text-ink-80"
+            >
+              수정
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setDark(!isDark)}
-            className={`flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors duration-200 ${
-              isDark ? 'bg-cta' : 'bg-[#C4CDD1]'
-            }`}
-          >
-            <span
-              className={`size-5 shrink-0 rounded-full bg-white shadow transition-transform duration-200 ${
-                isDark ? 'translate-x-5' : 'translate-x-0'
-              }`}
-            />
-          </button>
         </div>
       </div>
 
@@ -239,7 +225,7 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
                         ink={muted}
                         style={{ padding: 0 }}
                       >
-                        {booth.area}
+                        {getZoneName(booth.zoneId, booth.type)}
                       </Pill>
                       <Pill
                         color="transparent"

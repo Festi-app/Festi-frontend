@@ -2,26 +2,26 @@ import { FESTIV_TOKENS, PhotoSlot, Pill } from '../../tokens'
 
 export function MenuItemCard({
   name,
-  desc,
+  description,
   price,
   tone,
   best = false,
-  soldOut = false,
+  isSoldOut = false,
   showImage = false,
   priceDisplay,
 }: {
   name: string
-  desc: string
+  description: string
   price: number
   tone: string
   best?: boolean
-  soldOut?: boolean
+  isSoldOut?: boolean
   showImage?: boolean
   priceDisplay?: string
 }) {
   return (
     <div
-      className={`flex items-center gap-3 rounded-2xl border border-border bg-surface p-2 ${soldOut ? 'opacity-50' : ''}`}
+      className={`flex items-center gap-3 rounded-2xl border border-border bg-surface p-2 ${isSoldOut ? 'opacity-50' : ''}`}
     >
       {showImage && (
         <div className="size-16 shrink-0 overflow-hidden rounded-xl">
@@ -33,7 +33,7 @@ export function MenuItemCard({
           <div className="text-sm font-bold tracking-[-0.3px] text-ink">
             {name}
           </div>
-          {best && !soldOut && (
+          {best && !isSoldOut && (
             <Pill
               color={FESTIV_TOKENS.pop}
               ink={FESTIV_TOKENS.ink}
@@ -42,13 +42,13 @@ export function MenuItemCard({
               BEST
             </Pill>
           )}
-          {soldOut && (
+          {isSoldOut && (
             <Pill color="#F1F7F8" ink="#8B939B" style={{ fontSize: 10 }}>
               품절
             </Pill>
           )}
         </div>
-        <div className="mt-0.5 text-xs text-ink-60">{desc}</div>
+        <div className="mt-0.5 text-xs text-ink-60">{description}</div>
         {(price !== 0 || priceDisplay) && (
           <div className="mt-1 text-sm font-extrabold tracking-[-0.3px] text-ink">
             {priceDisplay ?? `${price.toLocaleString()}원`}
