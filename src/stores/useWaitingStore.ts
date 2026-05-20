@@ -3,8 +3,8 @@ import { create } from 'zustand'
 export type ActiveWaiting = {
   boothId: number
   boothName: string
-  boothTone: string
-  boothArea: string
+  boothTone?: string
+  boothArea?: string
   boothSections?: number[]
   registered: string
   waitNo: number

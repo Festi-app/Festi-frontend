@@ -54,7 +54,7 @@ function WaitingBoothCard({
               style={{ animation: 'festi-ping 1.4s ease-in-out infinite' }}
             />
           )}
-          #{w.boothId} {w.boothName}
+          {w.boothName}
           <span className="text-[11px] font-normal text-ink-40">
             {w.boothArea}
             {w.boothSections && w.boothSections.length > 0 && (
@@ -91,7 +91,6 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
           <WaitingTicketCard
             dark={dark}
             boothName={main.boothName}
-            boothId={main.boothId}
             boothTone={main.boothTone}
             boothArea={main.boothArea}
             boothSections={main.boothSections}

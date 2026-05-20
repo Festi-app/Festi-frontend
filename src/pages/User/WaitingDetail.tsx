@@ -4,7 +4,7 @@ import { PhotoSlot } from '../../tokens'
 import { ScreenHeader } from '../../components/User/ScreenHeader'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { NIGHT_BOOTHS } from '../../data/booths'
-import { getZoneName } from '../../data/zones'
+import { getBoothZoneName } from '../../data/zones'
 import { WaitingTicketCard } from '../../components/User/WaitingTicket'
 import { Toast } from '../../components/shared/Toast'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
@@ -59,9 +59,8 @@ export function MobileWaitingDetail({
           <WaitingTicketCard
             dark={dark}
             boothName={booth.name}
-            boothId={booth.id}
             boothTone={booth.tone}
-            boothArea={getZoneName(booth.zoneId, booth.type)}
+            boothArea={getBoothZoneName(booth)}
             boothSections={booth.sections}
             registered={waiting.registered}
             waitNo={waiting.waitNo}
@@ -83,7 +82,7 @@ export function MobileWaitingDetail({
                   {booth.name}
                 </div>
                 <div className="mt-0.5 text-xs text-ink-60">
-                  {getZoneName(booth.zoneId, booth.type)} · #{booth.id}
+                  {getBoothZoneName(booth)} · #{booth.id}
                 </div>
               </div>
               <button

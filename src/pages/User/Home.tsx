@@ -56,7 +56,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
           <WaitingCarousel />
 
           {/* 지금 바로 입장 가능 */}
-          <QuickEntrySection dark={dark} />
+          <QuickEntrySection />
 
           {/* 주간 부스 */}
           <SectionHeader

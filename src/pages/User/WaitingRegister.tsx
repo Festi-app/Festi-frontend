@@ -8,7 +8,7 @@ import { NotificationSettings } from '../../components/User/NotificationSettings
 import { useWaitingStore } from '../../stores/useWaitingStore'
 import { useUserStore } from '../../stores/useUserStore'
 import { NIGHT_BOOTHS } from '../../data/booths'
-import { getZoneName } from '../../data/zones'
+import { getBoothZoneName } from '../../data/zones'
 
 const NOTIFICATION_ROWS = [
   { label: '내 차례 3팀 전 알림', sub: '카카오톡 + 푸시' },
@@ -47,7 +47,7 @@ export function MobileWaitingRegister({
       boothId: booth.id,
       boothName: booth.name,
       boothTone: booth.tone,
-      boothArea: getZoneName(booth.zoneId, booth.type),
+      boothArea: getBoothZoneName(booth),
       boothSections: booth.sections,
       registered: `${people}인 · ${timeStr} 등록`,
       waitNo,

@@ -10,7 +10,7 @@ export function PhotoHero({
   favorite,
   onFavorite,
 }: {
-  tone: string
+  tone?: string
   label?: string
   height?: string
   showDots?: boolean

@@ -214,3 +214,10 @@ export function getZoneName(
   if (type === 'truck') return TRUCK_ZONE_NAMES[zoneId]
   return ALL_ZONES.find((z) => z.id === zoneId)?.name
 }
+
+export function getBoothZoneName(booth: {
+  zoneId?: string
+  type?: string
+}): string | undefined {
+  return getZoneName(booth.zoneId, booth.type)
+}

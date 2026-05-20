@@ -1,13 +1,9 @@
 import { FESTIV_TOKENS, PhotoSlot, Pill } from '../../tokens'
 import { FestivMark } from '../Logo'
 
-// const STAR_PATH =
-//   'M50,2 L50.6,48.6 L83.9,16.1 L51.4,49.4 L98,50 L51.4,50.6 L83.9,83.9 L50.6,51.4 L50,98 L49.4,51.4 L16.1,83.9 L48.6,50.6 L2,50 L48.6,49.4 L16.1,16.1 L49.4,48.6 Z'
-
 export function WaitingTicketCard({
   dark = false,
   boothName,
-  boothId,
   boothTone,
   boothArea,
   boothSections,
@@ -21,9 +17,8 @@ export function WaitingTicketCard({
 }: {
   dark?: boolean
   boothName: string
-  boothId: number
-  boothTone: string
-  boothArea: string
+  boothTone?: string
+  boothArea?: string
   boothSections?: number[]
   registered: string
   waitNo: number
@@ -62,16 +57,6 @@ export function WaitingTicketCard({
                        radial-gradient(circle at 20% 100%, ${FESTIV_TOKENS.pop}33 0%, transparent 50%)`,
         }}
       />
-
-      {/*/!* 별 워터마크 *!/*/}
-      {/*<svg*/}
-      {/*  width={200}*/}
-      {/*  height={200}*/}
-      {/*  viewBox="0 0 100 100"*/}
-      {/*  className="pointer-events-none absolute -top-7 -right-5 opacity-[0.13]"*/}
-      {/*>*/}
-      {/*  <path fill="white" d={STAR_PATH} />*/}
-      {/*</svg>*/}
 
       {/* 로고 워터마크 */}
       <div className="pointer-events-none absolute -top-7 -right-5 opacity-[0.13]">
@@ -143,7 +128,7 @@ export function WaitingTicketCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <span className="text-[15px] font-extrabold tracking-[-0.3px]">
-              #{boothId} {boothName}
+              {boothName}
             </span>
           </div>
           <div className="mt-0.5 text-[11px] opacity-60">

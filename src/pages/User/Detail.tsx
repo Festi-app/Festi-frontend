@@ -8,7 +8,7 @@ import {
   DAY_BOOTH_MENUS,
   TRUCK_BOOTH_MENUS,
 } from '../../data/booths'
-import { getZoneName } from '../../data/zones'
+import { getBoothZoneName } from '../../data/zones'
 import type { MenuItem } from '../../data/booths'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
@@ -41,7 +41,7 @@ export function BoothDetailContent({
   dark?: boolean
   name: string
   category?: string
-  id: number
+  id?: number
   sections?: number[] // booth_locations.index[] (0-based) — 구역 내 슬롯 위치
   type: string
   catPill?: { color: string; ink: string }
@@ -95,16 +95,18 @@ export function BoothDetailContent({
   return (
     <>
       <div className="mb-4 flex items-start gap-3">
-        <div
-          className="flex size-11 shrink-0 items-center justify-center rounded-full font-extrabold text-white"
-          style={{
-            fontSize: 15,
-            background: circleColor,
-            boxShadow: `inset 0 0 0 3px #fff, 0 4px 12px ${circleColor}66`,
-          }}
-        >
-          {id}
-        </div>
+        {id != null && (
+          <div
+            className="flex size-11 shrink-0 items-center justify-center rounded-full font-extrabold text-white"
+            style={{
+              fontSize: 15,
+              background: circleColor,
+              boxShadow: `inset 0 0 0 3px #fff, 0 4px 12px ${circleColor}66`,
+            }}
+          >
+            {id}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <div className="mb-1.5 flex flex-wrap gap-1.5">
             <Pill color={pillBg} ink={pillInk}>
@@ -252,7 +254,7 @@ export function MobileBoothDetail({
           id={boothData.id}
           sections={boothData.sections}
           type={type}
-          area={getZoneName(boothData.zoneId, boothData.type)}
+          area={getBoothZoneName(boothData)}
           operatingHours={boothData.operatingHours}
           days={rawBooth?.days}
           description={boothData.description}
@@ -436,7 +438,7 @@ export function MobileBoothList() {
                           {b.name}
                         </div>
                         <div className="mt-0.5 text-start text-xs text-ink-60">
-                          {getZoneName(b.zoneId, b.type)}
+                          {getBoothZoneName(b)}
                         </div>
                       </div>
                       <button

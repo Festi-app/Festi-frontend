@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I, PhotoSlot } from '../../tokens'
 import { NIGHT_BOOTHS } from '../../data/booths'
+import { getBoothZoneName } from '../../data/zones'
 
 const BOOTHS = NIGHT_BOOTHS.filter((b) => (b.wait ?? 0) <= 2)
 
@@ -76,7 +77,9 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
               <div className="text-sm font-bold leading-[1.2] tracking-[-0.3px] text-ink">
                 {b.name}
               </div>
-              <div className="mt-1 text-[11px] text-ink-60">{b.area}</div>
+              <div className="mt-1 text-[11px] text-ink-60">
+                {getBoothZoneName(b)}
+              </div>
             </button>
           )
         })}

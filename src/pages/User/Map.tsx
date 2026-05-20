@@ -1136,7 +1136,8 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                   : undefined
               })()
             : undefined
-          const truckArea = truckAreaFromStore ?? selectedUserTruck.section
+          const truckArea =
+            truckAreaFromStore ?? getZoneName(selectedUserTruck.zoneId, 'truck')
           const truckZoneColor =
             TRUCK_ZONES.find((z) => z.id === selectedUserTruck.zoneId)?.color ??
             FESTIV_TOKENS.sun
@@ -1180,7 +1181,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                       { label: '운영 날짜', value: '전일 운영' },
                       {
                         label: '운영 시간',
-                        value: selectedUserTruck.operatingHours,
+                        value: selectedUserTruck.operatingHours ?? '',
                       },
                     ]}
                   />
@@ -1317,13 +1318,13 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                   dark={dark}
                   type={activeBoothTime === '야간' ? 'night' : 'day'}
                   name={selectedBoothCellPerm.orgName}
-                  id={selectedBoothCellPerm.id}
+                  id={selectedBoothCellPerm.boothId}
                   category={selectedBoothCellPerm.category}
                   area={selectedBoothZone.name}
                   circleColor={selectedBoothZone.color}
                 />
               ) : (
-                <div className="mt-3 rounded-xl bg-surface-alt px-4 py-3 text-center text-[12px] text-ink-40">
+                <div className="my-3 rounded-xl bg-surface-alt px-4 py-3 text-center text-[12px] text-ink-40">
                   이 섹션에 배정된 부스가 없어요
                 </div>
               )}
@@ -1358,7 +1359,6 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                     description={linkedBooth.description}
                     area={selectedBoothZone.name}
                     menus={linkedMenus}
-                    zoneId={selectedBoothZone.id}
                     circleColor={selectedBoothZone.color}
                   />
                 ) : selectedBoothCellPerm ? (
@@ -1366,10 +1366,9 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                     dark={dark}
                     type={activeBoothTime === '야간' ? 'night' : 'day'}
                     name={selectedBoothCellPerm.orgName}
-                    id={selectedBoothCellPerm.id}
-                    cat={selectedBoothCellPerm.category}
+                    id={selectedBoothCellPerm.boothId}
+                    category={selectedBoothCellPerm.category}
                     area={selectedBoothZone.name}
-                    zoneId={selectedBoothZone.id}
                     circleColor={selectedBoothZone.color}
                   />
                 ) : null}
@@ -1469,7 +1468,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                 description={selectedMarker.description}
                 area={
                   ALL_BOOTH_ZONES.find((z) => z.id === selectedMarker.zoneId)
-                    ?.name ?? selectedMarker.area
+                    ?.name
                 }
                 circleColor={
                   ALL_BOOTH_ZONES.find((z) => z.id === selectedMarker.zoneId)
@@ -1509,7 +1508,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                   description={selectedMarker.description}
                   area={
                     ALL_BOOTH_ZONES.find((z) => z.id === selectedMarker.zoneId)
-                      ?.name ?? selectedMarker.area
+                      ?.name
                   }
                   circleColor={
                     ALL_BOOTH_ZONES.find((z) => z.id === selectedMarker.zoneId)
@@ -1726,7 +1725,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                               {truck.name}
                             </div>
                             <div className="mt-0.5 text-[11px] text-ink-60">
-                              {truckZone?.name ?? truck.area}
+                              {truckZone?.name}
                             </div>
                           </div>
                         </button>
@@ -1766,8 +1765,10 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                               {m.name}
                             </div>
                             <div className="mt-0.5 text-[11px] text-ink-60">
-                              {ALL_BOOTH_ZONES.find((z) => z.id === m.zoneId)
-                                ?.name ?? m.area}
+                              {
+                                ALL_BOOTH_ZONES.find((z) => z.id === m.zoneId)
+                                  ?.name
+                              }
                             </div>
                           </div>
                         </button>
@@ -1886,8 +1887,10 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                             </span>
                           </div>
                           <div className="mt-0.5 text-[11px] text-ink-60">
-                            {ALL_BOOTH_ZONES.find((z) => z.id === m.zoneId)
-                              ?.name ?? m.area}
+                            {
+                              ALL_BOOTH_ZONES.find((z) => z.id === m.zoneId)
+                                ?.name
+                            }
                           </div>
                         </div>
                         {ws && (
