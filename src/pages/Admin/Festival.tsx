@@ -135,7 +135,11 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   const [locationDraft, setLocationDraft] = useState('')
   const approvedBooths = accounts.filter((a) => a.status === 'approved')
 
-  const { startDate: storedStart, endDate: storedEnd, setDates } = useFestivalStore()
+  const {
+    startDate: storedStart,
+    endDate: storedEnd,
+    setDates,
+  } = useFestivalStore()
 
   const [notice, setNotice] = useState('기본 정보와 일정, 운영 시간을 관리해요')
   const [startDate, setStartDate] = useState(storedStart)
