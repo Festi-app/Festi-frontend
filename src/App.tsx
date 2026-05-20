@@ -37,6 +37,15 @@ import { BoothAdminRegister } from './pages/BoothAdmin/Register'
 import { BoothAdminDashboard } from './pages/BoothAdmin/Dashboard'
 import { useDayNightStore } from './stores/useDayNightStore'
 
+// ── Standalone (PWA home screen) detection ────────────────────────────────
+
+function isStandalone(): boolean {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as { standalone?: boolean }).standalone === true
+  )
+}
+
 // ── Global UI state ───────────────────────────────────────────────────────
 
 interface UIState {
@@ -175,6 +184,7 @@ function NavLinks({
 
 function Nav() {
   const [open, setOpen] = useState(false)
+  if (isStandalone()) return null
   return (
     <>
       {/* Desktop sidebar */}

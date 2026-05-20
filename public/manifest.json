@@ -1,0 +1,18 @@
+{
+  "name": "Fest!v. — 숭실대학교 축제",
+  "short_name": "Fest!v.",
+  "description": "숭실대학교 축제 통합 플랫폼",
+  "start_url": "/splash",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

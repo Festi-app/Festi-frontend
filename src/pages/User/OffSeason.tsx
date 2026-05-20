@@ -4,22 +4,27 @@ import {
   FestivWordmark,
   FestivHeaderLogo,
 } from '../../components/Logo'
+import { useFestivalStore } from '../../stores/useFestivalStore'
 
-const FESTIVAL_START = new Date('2026-05-10T00:00:00')
-
-function getDDayInfo() {
+function getDDayInfo(startDate: string, endDate: string) {
   const now = new Date()
-  if (now < FESTIVAL_START) {
+  const start = new Date(startDate + 'T00:00:00')
+  const end = new Date(endDate + 'T23:59:59')
+  if (now < start) {
     const diff = Math.ceil(
-      (FESTIVAL_START.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      (start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     )
     return { type: 'before' as const, days: diff }
   }
-  return { type: 'after' as const }
+  if (now > end) {
+    return { type: 'after' as const }
+  }
+  return { type: 'during' as const }
 }
 
 export function MobileOffSeason({ dark = false }: { dark?: boolean }) {
-  const dday = getDDayInfo()
+  const { startDate, endDate } = useFestivalStore()
+  const dday = getDDayInfo(startDate, endDate)
 
   const bg = dark
     ? `linear-gradient(160deg, #1A2028 0%, #0F1216 100%)`
