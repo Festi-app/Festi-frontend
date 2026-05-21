@@ -19,6 +19,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
   const { venue, currentDay, nowMin, days } = useTimetableStore()
   const [timetableDay, setTimetableDay] = useState(currentDay)
   const [noticeOpen, setNoticeOpen] = useState(false)
+  const [timetableTip, setTimetableTip] = useState(false)
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
@@ -140,8 +141,23 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
           {/* 공연 타임테이블 */}
           <div className="mb-3 flex items-end justify-between px-5">
             <div>
-              <div className="text-lg font-extrabold tracking-[-0.5px] text-ink">
-                공연 타임테이블
+              <div className="flex items-center gap-1.5">
+                <div className="text-lg font-extrabold tracking-[-0.5px] text-ink">
+                  공연 타임테이블
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTimetableTip((v) => !v)}
+                  className="relative flex size-4 items-center justify-center rounded-full border border-ink-20 text-[9px] font-bold text-ink-40"
+                >
+                  i
+                  {timetableTip && (
+                    <div className="absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-[10px] bg-[#141A1F] px-3 py-2 text-left text-[11px] font-semibold leading-normal text-white shadow-lg">
+                      현장상황에 따라 달라질 수 있습니다
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#141A1F]" />
+                    </div>
+                  )}
+                </button>
               </div>
               <div className="mt-0.5 text-xs text-ink-60">{venue}</div>
             </div>

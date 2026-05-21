@@ -15,6 +15,7 @@ import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { PhotoHero } from '../../components/User/PhotoHero'
 import { ScreenHeader, SubHeader } from '../../components/User/ScreenHeader'
 import { Toast } from '../../components/shared/Toast'
+import { CancelToast } from '../../components/User/CancelToast'
 import { MenuItemCard } from '../../components/User/MenuItemCard'
 import { StatGrid } from '../../components/User/StatGrid'
 import { useFavoritesStore } from '../../stores/useFavoritesStore'
@@ -336,28 +337,12 @@ export function MobileBoothDetail({
           cancelWaiting(resolvedId)
           setConfirmCancel(false)
           setShowCancelToast(true)
-          setTimeout(() => setShowCancelToast(false), 2500)
+          setTimeout(() => setShowCancelToast(false), 2000)
         }}
         onClose={() => setConfirmCancel(false)}
       />
 
-      {showCancelToast && (
-        <Toast
-          message="웨이팅이 취소되었습니다"
-          icon={
-            <div className="flex size-8 items-center justify-center rounded-full bg-alert/20">
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
-                <path
-                  d="M3 3l10 10M13 3L3 13"
-                  stroke="#FF6B6B"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-          }
-        />
-      )}
+      <CancelToast show={showCancelToast} />
 
       {toast && (
         <Toast

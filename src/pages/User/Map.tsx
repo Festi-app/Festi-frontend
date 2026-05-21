@@ -22,6 +22,8 @@ import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import soongsilNightMap from '../../assets/soongsil-night-map.png'
 import soongsilTruckMap from '../../assets/soongsil-truck-map.png'
 import { FestiTabBar } from '../../components/User/Navbar'
+import { ConfirmModal } from '../../components/User/ConfirmModal'
+import { CancelToast } from '../../components/User/CancelToast'
 import { ZONES, NIGHT_ZONES, getZoneName } from '../../data/zones'
 import { useDayNightStore } from '../../stores/useDayNightStore'
 import {
@@ -178,73 +180,107 @@ function BoothPinHeader({
   )
 }
 
-function WaitingActions({
+function WaitingButton({
   onWaiting,
+  onAlreadyWaiting,
   disabled,
   waitBadge,
   alreadyWaiting,
 }: {
-  onWaiting?: () => void
+  onWaiting: () => void
+  onAlreadyWaiting?: () => void
   disabled?: boolean
   waitBadge?: number
   alreadyWaiting?: boolean
 }) {
-  if (!onWaiting) return null
   const noWait = waitBadge == null || waitBadge === 0
+  if (alreadyWaiting) {
+    return (
+      <button
+        type="button"
+        onClick={onAlreadyWaiting}
+        className="flex w-full items-center justify-between rounded-[20px] bg-[#D0D5D8] px-5 py-4 text-left transition-transform duration-100 active:scale-[0.98] dark:bg-[#2F353B]"
+      >
+        <div>
+          <div className="text-[17px] font-extrabold tracking-[-0.4px] text-ink-60 dark:text-ink-40">
+            이미 웨이팅 중
+          </div>
+          <div className="text-[11px] font-semibold text-ink-40">
+            웨이팅을 취소할 수 있어요
+          </div>
+        </div>
+        <div className="size-4.5">{I.chev(undefined, 'r')}</div>
+      </button>
+    )
+  }
+  if (noWait) {
+    return (
+      <div className="flex w-full items-center justify-between rounded-[20px] bg-pop px-5 py-4">
+        <div>
+          <div className="text-[17px] font-extrabold tracking-[-0.4px] text-white">
+            지금 바로 입장해주세요!
+          </div>
+          <div className="text-[11px] font-semibold text-white/70">
+            대기 없이 바로 입장 가능합니다
+          </div>
+        </div>
+        <div className="size-4.5 text-white">
+          <svg viewBox="0 0 16 16" width="18" height="18" fill="none">
+            <path
+              d="M3 8l3.5 3.5L13 4.5"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+      </div>
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={onWaiting}
+      disabled={disabled}
+      className="flex w-full items-center justify-between rounded-[20px] bg-cta px-5 py-4 text-left shadow-[0_8px_22px_rgba(0,198,224,0.4)] disabled:opacity-40"
+    >
+      <div>
+        <div className="text-[17px] font-extrabold tracking-[-0.4px] text-cta-ink">
+          웨이팅 걸기
+        </div>
+        <div className="text-[11px] font-semibold text-cta-ink/70">
+          현재 {waitBadge}팀 대기
+        </div>
+      </div>
+      <div className="size-4.5">{I.chev('#fff', 'r')}</div>
+    </button>
+  )
+}
+
+function WaitingActions({
+  sticky = false,
+  ...props
+}: {
+  onWaiting?: () => void
+  onAlreadyWaiting?: () => void
+  disabled?: boolean
+  waitBadge?: number
+  alreadyWaiting?: boolean
+  sticky?: boolean
+}) {
+  if (!props.onWaiting) return null
+  const buttonProps = { ...props, onWaiting: props.onWaiting }
+  if (sticky) {
+    return (
+      <div className="absolute inset-x-0 bottom-0 z-20 bg-[linear-gradient(180deg,transparent_0%,var(--color-surface)_35%)] px-5 pt-3 pb-24">
+        <WaitingButton {...buttonProps} />
+      </div>
+    )
+  }
   return (
     <div className="mt-3">
-      {alreadyWaiting ? (
-        <div className="flex w-full items-center justify-between rounded-[20px] bg-[#D0D5D8] px-5 py-4 dark:bg-[#2F353B]">
-          <div>
-            <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-ink-60 dark:text-ink-40">
-              이미 웨이팅 중
-            </div>
-            <div className="text-[11px] font-semibold text-ink-40">
-              웨이팅 상세에서 확인할 수 있어요
-            </div>
-          </div>
-          <div className="size-4.5">{I.chev(undefined, 'r')}</div>
-        </div>
-      ) : noWait ? (
-        <div className="flex w-full items-center justify-between rounded-[20px] bg-pop px-5 py-4">
-          <div>
-            <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-white">
-              지금 바로 입장해주세요!
-            </div>
-            <div className="text-[11px] font-semibold text-white/70">
-              대기 없이 바로 입장 가능합니다
-            </div>
-          </div>
-          <div className="size-4.5 text-white">
-            <svg viewBox="0 0 16 16" width="18" height="18" fill="none">
-              <path
-                d="M3 8l3.5 3.5L13 4.5"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={onWaiting}
-          disabled={disabled}
-          className="flex w-full items-center justify-between rounded-[20px] bg-cta px-5 py-4 text-left shadow-[0_8px_22px_rgba(0,198,224,0.4)] disabled:opacity-40"
-        >
-          <div>
-            <div className="text-[17px] font-extrabold tracking-[-0.4px] text-cta-ink">
-              웨이팅 걸기
-            </div>
-            <div className="text-[11px] font-semibold text-cta-ink/70">
-              현재 {waitBadge}팀 대기
-            </div>
-          </div>
-          <div className="size-4.5">{I.chev('#fff', 'r')}</div>
-        </button>
-      )}
+      <WaitingButton {...buttonProps} />
     </div>
   )
 }
@@ -263,7 +299,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   } = useTruckPlacementStore()
   const { permissions: boothPermissions, zoneDivisions } =
     useBoothSectionStore()
-  const { waitings } = useWaitingStore()
+  const { waitings, cancelWaiting } = useWaitingStore()
   const [selectedFestivalDay, setSelectedFestivalDay] = useState('2일차')
   const CURRENT_DAY_LABEL = '2일차'
   const [dayDropdownOpen, setDayDropdownOpen] = useState(false)
@@ -301,6 +337,8 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     (typeof TRUCK_BOOTHS)[0] | null
   >(null)
   const [listCatFilter, setListCatFilter] = useState<string | null>(null)
+  const [cancelBoothId, setCancelBoothId] = useState<number | null>(null)
+  const [showCancelToast, setShowCancelToast] = useState(false)
   const lastTouchDist = useRef<number | null>(null)
   const lastOffset = useRef({ x: 0, y: 0 })
   const dragStart = useRef<{ x: number; y: number } | null>(null)
@@ -820,7 +858,6 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                       (linkedBooth?.zoneId === zone.id
                         ? (linkedBooth.sections?.includes(idx) ?? false)
                         : selectedBoothCell.slot === idx)
-                    const isLast = idx === divisions - 1
                     return (
                       <button
                         key={idx}
@@ -841,14 +878,11 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                           color: FESTIV_TOKENS.ink,
                           boxShadow: selected
                             ? 'inset 0 0 0 2px rgba(255,255,255,0.95), 0 0 0 1px rgba(20,26,31,0.2)'
-                            : undefined,
-                          ...(isLast
-                            ? {}
-                            : zone.dir === 'row'
-                              ? { borderRight: '1px solid rgba(20,26,31,0.18)' }
-                              : {
-                                  borderBottom: '1px solid rgba(20,26,31,0.18)',
-                                }),
+                            : idx < divisions - 1
+                              ? zone.dir === 'row'
+                                ? 'inset -1px 0 0 rgba(20,26,31,0.18)'
+                                : 'inset 0 -1px 0 rgba(20,26,31,0.18)'
+                              : undefined,
                         }}
                       >
                         {idx + 1}
@@ -1333,6 +1367,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                   onWaiting={() =>
                     navigate(`/waiting/register?id=${linkedBooth.id}`)
                   }
+                  onAlreadyWaiting={() => setCancelBoothId(linkedBooth.id)}
                   waitBadge={linkedBooth.wait}
                   alreadyWaiting={waitings.some(
                     (w) => w.boothId === linkedBooth.id
@@ -1374,66 +1409,17 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                 ) : null}
               </div>
               {mapView === 'night' && linkedBooth && (
-                <div className="absolute inset-x-0 bottom-0 z-20 bg-[linear-gradient(180deg,transparent_0%,var(--color-surface)_35%)] px-5 pt-3 pb-24">
-                  {waitings.some((w) => w.boothId === linkedBooth.id) ? (
-                    <div className="flex w-full items-center justify-between rounded-[20px] bg-[#D0D5D8] px-5 py-4 dark:bg-[#2F353B]">
-                      <div>
-                        <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-ink-60 dark:text-ink-40">
-                          이미 웨이팅 중
-                        </div>
-                        <div className="text-[11px] font-semibold text-ink-40">
-                          웨이팅 상세에서 확인할 수 있어요
-                        </div>
-                      </div>
-                      <div className="size-4.5">{I.chev(undefined, 'r')}</div>
-                    </div>
-                  ) : linkedBooth.wait == null || linkedBooth.wait === 0 ? (
-                    <div className="flex w-full items-center justify-between rounded-[20px] bg-pop px-5 py-4">
-                      <div>
-                        <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-white">
-                          지금 바로 입장해주세요!
-                        </div>
-                        <div className="text-[11px] font-semibold text-white/70">
-                          대기 없이 바로 입장 가능합니다
-                        </div>
-                      </div>
-                      <div className="size-4.5 text-white">
-                        <svg
-                          viewBox="0 0 16 16"
-                          width="18"
-                          height="18"
-                          fill="none"
-                        >
-                          <path
-                            d="M3 8l3.5 3.5L13 4.5"
-                            stroke="currentColor"
-                            strokeWidth="2.2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigate(`/waiting/register?id=${linkedBooth.id}`)
-                      }
-                      className="flex w-full items-center justify-between rounded-[20px] bg-cta px-5 py-4 text-left shadow-[0_8px_22px_rgba(0,198,224,0.4)]"
-                    >
-                      <div>
-                        <div className="text-[17px] font-extrabold tracking-[-0.4px] text-cta-ink">
-                          웨이팅 걸기
-                        </div>
-                        <div className="text-[11px] font-semibold text-cta-ink/70">
-                          현재 {linkedBooth.wait}팀 대기
-                        </div>
-                      </div>
-                      <div className="size-4.5">{I.chev('#fff', 'r')}</div>
-                    </button>
+                <WaitingActions
+                  sticky
+                  onWaiting={() =>
+                    navigate(`/waiting/register?id=${linkedBooth.id}`)
+                  }
+                  onAlreadyWaiting={() => setCancelBoothId(linkedBooth.id)}
+                  waitBadge={linkedBooth.wait}
+                  alreadyWaiting={waitings.some(
+                    (w) => w.boothId === linkedBooth.id
                   )}
-                </div>
+                />
               )}
             </div>
           )}
@@ -1480,6 +1466,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                   onWaiting={() =>
                     navigate(`/waiting/register?id=${selectedMarker.id}`)
                   }
+                  onAlreadyWaiting={() => setCancelBoothId(selectedMarker.id)}
                   waitBadge={selectedMarker.wait}
                   alreadyWaiting={waitings.some(
                     (w) => w.boothId === selectedMarker.id
@@ -1531,67 +1518,17 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               </div>
               {/* 스티키 CTA - 야간만 */}
               {selectedMarker.type === 'night' && (
-                <div className="absolute inset-x-0 bottom-0 z-20 bg-[linear-gradient(180deg,transparent_0%,var(--color-surface)_35%)] px-5 pt-3 pb-24">
-                  {waitings.some((w) => w.boothId === selectedMarker.id) ? (
-                    <div className="flex w-full items-center justify-between rounded-[20px] bg-[#D0D5D8] px-5 py-4 dark:bg-[#2F353B]">
-                      <div>
-                        <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-ink-60 dark:text-ink-40">
-                          이미 웨이팅 중
-                        </div>
-                        <div className="text-[11px] font-semibold text-ink-40">
-                          웨이팅 상세에서 확인할 수 있어요
-                        </div>
-                      </div>
-                      <div className="size-4.5">{I.chev(undefined, 'r')}</div>
-                    </div>
-                  ) : selectedMarker.wait == null ||
-                    selectedMarker.wait === 0 ? (
-                    <div className="flex w-full items-center justify-between rounded-[20px] bg-pop px-5 py-4">
-                      <div>
-                        <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-white">
-                          지금 바로 입장해주세요!
-                        </div>
-                        <div className="text-[11px] font-semibold text-white/70">
-                          대기 없이 바로 입장 가능합니다
-                        </div>
-                      </div>
-                      <div className="size-4.5 text-white">
-                        <svg
-                          viewBox="0 0 16 16"
-                          width="18"
-                          height="18"
-                          fill="none"
-                        >
-                          <path
-                            d="M3 8l3.5 3.5L13 4.5"
-                            stroke="currentColor"
-                            strokeWidth="2.2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigate(`/waiting/register?id=${selectedMarker.id}`)
-                      }
-                      className="flex w-full items-center justify-between rounded-[20px] bg-cta px-5 py-4 text-left shadow-[0_8px_22px_rgba(0,198,224,0.4)]"
-                    >
-                      <div>
-                        <div className="text-[17px] font-extrabold tracking-[-0.4px] text-cta-ink">
-                          웨이팅 걸기
-                        </div>
-                        <div className="text-[11px] font-semibold text-cta-ink/70">
-                          현재 {selectedMarker.wait}팀 대기
-                        </div>
-                      </div>
-                      <div className="size-4.5">{I.chev('#fff', 'r')}</div>
-                    </button>
+                <WaitingActions
+                  sticky
+                  onWaiting={() =>
+                    navigate(`/waiting/register?id=${selectedMarker.id}`)
+                  }
+                  onAlreadyWaiting={() => setCancelBoothId(selectedMarker.id)}
+                  waitBadge={selectedMarker.wait}
+                  alreadyWaiting={waitings.some(
+                    (w) => w.boothId === selectedMarker.id
                   )}
-                </div>
+                />
               )}
             </div>
           )}
@@ -1912,6 +1849,40 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
       )}
 
       <FestiTabBar active="map" dark={dark} />
+
+      {(() => {
+        const cancelTarget =
+          cancelBoothId != null
+            ? waitings.find((w) => w.boothId === cancelBoothId)
+            : null
+        return (
+          <ConfirmModal
+            open={cancelBoothId != null}
+            title="웨이팅을 취소할까요?"
+            body={
+              cancelTarget ? (
+                <>
+                  {cancelTarget.boothName} · {cancelTarget.waitNo}번
+                  <br />
+                  취소 후에는 다시 등록해야 합니다.
+                </>
+              ) : (
+                '취소 후에는 다시 등록해야 합니다.'
+              )
+            }
+            confirmLabel="취소하기"
+            onConfirm={() => {
+              if (cancelBoothId != null) cancelWaiting(cancelBoothId)
+              setCancelBoothId(null)
+              setShowCancelToast(true)
+              setTimeout(() => setShowCancelToast(false), 2000)
+            }}
+            onClose={() => setCancelBoothId(null)}
+          />
+        )
+      })()}
+
+      <CancelToast show={showCancelToast} />
 
       <style>{`
         @keyframes festi-sheet-in {

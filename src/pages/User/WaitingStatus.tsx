@@ -4,6 +4,7 @@ import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { WaitingTicketCard } from '../../components/User/WaitingTicket'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
+import { CancelToast } from '../../components/User/CancelToast'
 import { QuickEntrySection } from '../../components/User/QuickEntrySection'
 import {
   useWaitingStore,
@@ -73,6 +74,7 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { waitings, cancelWaiting } = useWaitingStore()
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const [showCancelToast, setShowCancelToast] = useState(false)
   const [infoTip, setInfoTip] = useState(false)
   const ink60 = dark ? '#8B939B' : '#5E676D'
 
@@ -82,6 +84,8 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
   function cancelMain() {
     if (main) cancelWaiting(main.boothId)
     setConfirmCancel(false)
+    setShowCancelToast(true)
+    setTimeout(() => setShowCancelToast(false), 2000)
   }
 
   return (
@@ -208,6 +212,8 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
           onClose={() => setConfirmCancel(false)}
         />
       )}
+
+      <CancelToast show={showCancelToast} />
     </div>
   )
 }

@@ -27,7 +27,7 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
         navigate('/home', { replace: true })
       } else {
         setLoginFailed(true)
-        setTimeout(() => setLoginFailed(false), 2500)
+        setTimeout(() => setLoginFailed(false), 2000)
       }
     }, 600)
   }

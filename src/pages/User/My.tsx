@@ -38,7 +38,7 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
   const { savedBooths, isSaved, toggleSave } = useFavoritesStore()
   const [toast, setToast] = useState<'saved' | 'unsaved' | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [spinning, setSpinning] = useState(false)
+
   const [profileOpen, setProfileOpen] = useState(false)
   const { name, phone, userId, setName, setPhone } = useUserStore()
   const [editingName, setEditingName] = useState(false)
@@ -57,7 +57,11 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
 
   function formatDate(iso: string) {
     const d = new Date(iso)
-    return `${d.getMonth() + 1}월 ${d.getDate()}일 저장됨`
+    const month = d.getMonth() + 1
+    const day = d.getDate()
+    const hh = String(d.getHours()).padStart(2, '0')
+    const mm = String(d.getMinutes()).padStart(2, '0')
+    return `${month}월 ${day}일 ${hh}:${mm} 저장`
   }
 
   function saveName() {
@@ -138,28 +142,13 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-5 pt-4 pb-32">
-        <div className="mb-3 flex items-end justify-between">
-          <div>
-            <div className="text-[17px] font-extrabold tracking-[-0.4px] text-ink">
-              저장한 부스
-            </div>
-            <div className="mt-0.5 text-xs text-ink-60">
-              웨이팅 상황을 빠르게 확인하세요
-            </div>
+        <div className="mb-3">
+          <div className="text-[17px] font-extrabold tracking-[-0.4px] text-ink">
+            저장한 부스
           </div>
-          <button
-            type="button"
-            onClick={() => setSpinning(true)}
-            onAnimationEnd={() => setSpinning(false)}
-            className="flex size-8 items-center justify-center rounded-full border border-border bg-surface-alt p-1.5 text-ink-60"
-            style={
-              spinning
-                ? { animation: 'festi-spin-once 0.5s ease both' }
-                : undefined
-            }
-          >
-            {I.refresh()}
-          </button>
+          <div className="mt-0.5 text-xs text-ink-60">
+            관심 있는 부스를 모아보세요
+          </div>
         </div>
 
         <div className="mb-3">

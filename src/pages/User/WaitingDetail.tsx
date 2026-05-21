@@ -6,7 +6,7 @@ import { FestiTabBar } from '../../components/User/Navbar'
 import { NIGHT_BOOTHS } from '../../data/booths'
 import { getBoothZoneName } from '../../data/zones'
 import { WaitingTicketCard } from '../../components/User/WaitingTicket'
-import { Toast } from '../../components/shared/Toast'
+import { CancelToast } from '../../components/User/CancelToast'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
 import { NotificationSettings } from '../../components/User/NotificationSettings'
 import { useWaitingStore } from '../../stores/useWaitingStore'
@@ -29,6 +29,8 @@ export function MobileWaitingDetail({
   const navigate = useNavigate()
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [showCancelToast, setShowCancelToast] = useState(false)
+  const [cancelledWaiting, setCancelledWaiting] =
+    useState<typeof waiting>(undefined)
   const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(
@@ -39,6 +41,7 @@ export function MobileWaitingDetail({
   )
 
   function handleCancel() {
+    setCancelledWaiting(waiting)
     cancelWaiting(booth.id)
     setConfirmCancel(false)
     setShowCancelToast(true)
@@ -55,21 +58,25 @@ export function MobileWaitingDetail({
       <ScreenHeader title="웨이팅 상세" />
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-5 pb-28">
-        {waiting && (
-          <WaitingTicketCard
-            dark={dark}
-            boothName={booth.name}
-            boothTone={booth.tone}
-            boothArea={getBoothZoneName(booth)}
-            boothSections={booth.sections}
-            registered={waiting.registered}
-            waitNo={waiting.waitNo}
-            callNo={waiting.callNo}
-            progressPct={waiting.progressPct}
-            aheadTeams={waiting.aheadTeams}
-            onCancel={() => setConfirmCancel(true)}
-          />
-        )}
+        {(waiting ?? cancelledWaiting) &&
+          (() => {
+            const w = waiting ?? cancelledWaiting!
+            return (
+              <WaitingTicketCard
+                dark={dark}
+                boothName={booth.name}
+                boothTone={booth.tone}
+                boothArea={getBoothZoneName(booth)}
+                boothSections={booth.sections}
+                registered={w.registered}
+                waitNo={w.waitNo}
+                callNo={w.callNo}
+                progressPct={w.progressPct}
+                aheadTeams={w.aheadTeams}
+                onCancel={() => setConfirmCancel(true)}
+              />
+            )
+          })()}
 
         <div className="relative mt-4">
           <div className="overflow-hidden rounded-[20px] border border-border bg-surface">
@@ -151,31 +158,11 @@ export function MobileWaitingDetail({
         onClose={() => setConfirmCancel(false)}
       />
 
-      {showCancelToast && (
-        <>
-          <div
-            className="absolute inset-0 z-40 bg-bg/70 pointer-events-none"
-            style={{ animation: 'festi-fade-in 0.2s ease both' }}
-          />
-          <Toast
-            bottom="bottom-10"
-            message="웨이팅이 취소되었습니다"
-            sub="잠시 후 목록으로 이동합니다"
-            icon={
-              <div className="flex size-8 items-center justify-center rounded-full bg-alert/20">
-                <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
-                  <path
-                    d="M3 3l10 10M13 3L3 13"
-                    stroke="#FF6B6B"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-            }
-          />
-        </>
-      )}
+      <CancelToast
+        show={showCancelToast}
+        sub="잠시 후 목록으로 이동합니다"
+        bottom="bottom-10"
+      />
     </div>
   )
 }
