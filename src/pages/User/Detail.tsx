@@ -21,6 +21,8 @@ import { StatGrid } from '../../components/User/StatGrid'
 import { useFavoritesStore } from '../../stores/useFavoritesStore'
 import { useWaitingStore } from '../../stores/useWaitingStore'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
+import { useWaitingCancel } from '../../hooks/useWaitingCancel'
+import { formatSections } from '../../lib/format'
 
 // ── Reusable booth detail body ────────────────────────────────────────────────
 
@@ -185,10 +187,10 @@ export function MobileBoothDetail({
   const isNight = type === 'night'
   const isTruck = type === 'truck'
   const { isSaved, toggleSave } = useFavoritesStore()
-  const { waitings, cancelWaiting } = useWaitingStore()
+  const { waitings } = useWaitingStore()
   const [toast, setToast] = useState<'saved' | 'unsaved' | null>(null)
-  const [confirmCancel, setConfirmCancel] = useState(false)
-  const [showCancelToast, setShowCancelToast] = useState(false)
+  const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
+    useWaitingCancel()
   const boothType = isNight
     ? ('night' as const)
     : isTruck
@@ -333,12 +335,7 @@ export function MobileBoothDetail({
           </>
         }
         confirmLabel="취소하기"
-        onConfirm={() => {
-          cancelWaiting(resolvedId)
-          setConfirmCancel(false)
-          setShowCancelToast(true)
-          setTimeout(() => setShowCancelToast(false), 2000)
-        }}
+        onConfirm={() => handleCancel(resolvedId)}
         onClose={() => setConfirmCancel(false)}
       />
 
@@ -406,7 +403,7 @@ export function MobileBoothList() {
                 onClick={() => navigate(`${detailBase}&id=${b.id}`)}
                 className="cursor-pointer overflow-hidden rounded-[20px] border border-border bg-surface transition-transform duration-100 active:scale-[0.98]"
               >
-                <div className="flex items-start gap-3.5 p-3">
+                <div className="flex items-stretch gap-3.5 p-3">
                   <div className="size-24 shrink-0 overflow-hidden rounded-[14px]">
                     <PhotoSlot
                       label=""
@@ -416,7 +413,7 @@ export function MobileBoothList() {
                       className="w-full h-full"
                     />
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <div className="flex min-w-0 flex-1 flex-col pt-1">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <div className="text-start text-[15px] font-extrabold tracking-[-0.3px] text-ink">
@@ -424,6 +421,9 @@ export function MobileBoothList() {
                         </div>
                         <div className="mt-0.5 text-start text-xs text-ink-60">
                           {getBoothZoneName(b)}
+                          {b.sections && b.sections.length > 0 && (
+                            <> #{formatSections(b.sections)}</>
+                          )}
                         </div>
                       </div>
                       <button
@@ -442,7 +442,7 @@ export function MobileBoothList() {
                     </div>
                     {b.description && (
                       <div
-                        className="mt-1 text-start text-[11px] text-ink-40"
+                        className="mt-2 text-start text-[11px] text-ink-40"
                         style={{
                           overflow: 'hidden',
                           display: '-webkit-box',

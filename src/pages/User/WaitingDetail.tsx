@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PhotoSlot } from '../../tokens'
 import { ScreenHeader } from '../../components/User/ScreenHeader'
@@ -8,6 +8,7 @@ import { getBoothZoneName } from '../../data/zones'
 import { WaitingTicketCard } from '../../components/User/WaitingTicket'
 import { CancelToast } from '../../components/User/CancelToast'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
+import { useWaitingCancel } from '../../hooks/useWaitingCancel'
 import { NotificationSettings } from '../../components/User/NotificationSettings'
 import { useWaitingStore } from '../../stores/useWaitingStore'
 
@@ -24,28 +25,17 @@ export function MobileWaitingDetail({
   id?: number
 }) {
   const booth = NIGHT_BOOTHS.find((b) => b.id === id) ?? NIGHT_BOOTHS[0]
-  const { waitings, cancelWaiting } = useWaitingStore()
+  const { waitings } = useWaitingStore()
   const waiting = waitings.find((w) => w.boothId === booth.id)
   const navigate = useNavigate()
-  const [confirmCancel, setConfirmCancel] = useState(false)
-  const [showCancelToast, setShowCancelToast] = useState(false)
   const [cancelledWaiting, setCancelledWaiting] =
     useState<typeof waiting>(undefined)
-  const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
+    useWaitingCancel(() => navigate('/waiting'))
 
-  useEffect(
-    () => () => {
-      if (navTimerRef.current) clearTimeout(navTimerRef.current)
-    },
-    []
-  )
-
-  function handleCancel() {
+  function onConfirmCancel() {
     setCancelledWaiting(waiting)
-    cancelWaiting(booth.id)
-    setConfirmCancel(false)
-    setShowCancelToast(true)
-    navTimerRef.current = setTimeout(() => navigate('/waiting'), 2000)
+    handleCancel(booth.id)
   }
 
   if (!waiting && !showCancelToast) {
@@ -154,7 +144,7 @@ export function MobileWaitingDetail({
           </>
         }
         confirmLabel="취소하기"
-        onConfirm={handleCancel}
+        onConfirm={onConfirmCancel}
         onClose={() => setConfirmCancel(false)}
       />
 

@@ -4,3 +4,7 @@ export function formatPhone(raw: string): string {
   if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`
   return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`
 }
+
+export function formatSections(sections: number[]): string {
+  return sections.map((s) => s + 1).join('·')
+}

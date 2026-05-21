@@ -5,7 +5,10 @@ import { FestiTabBar } from '../../components/User/Navbar'
 import { WaitingTicketCard } from '../../components/User/WaitingTicket'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
 import { CancelToast } from '../../components/User/CancelToast'
+import { EmptyState } from '../../components/User/EmptyState'
 import { QuickEntrySection } from '../../components/User/QuickEntrySection'
+import { useWaitingCancel } from '../../hooks/useWaitingCancel'
+import { formatSections } from '../../lib/format'
 import {
   useWaitingStore,
   type ActiveWaiting,
@@ -59,7 +62,7 @@ function WaitingBoothCard({
           <span className="text-[11px] font-normal text-ink-40">
             {w.boothArea}
             {w.boothSections && w.boothSections.length > 0 && (
-              <> · {w.boothSections.map((s) => s + 1).join('·')}번</>
+              <> #{formatSections(w.boothSections)}</>
             )}
           </span>
         </div>
@@ -72,21 +75,14 @@ function WaitingBoothCard({
 
 export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
-  const { waitings, cancelWaiting } = useWaitingStore()
-  const [confirmCancel, setConfirmCancel] = useState(false)
-  const [showCancelToast, setShowCancelToast] = useState(false)
+  const { waitings } = useWaitingStore()
+  const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
+    useWaitingCancel()
   const [infoTip, setInfoTip] = useState(false)
   const ink60 = dark ? '#8B939B' : '#5E676D'
 
   const main = waitings[0] ?? null
   const others = waitings.slice(1)
-
-  function cancelMain() {
-    if (main) cancelWaiting(main.boothId)
-    setConfirmCancel(false)
-    setShowCancelToast(true)
-    setTimeout(() => setShowCancelToast(false), 2000)
-  }
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
@@ -162,32 +158,23 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="mb-2 flex size-12 items-center justify-center rounded-full bg-surface-alt text-ink-40">
-                <div className="size-5">{I.ticket()}</div>
-              </div>
-              <div className="text-[13px] font-bold text-ink-60">
-                다른 웨이팅이 없습니다
-              </div>
-              <div className="mt-0.5 text-[11px] text-ink-40">
-                웨이팅을 추가로 등록해 보세요
-              </div>
-            </div>
+            <EmptyState
+              compact
+              icon={I.ticket()}
+              title="다른 웨이팅이 없습니다"
+              sub="웨이팅을 추가로 등록해 보세요"
+              className="py-8"
+            />
           )}
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="flex flex-1 flex-col items-center justify-center px-5 text-center">
-            <div className="mb-3 flex size-16 items-center justify-center rounded-full bg-surface-alt text-ink-40">
-              <div className="size-7">{I.ticket()}</div>
-            </div>
-            <div className="text-[15px] font-bold text-ink-60">
-              현재 등록된 웨이팅이 없습니다
-            </div>
-            <div className="mt-1 text-[13px] text-ink-40">
-              부스 웨이팅을 등록해 보세요
-            </div>
-          </div>
+          <EmptyState
+            icon={I.ticket()}
+            title="현재 등록된 웨이팅이 없습니다"
+            sub="부스 웨이팅을 등록해 보세요"
+            className="flex-1 px-5"
+          />
           <div className="shrink-0 pb-27.5">
             <QuickEntrySection compact />
           </div>
@@ -208,7 +195,7 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
             </>
           }
           confirmLabel="취소하기"
-          onConfirm={cancelMain}
+          onConfirm={() => main && handleCancel(main.boothId)}
           onClose={() => setConfirmCancel(false)}
         />
       )}

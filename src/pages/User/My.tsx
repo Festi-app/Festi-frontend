@@ -4,6 +4,7 @@ import { FestiTabBar } from '../../components/User/Navbar'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { FilterChips } from '../../components/User/FilterChips'
 import { ProfileInfoRow } from '../../components/User/ProfileInfoRow'
+import { EmptyState } from '../../components/User/EmptyState'
 import { Toast } from '../../components/shared/Toast'
 import { useUserStore } from '../../stores/useUserStore'
 import {
@@ -13,7 +14,7 @@ import {
 import { NIGHT_BOOTHS, DAY_BOOTHS, TRUCK_BOOTHS } from '../../data/booths'
 import { getZoneName } from '../../data/zones'
 import { useUI } from '../../stores/useUIStore'
-import { formatPhone } from '../../lib/format'
+import { formatPhone, formatSections } from '../../lib/format'
 
 function resolveBooth(s: { boothId: number; boothType: BoothType }) {
   const { boothId, boothType } = s
@@ -161,17 +162,12 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
 
         <div className="flex flex-col gap-3">
           {filteredFavorites.length === 0 && (
-            <div className="flex flex-col items-center justify-center pt-24 pb-16 text-center">
-              <div className="mb-3 flex size-16 items-center justify-center rounded-full bg-surface-alt text-ink-40">
-                <div className="size-7">{I.star()}</div>
-              </div>
-              <div className="text-[15px] font-bold text-ink-60">
-                저장된 부스가 없습니다
-              </div>
-              <div className="mt-1 text-[13px] text-ink-40">
-                관심 있는 부스를 저장해 보세요
-              </div>
-            </div>
+            <EmptyState
+              icon={I.star()}
+              title="저장된 부스가 없습니다"
+              sub="관심 있는 부스를 저장해 보세요"
+              className="pt-24 pb-16"
+            />
           )}
           {filteredFavorites.map(({ booth, category, type, createdAt }) => {
             const saved = isSaved(type, booth.id)
@@ -216,13 +212,15 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
                       >
                         {getZoneName(booth.zoneId, booth.type)}
                       </Pill>
-                      <Pill
-                        color="transparent"
-                        ink={muted}
-                        style={{ padding: 0 }}
-                      >
-                        #{booth.id}
-                      </Pill>
+                      {booth.sections && booth.sections.length > 0 && (
+                        <Pill
+                          color="transparent"
+                          ink={muted}
+                          style={{ padding: 0 }}
+                        >
+                          #{formatSections(booth.sections)}
+                        </Pill>
+                      )}
                     </div>
 
                     <div className="mt-1.5 flex items-start gap-2">

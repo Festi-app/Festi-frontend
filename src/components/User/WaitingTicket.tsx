@@ -135,7 +135,7 @@ export function WaitingTicketCard({
             {boothArea}
             {boothSections && boothSections.length > 0 && (
               <span className="ml-1 opacity-80">
-                · {boothSections.map((s) => s + 1).join('·')}번 섹션
+                · #{boothSections.map((s) => s + 1).join('·')}
               </span>
             )}
           </div>
