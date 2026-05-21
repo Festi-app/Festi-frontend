@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
@@ -142,7 +143,10 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-5 pt-4 pb-32">
+      <div
+        className="min-h-0 flex-1 overflow-y-auto overscroll-none px-5 pt-4"
+        style={{ paddingBottom: tabBarPb }}
+      >
         <div className="mb-3">
           <div className="text-[17px] font-extrabold tracking-[-0.4px] text-ink">
             저장한 부스
