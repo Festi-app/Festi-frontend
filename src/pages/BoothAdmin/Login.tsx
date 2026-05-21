@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
+import { FestivMark, FestivWordmark } from '../../components/Logo'
+import { FESTIV_TOKENS } from '../../tokens'
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
@@ -28,11 +30,22 @@ export function BoothAdminLogin() {
   return (
     <div className="flex min-h-[calc(100dvh-3.5rem)] items-center justify-center bg-bg px-4 py-8 font-festi md:min-h-screen">
       <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <div className="mb-1 text-[24px] font-extrabold tracking-tight text-ink">
+        <div className="mb-8">
+          <div className="mb-4 flex items-center gap-2.5">
+            <div
+              className="flex size-8 items-center justify-center rounded-[10px]"
+              style={{ background: FESTIV_TOKENS.coral }}
+            >
+              <FestivMark color="#fff" size={18} />
+            </div>
+            <FestivWordmark size={18} color={FESTIV_TOKENS.ink} />
+            <span className="text-[12px] text-ink-40">·</span>
+            <span className="text-[12px] font-medium text-ink-40">축제를 더 즐겁게</span>
+          </div>
+          <div className="text-[26px] font-extrabold tracking-tight text-ink">
             부스 관리자 로그인
           </div>
-          <div className="text-[13px] text-ink-60">
+          <div className="mt-1 text-[13px] text-ink-60">
             아이디와 비밀번호로 로그인하세요
           </div>
         </div>

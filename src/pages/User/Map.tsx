@@ -654,52 +654,76 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                     border: '1.5px solid rgba(20,26,31,0.22)',
                   }}
                 >
-                  {Array.from({ length: divisions }, (_, idx) => {
-                    const perm = boothPermissions.find(
-                      (p) =>
-                        p.zoneId === zone.id &&
-                        p.day === selectedDayNumber &&
-                        p.time === activeBoothTime &&
-                        p.sections.includes(idx)
-                    )
-                    const selected =
-                      selectedBoothCell?.zoneId === zone.id &&
-                      selectedBoothCell.slot === idx
-                    const isLast = idx === divisions - 1
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setSelectedBoothCell({ zoneId: zone.id, slot: idx })
-                          setSelectedBoothPermId(perm?.id ?? null)
-                          setSelectedId(null)
-                          setSelectedSection(null)
-                        }}
-                        className="relative flex min-h-0 min-w-0 flex-1 select-none items-center justify-center text-[7px] font-extrabold transition-[background,box-shadow,opacity]"
-                        style={{
-                          background: perm ? perm.color : 'transparent',
-                          color: FESTIV_TOKENS.ink,
-                          boxShadow: selected
-                            ? 'inset 0 0 0 2px rgba(255,255,255,0.95), 0 0 0 1px rgba(20,26,31,0.2)'
-                            : undefined,
-                          ...(isLast
-                            ? {}
-                            : zone.dir === 'row'
-                              ? { borderRight: '1px solid rgba(20,26,31,0.18)' }
-                              : {
-                                  borderBottom: '1px solid rgba(20,26,31,0.18)',
-                                }),
-                        }}
-                      >
-                        {idx + 1}
-                        {perm && (
-                          <span className="absolute bottom-0.5 right-0.5 size-1 rounded-full bg-white/70" />
-                        )}
-                      </button>
-                    )
-                  })}
+                  {(() => {
+                    // 연속된 같은 perm 섹션을 하나의 그룹으로 묶기
+                    type Group = {
+                      perm: (typeof boothPermissions)[number] | undefined
+                      sections: number[]
+                    }
+                    const groups: Group[] = []
+                    for (let idx = 0; idx < divisions; idx++) {
+                      const perm = boothPermissions.find(
+                        (p) =>
+                          p.zoneId === zone.id &&
+                          p.day === selectedDayNumber &&
+                          p.time === activeBoothTime &&
+                          p.sections.includes(idx)
+                      )
+                      const last = groups[groups.length - 1]
+                      if (last && perm != null && last.perm?.id === perm.id) {
+                        last.sections.push(idx)
+                      } else {
+                        groups.push({ perm, sections: [idx] })
+                      }
+                    }
+                    return groups.map((group, gi) => {
+                      const { perm, sections } = group
+                      const isLast = gi === groups.length - 1
+                      const selected =
+                        perm != null &&
+                        selectedBoothCellPerm != null &&
+                        perm.id === selectedBoothCellPerm.id &&
+                        selectedBoothCell?.zoneId === zone.id
+                      return (
+                        <button
+                          key={sections[0]}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSelectedBoothCell({
+                              zoneId: zone.id,
+                              slot: sections[0],
+                            })
+                            setSelectedBoothPermId(perm?.id ?? null)
+                            setSelectedId(null)
+                            setSelectedSection(null)
+                          }}
+                          className="relative flex min-h-0 min-w-0 select-none items-center justify-center overflow-hidden text-[7px] font-extrabold transition-[background,box-shadow,opacity]"
+                          style={{
+                            flex: sections.length,
+                            background: perm ? perm.color : 'transparent',
+                            color: FESTIV_TOKENS.ink,
+                            boxShadow: selected
+                              ? 'inset 0 0 0 2px rgba(255,255,255,0.95), 0 0 0 1px rgba(20,26,31,0.2)'
+                              : undefined,
+                            ...(isLast
+                              ? {}
+                              : zone.dir === 'row'
+                                ? {
+                                    borderRight:
+                                      '1.5px solid rgba(20,26,31,0.22)',
+                                  }
+                                : {
+                                    borderBottom:
+                                      '1.5px solid rgba(20,26,31,0.22)',
+                                  }),
+                          }}
+                        >
+                          {sections[0] + 1}
+                        </button>
+                      )
+                    })
+                  })()}
                 </div>
               )
             })}
@@ -1060,9 +1084,13 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
             }
             sub={
               <>
-                {selectedBoothCell
-                  ? `${selectedBoothCell.slot + 1}번 섹션`
-                  : '섹션'}
+                {selectedBoothCellPerm
+                  ? selectedBoothCellPerm.sections.length > 1
+                    ? `섹션 ${selectedBoothCellPerm.sections.map((s) => s + 1).join('·')}`
+                    : `${selectedBoothCellPerm.sections[0] + 1}번 섹션`
+                  : selectedBoothCell
+                    ? `${selectedBoothCell.slot + 1}번 섹션`
+                    : '섹션'}
                 {selectedBoothCellPerm &&
                   ` · ${selectedBoothCellPerm.category}`}
               </>

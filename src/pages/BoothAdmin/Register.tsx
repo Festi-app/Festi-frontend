@@ -7,6 +7,7 @@ import {
   type BoothCategoryType,
 } from '../../stores/useBoothAdminStore'
 import { FESTIV_TOKENS } from '../../tokens'
+import { FestivMark, FestivWordmark } from '../../components/Logo'
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
@@ -143,11 +144,22 @@ export function BoothAdminRegister() {
     <div className="flex min-h-[calc(100dvh-3.5rem)] items-start justify-center bg-bg px-4 py-8 font-festi md:min-h-screen md:items-center md:py-16">
       <div className="w-full max-w-lg">
         {/* Header */}
-        <div className="mb-6 text-center">
-          <div className="mb-1 text-[24px] font-extrabold tracking-tight text-ink">
+        <div className="mb-6">
+          <div className="mb-4 flex items-center gap-2.5">
+            <div
+              className="flex size-8 items-center justify-center rounded-[10px]"
+              style={{ background: FESTIV_TOKENS.coral }}
+            >
+              <FestivMark color="#fff" size={18} />
+            </div>
+            <FestivWordmark size={18} color={FESTIV_TOKENS.ink} />
+            <span className="text-[12px] text-ink-40">·</span>
+            <span className="text-[12px] font-medium text-ink-40">축제를 더 즐겁게</span>
+          </div>
+          <div className="text-[26px] font-extrabold tracking-tight text-ink">
             부스 관리자 회원가입
           </div>
-          <div className="text-[13px] text-ink-60">
+          <div className="mt-1 text-[13px] text-ink-60">
             축제 부스를 운영할 단체 정보를 입력해주세요
           </div>
         </div>
