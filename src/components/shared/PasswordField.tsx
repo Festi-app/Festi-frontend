@@ -6,18 +6,20 @@ export function PasswordField({
   value,
   onChange,
   error,
+  className,
 }: {
   label: string
   placeholder: string
   value: string
   onChange: (v: string) => void
   error?: string
+  className?: string
 }) {
   const [show, setShow] = useState(false)
   const [focused, setFocused] = useState(false)
 
   return (
-    <div className="mb-4">
+    <div className={`mb-4 ${className ?? ''}`}>
       <div className="mb-1.5 text-[13px] font-bold tracking-[-0.2px] text-ink-80">
         {label}
       </div>

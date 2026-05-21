@@ -8,8 +8,8 @@ import {
   useLocation,
   useSearchParams,
 } from 'react-router-dom'
-import { create } from 'zustand'
-import { FestivHeaderLogo } from './components/Logo'
+import { FestivMark, FestivWordmark } from './components/Logo'
+import { useUI } from './stores/useUIStore'
 
 import { AdminBooths } from './pages/Admin/Booths'
 import { AdminFestival } from './pages/Admin/Festival'
@@ -20,11 +20,7 @@ import { AdminNotices } from './pages/Admin/Notices'
 import { MobileWaitingRegister } from './pages/User/WaitingRegister'
 import { MobileWaitingStatus } from './pages/User/WaitingStatus'
 import { MobileWaitingDetail } from './pages/User/WaitingDetail'
-import {
-  MobileBoothDetail,
-  MobileFoodTrucks,
-  MobileTruckDetail,
-} from './pages/User/Detail'
+import { MobileBoothDetail, MobileBoothList } from './pages/User/Detail'
 import { MobileHome } from './pages/User/Home'
 import { MobileLogin } from './pages/User/Login'
 import { MobileMap } from './pages/User/Map'
@@ -46,21 +42,6 @@ function isStandalone(): boolean {
   )
 }
 
-// ── Global UI state ───────────────────────────────────────────────────────
-
-interface UIState {
-  dark: boolean
-  setDark: (v: boolean) => void
-}
-
-const useUI = create<UIState>((set) => ({
-  dark: false,
-  setDark: (dark) => {
-    document.documentElement.classList.toggle('dark', dark)
-    set({ dark })
-  },
-}))
-
 // ── Dark mode class sync ──────────────────────────────────────────────────
 
 function DarkSync(): null {
@@ -69,6 +50,13 @@ function DarkSync(): null {
     document.documentElement.classList.toggle('dark', dark)
   }, [dark])
   return null
+}
+
+function AdminOnly({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation()
+  if (!pathname.startsWith('/admin') && !pathname.startsWith('/booth-admin'))
+    return null
+  return <>{children}</>
 }
 
 // ── Dev toolbar ───────────────────────────────────────────────────────────
@@ -108,13 +96,16 @@ const NAV_SECTIONS = [
       { to: '/onboarding', label: '회원가입' },
       { to: '/home', label: '홈' },
       { to: '/map', label: '배치도' },
-      { to: '/booth', label: '부스 상세' },
-      { to: '/trucks', label: '푸드트럭' },
+      { to: '/waiting', label: '웨이팅' },
+      { to: '/me', label: '마이' },
       { to: '/waiting/register', label: '웨이팅 등록' },
-      { to: '/waiting', label: '내 웨이팅' },
       { to: '/waiting/detail', label: '웨이팅 상세' },
-      { to: '/truck', label: '푸드트럭 상세' },
-      { to: '/me', label: '마이 · 즐겨찾기' },
+      { to: '/booths?type=day', label: '주간 부스 목록' },
+      { to: '/booths?type=night', label: '야간 부스 목록' },
+      { to: '/booths?type=truck', label: '푸드트럭 목록' },
+      { to: '/booth?type=day', label: '주간 부스 상세' },
+      { to: '/booth', label: '야간 부스 상세' },
+      { to: '/booth?type=truck', label: '푸드트럭 상세' },
     ],
   },
   {
@@ -125,6 +116,7 @@ const NAV_SECTIONS = [
       { to: '/admin/trucks', label: '푸드트럭' },
       { to: '/admin/booth-requests', label: '부스 신청 관리' },
       { to: '/admin/timetable', label: '공연 타임테이블' },
+      { to: '/admin/notices', label: '공지 관리' },
     ],
   },
   {
@@ -184,13 +176,19 @@ function NavLinks({
 
 function Nav() {
   const [open, setOpen] = useState(false)
+  const { pathname } = useLocation()
+  const isAdmin =
+    pathname.startsWith('/admin') || pathname.startsWith('/booth-admin')
   if (isStandalone()) return null
   return (
     <>
       {/* Desktop sidebar */}
       <nav className="fixed top-0 bottom-0 left-0 z-50 hidden w-45 flex-col overflow-y-auto border-r border-border bg-surface px-2.5 py-4 font-festi md:flex">
         <div className="px-2 pb-3 text-[#141A1F] dark:text-white">
-          <FestivHeaderLogo size={18} color="currentColor" />
+          <div className="flex items-center gap-1">
+            <FestivMark size={18} color="currentColor" />
+            <FestivWordmark size={14} color="currentColor" />
+          </div>
         </div>
         <NavLinks />
       </nav>
@@ -198,47 +196,52 @@ function Nav() {
       {/* Mobile top bar */}
       <div className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center border-b border-border bg-surface px-4 font-festi md:hidden">
         <div className="text-[#141A1F] dark:text-white">
-          <FestivHeaderLogo size={18} color="currentColor" />
+          <div className="flex items-center gap-1">
+            <FestivMark size={18} color="currentColor" />
+            <FestivWordmark size={14} color="currentColor" />
+          </div>
         </div>
         <div className="flex-1" />
-        <button
-          onClick={() => setOpen((o) => !o)}
-          className="flex h-9 w-9 cursor-pointer items-center justify-center text-ink"
-        >
-          <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-            <line
-              x1="3"
-              y1="7"
-              x2="21"
-              y2="7"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-            <line
-              x1="3"
-              y1="12"
-              x2="21"
-              y2="12"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-            <line
-              x1="3"
-              y1="17"
-              x2="21"
-              y2="17"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => setOpen((o) => !o)}
+            className="flex h-9 w-9 cursor-pointer items-center justify-center text-ink"
+          >
+            <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+              <line
+                x1="3"
+                y1="7"
+                x2="21"
+                y2="7"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+              <line
+                x1="3"
+                y1="12"
+                x2="21"
+                y2="12"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+              <line
+                x1="3"
+                y1="17"
+                x2="21"
+                y2="17"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Mobile dropdown */}
-      {open && (
+      {isAdmin && open && (
         <div className="fixed top-14 right-0 left-0 z-50 max-h-[70vh] overflow-y-auto border-b border-border bg-surface px-3 py-2 font-festi shadow-xl md:hidden">
           <NavLinks mobile onClick={() => setOpen(false)} />
         </div>
@@ -255,8 +258,8 @@ export { ALL_NAV_LINKS }
 function MobileLayout({ children }: { children: ReactNode }) {
   const { key } = useLocation()
   return (
-    <div className="min-h-screen bg-bg md:ml-45 md:flex md:items-start md:justify-center md:px-6 md:py-10">
-      <div className="relative mt-14 h-[calc(100dvh-3.5rem)] w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]">
+    <div className="min-h-screen overflow-hidden bg-bg md:ml-45 md:flex md:items-start md:justify-center md:px-6 md:py-10">
+      <div className="relative mt-14 h-[calc(100svh-3.5rem)] w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]">
         <div
           key={key}
           className="h-full w-full"
@@ -290,6 +293,11 @@ function HomeRoute() {
     </MobileLayout>
   )
 }
+function getIdParam(params: URLSearchParams): number | undefined {
+  const v = params.get('id')
+  return v ? Number(v) : undefined
+}
+
 function MapRoute() {
   const { dark } = useUI()
   return (
@@ -301,25 +309,29 @@ function MapRoute() {
 function BoothRoute() {
   const { dark } = useUI()
   const [searchParams] = useSearchParams()
-  const alreadyWaiting = searchParams.get('waiting') === 'true'
+  const type = searchParams.get('type') ?? 'night'
+  const id = getIdParam(searchParams)
   return (
     <MobileLayout>
-      <MobileBoothDetail dark={dark} alreadyWaiting={alreadyWaiting} />
+      <MobileBoothDetail dark={dark} type={type} id={id} />
     </MobileLayout>
   )
 }
-function TrucksRoute() {
+function BoothListRoute() {
   return (
     <MobileLayout>
-      <MobileFoodTrucks />
+      <MobileBoothList />
     </MobileLayout>
   )
 }
+
 function WaitingRegisterRoute() {
   const { dark } = useUI()
+  const [searchParams] = useSearchParams()
+  const id = getIdParam(searchParams)
   return (
     <MobileLayout>
-      <MobileWaitingRegister dark={dark} />
+      <MobileWaitingRegister dark={dark} id={id} />
     </MobileLayout>
   )
 }
@@ -333,17 +345,11 @@ function WaitingStatusRoute() {
 }
 function WaitingDetailRoute() {
   const { dark } = useUI()
+  const [searchParams] = useSearchParams()
+  const id = getIdParam(searchParams)
   return (
     <MobileLayout>
-      <MobileWaitingDetail dark={dark} />
-    </MobileLayout>
-  )
-}
-function TruckRoute() {
-  const { dark } = useUI()
-  return (
-    <MobileLayout>
-      <MobileTruckDetail dark={dark} />
+      <MobileWaitingDetail dark={dark} id={id} />
     </MobileLayout>
   )
 }
@@ -460,7 +466,9 @@ export default function App() {
     <>
       <DarkSync />
       <Nav />
-      <DevToolbar />
+      <AdminOnly>
+        <DevToolbar />
+      </AdminOnly>
       <Routes>
         <Route path="/" element={<Navigate to="/splash" replace />} />
         <Route path="/splash" element={<SplashRoute />} />
@@ -468,11 +476,15 @@ export default function App() {
         <Route path="/home" element={<HomeRoute />} />
         <Route path="/map" element={<MapRoute />} />
         <Route path="/booth" element={<BoothRoute />} />
-        <Route path="/trucks" element={<TrucksRoute />} />
+        <Route path="/booths" element={<BoothListRoute />} />
+
         <Route path="/waiting" element={<WaitingStatusRoute />} />
         <Route path="/waiting/register" element={<WaitingRegisterRoute />} />
         <Route path="/waiting/detail" element={<WaitingDetailRoute />} />
-        <Route path="/truck" element={<TruckRoute />} />
+        <Route
+          path="/truck"
+          element={<Navigate to="/booth?type=truck" replace />}
+        />
         <Route path="/me" element={<MyRoute />} />
         <Route path="/login" element={<LoginRoute />} />
         <Route path="/onboarding" element={<OnboardingRoute />} />

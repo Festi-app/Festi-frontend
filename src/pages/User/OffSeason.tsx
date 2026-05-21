@@ -1,9 +1,5 @@
 import { FESTIV_TOKENS } from '../../tokens'
-import {
-  FestivMark,
-  FestivWordmark,
-  FestivHeaderLogo,
-} from '../../components/Logo'
+import { FestivMark, FestivWordmark } from '../../components/Logo'
 import { useFestivalStore } from '../../stores/useFestivalStore'
 
 function getDDayInfo(startDate: string, endDate: string) {
@@ -114,7 +110,7 @@ export function MobileOffSeason({ dark = false }: { dark?: boolean }) {
         style={{ color: dark ? FESTIV_TOKENS.ink40 : FESTIV_TOKENS.ink60 }}
       >
         <span className="text-[12px] font-medium">축제를 더 즐겁게,</span>
-        <FestivHeaderLogo
+        <FestivWordmark
           size={14}
           color={dark ? FESTIV_TOKENS.ink40 : FESTIV_TOKENS.ink60}
         />

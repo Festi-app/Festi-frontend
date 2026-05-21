@@ -1,6 +1,12 @@
 import { create } from 'zustand'
 import { FESTIV_TOKENS } from '../tokens'
 
+export interface TruckMenuItem {
+  id: string
+  name: string
+  price: string
+}
+
 export type TruckTime = '주간' | '야간'
 export type AssignmentMap = Record<string, string>
 
@@ -83,12 +89,6 @@ export const TRUCK_ZONES: TruckZoneDef[] = [
   },
 ]
 
-export interface MenuItem {
-  id: string
-  name: string
-  price: string
-}
-
 export type TruckDay = 1 | 2 | 3
 
 export interface FoodTruck {
@@ -98,7 +98,7 @@ export interface FoodTruck {
   startTime: string
   endTime: string
   note: string
-  menus: MenuItem[]
+  menus: TruckMenuItem[]
 }
 
 const INITIAL_TRUCKS: FoodTruck[] = [

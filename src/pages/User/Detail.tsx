@@ -1,136 +1,345 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  TRUCK_BOOTHS,
+  DAY_BOOTHS,
+  NIGHT_BOOTHS,
+  NIGHT_BOOTH_MENUS,
+  DAY_BOOTH_MENUS,
+  TRUCK_BOOTH_MENUS,
+} from '../../data/booths'
+import { getBoothZoneName } from '../../data/zones'
+import type { MenuItem } from '../../data/booths'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
+import { PhotoHero } from '../../components/User/PhotoHero'
 import { ScreenHeader, SubHeader } from '../../components/User/ScreenHeader'
 import { Toast } from '../../components/shared/Toast'
-import { PhotoHero } from '../../components/User/PhotoHero'
+import { CancelToast } from '../../components/User/CancelToast'
 import { MenuItemCard } from '../../components/User/MenuItemCard'
 import { StatGrid } from '../../components/User/StatGrid'
+import { useFavoritesStore } from '../../stores/useFavoritesStore'
+import { useWaitingStore } from '../../stores/useWaitingStore'
+import { ConfirmModal } from '../../components/User/ConfirmModal'
+import { useWaitingCancel } from '../../hooks/useWaitingCancel'
+import { formatSections } from '../../lib/format'
+
+// ── Reusable booth detail body ────────────────────────────────────────────────
+
+export function BoothDetailContent({
+  dark = false,
+  name,
+  category = '',
+  id,
+  sections,
+  type,
+  catPill,
+  operatingHours,
+  days,
+  description,
+  area,
+  menus,
+  circleColor: circleColorProp,
+}: {
+  dark?: boolean
+  name: string
+  category?: string
+  id?: number
+  sections?: number[] // booth_locations.index[] (0-based) — 구역 내 슬롯 위치
+  type: string
+  catPill?: { color: string; ink: string }
+  operatingHours?: string
+  days?: string[]
+  description?: string
+  area?: string
+  menus?: MenuItem[]
+  circleColor?: string
+}) {
+  const surfaceAlt = dark ? '#252A30' : '#F1F7F8'
+  const ink80 = dark ? '#CDD5DA' : '#2E363C'
+  const isTruck = type === 'truck'
+  const isNight = type === 'night'
+  const resolvedMenus = menus ?? []
+  const defaultHours = isNight ? '17시 ~ 22시' : isTruck ? '' : '10시 ~ 18시'
+
+  const CAT_SOFT: Record<string, string> = {
+    정보: FESTIV_TOKENS.mintSoft ?? '#D4F7F8',
+    체험: FESTIV_TOKENS.grapeSoft ?? '#EDE7F8',
+    마켓: FESTIV_TOKENS.sunSoft ?? '#FFF3C2',
+    활동: FESTIV_TOKENS.popSoft ?? '#D9F2E2',
+    주점: FESTIV_TOKENS.alertSoft ?? '#FFE5E5',
+    야식: FESTIV_TOKENS.sunSoft ?? '#FFF3C2',
+  }
+  const resolvedCatPill =
+    catPill ??
+    (category && CAT_SOFT[category]
+      ? { color: CAT_SOFT[category], ink: '#141A1F' }
+      : { color: surfaceAlt, ink: ink80 })
+
+  const circleColor =
+    circleColorProp ??
+    (isTruck
+      ? FESTIV_TOKENS.sun
+      : isNight
+        ? FESTIV_TOKENS.alert
+        : FESTIV_TOKENS.pop)
+  const pillBg = isTruck
+    ? FESTIV_TOKENS.sunSoft
+    : isNight
+      ? FESTIV_TOKENS.alertSoft
+      : FESTIV_TOKENS.popSoft
+  const pillInk = isTruck
+    ? FESTIV_TOKENS.sun
+    : isNight
+      ? FESTIV_TOKENS.alert
+      : FESTIV_TOKENS.pop
+  const typeLabel = isTruck ? '푸드트럭' : isNight ? '야간' : '주간'
+
+  return (
+    <>
+      <div className="mb-4 flex items-start gap-3">
+        {id != null && (
+          <div
+            className="flex size-11 shrink-0 items-center justify-center rounded-full font-extrabold text-white"
+            style={{
+              fontSize: 15,
+              background: circleColor,
+              boxShadow: `inset 0 0 0 3px #fff, 0 4px 12px ${circleColor}66`,
+            }}
+          >
+            {id}
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="mb-1.5 flex flex-wrap gap-1.5">
+            <Pill color={pillBg} ink={pillInk}>
+              {typeLabel}
+            </Pill>
+            {!isNight && !isTruck && category && (
+              <Pill color={resolvedCatPill.color} ink={resolvedCatPill.ink}>
+                {category}
+              </Pill>
+            )}
+            {area && (
+              <Pill color={surfaceAlt} ink={ink80}>
+                {area}
+              </Pill>
+            )}
+            {sections && sections.length > 0 && (
+              <Pill color={surfaceAlt} ink={ink80}>
+                {'#' + sections.map((s) => s + 1).join('·')}
+              </Pill>
+            )}
+          </div>
+          <div className="text-2xl leading-[1.2] font-extrabold tracking-[-0.7px] text-ink">
+            {name}
+          </div>
+          {description && (
+            <div className="mt-1.5 text-[13px] leading-normal text-ink-60">
+              {description}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <StatGrid
+        className="mt-4"
+        stats={[
+          { label: '운영 날짜', value: days ? days.join(', ') : '전일 운영' },
+          { label: '운영 시간', value: operatingHours ?? defaultHours },
+        ]}
+      />
+
+      {resolvedMenus.length > 0 && (
+        <>
+          <SubHeader title="메뉴" right={`총 ${resolvedMenus.length}종`} />
+          <div className="flex flex-col gap-2.5">
+            {resolvedMenus.map((m, i) => (
+              <MenuItemCard
+                key={i}
+                name={m.name}
+                description={m.description ?? ''}
+                price={m.price ?? 0}
+                tone={m.tone ?? 'leaf'}
+                isSoldOut={m.isSoldOut}
+                showImage
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </>
+  )
+}
 
 // ── Screen: Booth Detail ──────────────────────────────────────────────────────
 
 export function MobileBoothDetail({
   dark = false,
-  alreadyWaiting = false,
+  type = 'night',
+  id,
 }: {
   dark?: boolean
-  alreadyWaiting?: boolean
+  type?: string
+  id?: number
 }) {
   const navigate = useNavigate()
-  const [favorite, setFavorite] = useState(true)
+  const isNight = type === 'night'
+  const isTruck = type === 'truck'
+  const { isSaved, toggleSave } = useFavoritesStore()
+  const { waitings } = useWaitingStore()
   const [toast, setToast] = useState<'saved' | 'unsaved' | null>(null)
-  const surfaceAlt = dark ? '#252A30' : '#F1F7F8'
-  const ink80 = dark ? '#CDD5DA' : '#2E363C'
+  const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
+    useWaitingCancel()
+  const boothType = isNight
+    ? ('night' as const)
+    : isTruck
+      ? ('truck' as const)
+      : ('day' as const)
+
+  const fallbackId = isNight ? 16 : isTruck ? 1 : 6
+  const resolvedId = id ?? fallbackId
+  const favorite = isSaved(boothType, resolvedId)
+  const alreadyWaiting =
+    isNight && waitings.some((w) => w.boothId === resolvedId)
 
   function toggleFavorite() {
-    const next = !favorite
-    setFavorite(next)
-    setToast(next ? 'saved' : 'unsaved')
+    toggleSave(boothType, resolvedId)
+    setToast(favorite ? 'unsaved' : 'saved')
     setTimeout(() => setToast(null), 2000)
   }
+  const rawBooth = isNight
+    ? NIGHT_BOOTHS.find((b) => b.id === resolvedId)
+    : isTruck
+      ? TRUCK_BOOTHS.find((t) => t.id === resolvedId)
+      : DAY_BOOTHS.find((b) => b.id === resolvedId)
+  const boothData = {
+    ...(rawBooth ??
+      (isNight ? NIGHT_BOOTHS[0] : isTruck ? TRUCK_BOOTHS[0] : DAY_BOOTHS[0])),
+    label: isTruck ? 'cover · food truck' : `cover · booth #${resolvedId}`,
+  }
+
+  const menus = useMemo(
+    () =>
+      isNight
+        ? NIGHT_BOOTH_MENUS.filter((m) => m.boothId === resolvedId)
+        : isTruck
+          ? TRUCK_BOOTH_MENUS.filter((m) => m.boothId === resolvedId)
+          : DAY_BOOTH_MENUS.filter((m) => m.boothId === resolvedId),
+    [isNight, isTruck, resolvedId]
+  )
+
+  const heroHeight = isTruck ? 'h-72' : 'h-80'
+  const bodyHeight = isTruck
+    ? 'h-[calc(100%-288px+28px)]'
+    : 'h-[calc(100%-320px+28px)]'
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-bg font-festi">
       <PhotoHero
-        tone="rose"
-        label="cover · booth #16"
-        height="h-80"
-        showDots
+        tone={boothData.tone}
+        label={boothData.label}
+        height={heroHeight}
+        showDots={!isTruck}
         onBack={() => navigate(-1)}
         favorite={favorite}
         onFavorite={toggleFavorite}
       />
 
       {/* Body */}
-      <div className="relative z-2 -mt-7 h-[calc(100%-320px+28px)] overflow-auto rounded-t-[28px] bg-surface px-5 pt-5 pb-36">
-        <div className="mb-2 flex gap-1.5">
-          <Pill color={FESTIV_TOKENS.alert} ink="#fff">
-            야간 주점
-          </Pill>
-          <Pill color={surfaceAlt} ink={ink80}>
-            #16 · 베어드홀 동측
-          </Pill>
-        </div>
-        <div className="text-2xl leading-[1.2] font-extrabold tracking-[-0.7px] text-ink">
-          컴공과 칵테일 바
-        </div>
-        <div className="mt-1.5 text-[13px] leading-normal text-ink-60">
-          시원한 수제 칵테일과 안주로 오늘 밤을
-          <br />
-          특별하게 만들어 드려요 🍹
-        </div>
-
-        <StatGrid
-          className="mt-4"
-          stats={[
-            { label: '현재 대기', value: '7팀', sub: '예상 22분' },
-            { label: '운영 시간', value: '17시 ~ 22시' },
-          ]}
+      <div
+        className={`relative z-2 -mt-7 ${bodyHeight} overflow-auto overscroll-none rounded-t-[28px] bg-surface px-5 pt-5 ${isNight ? 'pb-36' : 'pb-10'}`}
+      >
+        <BoothDetailContent
+          dark={dark}
+          name={boothData.name}
+          category={boothData.category}
+          id={boothData.id}
+          sections={boothData.sections}
+          type={type}
+          area={getBoothZoneName(boothData)}
+          operatingHours={boothData.operatingHours}
+          days={rawBooth?.days}
+          description={boothData.description}
+          menus={menus}
         />
+      </div>
 
-        <SubHeader title="메뉴" right="총 6종" />
-        <div className="flex flex-col gap-2.5">
-          {[
-            {
-              name: '청포도 모히토',
-              desc: '무알콜 가능',
-              price: 6000,
-              tone: 'leaf',
-              best: true,
-            },
-            {
-              name: '히비스커스 진토닉',
-              desc: '시그니처',
-              price: 7000,
-              tone: 'rose',
-              best: false,
-            },
-            {
-              name: '복숭아 슬러시',
-              desc: '논알콜',
-              price: 5000,
-              tone: 'sun',
-              best: false,
-            },
-            {
-              name: '안주 - 나초 플래터',
-              desc: '치즈 듬뿍',
-              price: 8000,
-              tone: 'coral',
-              best: false,
-            },
-          ].map((m, i) => (
-            <MenuItemCard key={i} {...m} />
-          ))}
+      {/* Sticky CTA - night only */}
+      {isNight && (
+        <div className="absolute inset-x-0 bottom-0 z-20 bg-[linear-gradient(180deg,transparent_0%,#ffffff_30%)] px-5 pt-3 pb-7 dark:bg-[linear-gradient(180deg,transparent_0%,#1a1e23_30%)]">
+          {boothData.wait == null || boothData.wait === 0 ? (
+            <div className="flex w-full items-center justify-between rounded-[20px] bg-pop px-5 py-4">
+              <div>
+                <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-white">
+                  지금 바로 입장해주세요!
+                </div>
+                <div className="text-[11px] font-semibold text-white/70">
+                  대기 없이 바로 입장 가능합니다
+                </div>
+              </div>
+              <div className="size-4.5 text-white">
+                <svg viewBox="0 0 16 16" width="18" height="18" fill="none">
+                  <path
+                    d="M3 8l3.5 3.5L13 4.5"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() =>
+                alreadyWaiting
+                  ? setConfirmCancel(true)
+                  : navigate(`/waiting/register?id=${boothData.id}`, {
+                      replace: true,
+                    })
+              }
+              className={`flex items-center w-full justify-between rounded-[20px] px-5 py-4 text-left transition-transform duration-100 active:scale-[0.98] ${
+                alreadyWaiting
+                  ? 'bg-[#D0D5D8] text-ink-60 dark:bg-[#2F353B] dark:text-ink-40'
+                  : 'bg-cta text-cta-ink shadow-[0_8px_22px_rgba(0,198,224,0.4)]'
+              }`}
+            >
+              <div>
+                <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px]">
+                  {alreadyWaiting ? '이미 웨이팅 중' : '웨이팅 걸기'}
+                </div>
+                <div className="text-[11px] font-semibold opacity-60">
+                  {alreadyWaiting
+                    ? '웨이팅을 취소할 수 있어요'
+                    : `현재 ${boothData.wait}팀 대기`}
+                </div>
+              </div>
+              <div className="size-4.5">
+                {I.chev(alreadyWaiting ? undefined : '#fff', 'r')}
+              </div>
+            </button>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Sticky CTA */}
-      <div className="absolute inset-x-0 bottom-0 z-20 bg-[linear-gradient(180deg,transparent_0%,#ffffff_30%)] px-5 pt-3 pb-7 dark:bg-[linear-gradient(180deg,transparent_0%,#1a1e23_30%)]">
-        <button
-          type="button"
-          disabled={alreadyWaiting}
-          onClick={() => navigate('/waiting/register', { replace: true })}
-          className={`flex items-center w-full justify-between rounded-[20px] px-5 py-4 text-left transition-transform duration-100 ${
-            alreadyWaiting
-              ? 'bg-surface-alt text-ink-40 cursor-not-allowed'
-              : 'bg-cta text-cta-ink shadow-[0_8px_22px_rgba(0,198,224,0.4)] active:scale-[0.98]'
-          }`}
-        >
-          <div>
-            <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px]">
-              {alreadyWaiting ? '이미 웨이팅 중' : '웨이팅 걸기'}
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold opacity-70">
-              현재 7팀 대기
-            </div>
-          </div>
-          <div className="size-4.5">
-            {I.chev(alreadyWaiting ? undefined : '#fff', 'r')}
-          </div>
-        </button>
-      </div>
+      <ConfirmModal
+        open={confirmCancel}
+        title="웨이팅을 취소할까요?"
+        body={
+          <>
+            {boothData.name} · 웨이팅
+            <br />
+            취소 후에는 다시 등록해야 합니다.
+          </>
+        }
+        confirmLabel="취소하기"
+        onConfirm={() => handleCancel(resolvedId)}
+        onClose={() => setConfirmCancel(false)}
+      />
+
+      <CancelToast show={showCancelToast} />
 
       {toast && (
         <Toast
@@ -161,250 +370,98 @@ export function MobileBoothDetail({
   )
 }
 
-// ── Screen: Food Truck List ───────────────────────────────────────────────────
+// ── Screen: Booth List ────────────────────────────────────────────────────────
 
-export function MobileFoodTrucks() {
+const BOOTH_LIST_CONFIG = {
+  night: { items: NIGHT_BOOTHS, title: '야간 부스', base: '/booth?type=night' },
+  day: { items: DAY_BOOTHS, title: '주간 부스', base: '/booth?type=day' },
+  truck: { items: TRUCK_BOOTHS, title: '푸드트럭', base: '/booth?type=truck' },
+} as const
+
+export function MobileBoothList() {
   const navigate = useNavigate()
-  const trucks = [
-    {
-      name: '브라더스 츄러스',
-      spec: '츄러스 · 아이스크림',
-      price: '4,000원',
-      hours: '12:00 ~ 21:00',
-      tone: 'coral',
-      open: true,
-      tag: '디저트',
-    },
-    {
-      name: '도쿄 타코야끼',
-      spec: '타코야끼 · 야끼소바',
-      price: '6,000원',
-      hours: '15:00 ~ 22:00',
-      tone: 'sun',
-      open: true,
-      tag: '분식',
-    },
-    {
-      name: '훈제 통삼겹',
-      spec: '통삼겹 · 꼬치',
-      price: '7,000원',
-      hours: '17:00 ~ 23:00',
-      tone: 'rose',
-      open: true,
-      tag: '구이',
-    },
-    {
-      name: '청춘 만두',
-      spec: '왕만두 · 떡볶이',
-      price: '5,000원',
-      hours: '13:00 ~ 21:00',
-      tone: 'leaf',
-      open: true,
-      tag: '분식',
-    },
-    {
-      name: '코코넛 라떼',
-      spec: '음료 전문',
-      price: '4,500원',
-      hours: '11:00 ~ 20:00',
-      tone: 'mint',
-      open: true,
-      tag: '음료',
-    },
-    {
-      name: '심야 라멘바',
-      spec: '돈코츠 · 미소',
-      price: '8,000원',
-      hours: '18:00 ~ 23:00',
-      tone: 'grape',
-      open: false,
-      tag: '면류',
-    },
-  ]
+  const [searchParams] = useSearchParams()
+  const { isSaved, toggleSave } = useFavoritesStore()
+  const type = (searchParams.get('type') ?? 'night') as
+    | 'day'
+    | 'night'
+    | 'truck'
+
+  const { items, title, base: detailBase } = BOOTH_LIST_CONFIG[type]
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
-      <ScreenHeader title="푸드트럭" />
+      <ScreenHeader title={title} />
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-3.5 pb-27.5">
         <div className="flex flex-col gap-3">
-          {trucks.map((tr, i) => (
-            <button
-              type="button"
-              onClick={() => navigate('/truck')}
-              key={i}
-              className={`overflow-hidden rounded-[20px] border border-border bg-surface transition-transform duration-100 active:scale-[0.98] ${
-                tr.open ? 'opacity-100' : 'opacity-60'
-              }`}
-            >
-              <div className="flex items-center gap-3.5 p-3">
-                <div className="relative size-24 shrink-0 overflow-hidden rounded-[14px]">
-                  <PhotoSlot
-                    label=""
-                    tone={tr.tone}
-                    radius={14}
-                    className="h-full"
-                    style={{ aspectRatio: 'auto' }}
-                  />
-                  {!tr.open && (
-                    <div className="absolute inset-0 flex items-center justify-center rounded-[14px] bg-[rgba(15,42,51,0.55)] text-xs font-bold text-white">
-                      준비중
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1 ">
-                  <div className="mt-1 text-[15px] text-start font-extrabold tracking-[-0.3px] text-ink">
-                    {tr.name}
+          {items.map((b) => {
+            const saved = isSaved(type, b.id)
+            return (
+              <div
+                key={b.id}
+                onClick={() => navigate(`${detailBase}&id=${b.id}`)}
+                className="cursor-pointer overflow-hidden rounded-[20px] border border-border bg-surface transition-transform duration-100 active:scale-[0.98]"
+              >
+                <div className="flex items-stretch gap-3.5 p-3">
+                  <div className="size-24 shrink-0 overflow-hidden rounded-[14px]">
+                    <PhotoSlot
+                      label=""
+                      tone={b.tone}
+                      radius={14}
+                      ratio="1/1"
+                      className="w-full h-full"
+                    />
                   </div>
-                  <div className="mt-0.5 text-xs text-start text-ink-60">
-                    {tr.spec}
-                  </div>
-                  <div className="mt-2 flex items-center justify-between">
-                    <div className="text-sm font-extrabold tracking-[-0.3px] text-ink">
-                      {tr.price}{' '}
-                      <span className="text-[11px] font-medium text-ink-60">
-                        부터
-                      </span>
+                  <div className="flex min-w-0 flex-1 flex-col pt-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-start text-[15px] font-extrabold tracking-[-0.3px] text-ink">
+                          {b.name}
+                        </div>
+                        <div className="mt-0.5 text-start text-xs text-ink-60">
+                          {getBoothZoneName(b)}
+                          {b.sections && b.sections.length > 0 && (
+                            <> #{formatSections(b.sections)}</>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleSave(type, b.id)
+                        }}
+                        className="mt-0.5 size-4.5 shrink-0"
+                      >
+                        {I.star(
+                          saved ? FESTIV_TOKENS.alert : undefined,
+                          saved ? FESTIV_TOKENS.alert : 'none'
+                        )}
+                      </button>
                     </div>
-                    <div className="text-[11px] text-ink-40">{tr.hours}</div>
+                    {b.description && (
+                      <div
+                        className="mt-2 text-start text-[11px] text-ink-40"
+                        style={{
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitBoxOrient: 'vertical',
+                          WebkitLineClamp: 2,
+                        }}
+                      >
+                        {b.description}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            </button>
-          ))}
+            )
+          })}
         </div>
       </div>
 
       <FestiTabBar active="home" />
-    </div>
-  )
-}
-
-// ── Screen: Food Truck Detail ─────────────────────────────────────────────────
-
-export function MobileTruckDetail({ dark = false }: { dark?: boolean }) {
-  const navigate = useNavigate()
-  const [favorite, setFavorite] = useState(false)
-  const [toast, setToast] = useState<'saved' | 'unsaved' | null>(null)
-  const surfaceAlt = dark ? '#252A30' : '#F1F7F8'
-  const ink80 = dark ? '#CDD5DA' : '#2E363C'
-
-  function toggleFavorite() {
-    const next = !favorite
-    setFavorite(next)
-    setToast(next ? 'saved' : 'unsaved')
-    setTimeout(() => setToast(null), 2000)
-  }
-
-  return (
-    <div className="relative h-full w-full overflow-hidden bg-bg font-festi">
-      <PhotoHero
-        tone="sun"
-        label="cover · food truck"
-        height="h-72"
-        onBack={() => navigate(-1)}
-        favorite={favorite}
-        onFavorite={toggleFavorite}
-      />
-
-      {/* Body */}
-      <div className="relative z-2 -mt-7 h-[calc(100%-288px+28px)] overflow-auto rounded-t-[28px] bg-surface px-5 pt-5 pb-10">
-        <div className="mb-2 flex gap-1.5">
-          <Pill color={FESTIV_TOKENS.sun} ink={FESTIV_TOKENS.ink}>
-            디저트
-          </Pill>
-          <Pill color={surfaceAlt} ink={ink80}>
-            한경직 기념관 앞
-          </Pill>
-        </div>
-        <div className="text-2xl leading-[1.2] font-extrabold tracking-[-0.7px] text-ink">
-          브라더스 츄러스
-        </div>
-        <div className="mt-1.5 text-[13px] leading-normal text-ink-60">
-          바삭한 츄러스와 부드러운 아이스크림의 만남,
-          <br />
-          축제의 달달한 순간을 함께해요 🍦
-        </div>
-
-        <StatGrid
-          className="mt-4"
-          stats={[
-            { label: '운영 시간', value: '12시 ~ 21시', sub: '특이 사항' },
-          ]}
-        />
-
-        <SubHeader title="메뉴" right="총 4종" />
-        <div className="flex flex-col gap-2.5">
-          {[
-            {
-              name: '오리지널 츄러스',
-              desc: '시나몬 슈가',
-              price: 4000,
-              tone: 'sun',
-              best: true,
-            },
-            {
-              name: '초코 츄러스',
-              desc: '초코 디핑 소스',
-              price: 4500,
-              tone: 'coral',
-              best: false,
-            },
-            {
-              name: '소프트 아이스크림',
-              desc: '바닐라 / 초코',
-              price: 3000,
-              tone: 'mint',
-              best: false,
-            },
-            {
-              name: '츄러스 + 아이스크림 세트',
-              desc: '가장 인기',
-              price: 6500,
-              tone: 'rose',
-              best: true,
-            },
-          ].map((m, i) => (
-            <MenuItemCard key={i} {...m} />
-          ))}
-        </div>
-
-        <SubHeader title="트럭 소개" />
-        <div className="rounded-2xl bg-surface-alt p-3.5 text-[13px] leading-[1.55] text-ink-80">
-          2018년부터 대학 축제를 함께해온 브라더스 츄러스입니다.
-          <br />
-          매일 오전 반죽을 새로 만들어 바삭하고 신선한
-          <br />
-          츄러스를 제공해 드려요.
-        </div>
-      </div>
-
-      {toast && (
-        <Toast
-          bottom="bottom-10"
-          message={
-            toast === 'saved' ? '저장되었습니다' : '저장이 취소되었습니다'
-          }
-          icon={
-            toast === 'saved' ? (
-              <div className="flex size-8 items-center justify-center rounded-full bg-alert">
-                {I.star('#fff', '#fff')}
-              </div>
-            ) : (
-              <div className="flex size-8 items-center justify-center rounded-full bg-alert/20">
-                <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
-                  <path
-                    d="M3 3l10 10M13 3L3 13"
-                    stroke="#FF6B6B"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-            )
-          }
-        />
-      )}
     </div>
   )
 }
