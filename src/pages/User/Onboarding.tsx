@@ -69,6 +69,14 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
           className="rounded-[20px] border border-border p-4 shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)]"
           style={{ background: dark ? '#1A1E23' : '#FFFFFF' }}
         >
+          <div className="mb-4">
+            <div className="text-[20px] font-extrabold tracking-[-0.5px] text-ink">
+              회원가입
+            </div>
+            <div className="mt-1 text-[13px] text-ink-60">
+              정보를 입력하고 계정을 만들어주세요.
+            </div>
+          </div>
           <InputField
             label="아이디"
             type="text"
