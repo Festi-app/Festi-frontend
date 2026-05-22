@@ -200,11 +200,11 @@ function Nav() {
   if (IS_STANDALONE) {
     return (
       <div
-        className="fixed top-0 right-0 left-0 z-50 border-b border-border bg-surface font-festi"
+        className="fixed top-0 right-0 left-0 z-50 bg-surface font-festi"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div className="flex h-14 items-center px-4 text-ink">
-          <FestivLogo />
+          <FestivLogo large />
         </div>
       </div>
     )
