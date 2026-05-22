@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
 import { PhotoSlot } from '../../tokens'
 import { ScreenHeader } from '../../components/User/ScreenHeader'
@@ -47,7 +48,10 @@ export function MobileWaitingDetail({
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
       <ScreenHeader title="웨이팅 상세" />
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-5 pb-28">
+      <div
+        className="min-h-0 flex-1 overflow-y-auto px-5 pt-5"
+        style={{ paddingBottom: tabBarPb }}
+      >
         {(waiting ?? cancelledWaiting) &&
           (() => {
             const w = waiting ?? cancelledWaiting!

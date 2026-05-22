@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { tabBarPb, tabBarPbTall } from '../../lib/safeArea'
 import type { TouchEvent } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
@@ -82,7 +83,7 @@ function MapSheet({
       className={`absolute flex flex-col bg-surface ${
         expanded
           ? 'inset-x-0 bottom-0 z-40 h-[80%] overflow-hidden rounded-t-3xl shadow-[0_-8px_32px_rgba(15,42,51,0.18)]'
-          : 'inset-x-0 bottom-0 z-10 rounded-t-3xl border-t border-border px-4.5 pt-2.5 pb-25 shadow-[0_-8px_32px_rgba(15,42,51,0.18)]'
+          : 'inset-x-0 bottom-0 z-10 rounded-t-3xl border-t border-border px-4.5 pt-2.5 shadow-[0_-8px_32px_rgba(15,42,51,0.18)]'
       }`}
       style={{
         animation:
@@ -92,6 +93,7 @@ function MapSheet({
               ? 'festi-sheet-out 0.22s ease both'
               : 'festi-sheet-in 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both',
         transform: sheetDragY > 0 ? `translateY(${sheetDragY}px)` : undefined,
+        paddingBottom: expanded ? undefined : tabBarPb,
       }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
@@ -274,7 +276,10 @@ function WaitingActions({
   const buttonProps = { ...props, onWaiting: props.onWaiting }
   if (sticky) {
     return (
-      <div className="absolute inset-x-0 bottom-0 z-20 bg-[linear-gradient(180deg,transparent_0%,var(--color-surface)_35%)] px-5 pt-3 pb-24">
+      <div
+        className="absolute inset-x-0 bottom-0 z-20 bg-[linear-gradient(180deg,transparent_0%,var(--color-surface)_35%)] px-5 pt-3"
+        style={{ paddingBottom: tabBarPb }}
+      >
         <WaitingButton {...buttonProps} />
       </div>
     )
@@ -1161,7 +1166,10 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
         selectedBoothCell === null &&
         mapView === 'day' &&
         !listOpen && (
-          <div className="absolute inset-x-0 bottom-25 z-10 flex justify-center px-4">
+          <div
+            className="absolute inset-x-0 z-10 flex justify-center px-4"
+            style={{ bottom: tabBarPb }}
+          >
             <div className="flex items-center gap-3 rounded-full bg-white/65 px-3 py-1.5 text-ink-80 shadow-[0_1px_6px_rgba(20,26,31,0.08)] backdrop-blur-sm dark:bg-[#13262D]/65">
               {BOOTH_CATEGORIES.map((category) => {
                 const theme = BOOTH_CATEGORY_THEMES[category]
@@ -1257,7 +1265,10 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               )}
               {sheetExpanded && (
                 <div className="relative h-full overflow-hidden">
-                  <div className="h-full overflow-y-auto overscroll-none px-5 pt-4 pb-28">
+                  <div
+                    className="h-full overflow-y-auto overscroll-none px-5 pt-4"
+                    style={{ paddingBottom: tabBarPb }}
+                  >
                     <BoothDetailContent
                       type="truck"
                       name={selectedUserTruck.name}
@@ -1330,7 +1341,10 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                   )}
                   {sheetExpanded && linkedTruckBooth && (
                     <div className="relative h-full overflow-hidden">
-                      <div className="h-full overflow-y-auto overscroll-none px-5 pt-4 pb-28">
+                      <div
+                        className="h-full overflow-y-auto overscroll-none px-5 pt-4"
+                        style={{ paddingBottom: tabBarPb }}
+                      >
                         <BoothDetailContent
                           dark={dark}
                           type="truck"
@@ -1414,7 +1428,13 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
           {sheetExpanded && (selectedBoothCellPerm || linkedBooth) && (
             <div className="relative h-full overflow-hidden">
               <div
-                className={`h-full overflow-y-auto overscroll-none px-5 pt-4 ${mapView === 'night' && linkedBooth ? 'pb-44' : 'pb-28'}`}
+                className="h-full overflow-y-auto overscroll-none px-5 pt-4"
+                style={{
+                  paddingBottom:
+                    mapView === 'night' && linkedBooth
+                      ? tabBarPbTall
+                      : tabBarPb,
+                }}
               >
                 {linkedBooth ? (
                   <BoothDetailContent
@@ -1517,7 +1537,11 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
             <div className="relative h-full overflow-hidden">
               {/* 스크롤 바디 */}
               <div
-                className={`h-full overflow-y-auto overscroll-none px-5 pt-4 ${selectedMarker.type === 'night' ? 'pb-44' : 'pb-28'}`}
+                className="h-full overflow-y-auto overscroll-none px-5 pt-4"
+                style={{
+                  paddingBottom:
+                    selectedMarker.type === 'night' ? tabBarPbTall : tabBarPb,
+                }}
               >
                 <BoothDetailContent
                   dark={dark}
@@ -1672,7 +1696,10 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
             {/* List */}
             <div className="relative min-h-0 flex-1">
               <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-[linear-gradient(180deg,transparent_0%,var(--color-surface)_100%)]" />
-              <div className="h-full overflow-y-auto overscroll-none px-4 pb-27.5">
+              <div
+                className="h-full overflow-y-auto overscroll-none px-4"
+                style={{ paddingBottom: tabBarPb }}
+              >
                 {listTab === 'truck' ? (
                   <div className="flex flex-col divide-y divide-border">
                     {TRUCK_BOOTHS.map((truck) => {

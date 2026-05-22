@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { I, PhotoSlot } from '../../tokens'
@@ -71,8 +72,11 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
       {/* Scrollable body */}
       <div
-        className="min-h-0 flex-1 overflow-y-auto overscroll-none pb-36"
-        style={{ animation: 'festi-fade-in 0.2s ease both' }}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-none"
+        style={{
+          animation: 'festi-fade-in 0.2s ease both',
+          paddingBottom: tabBarPb,
+        }}
       >
         {/* Hero header */}
         <div className="relative border-b border-border bg-surface px-5 pt-5 pb-6">

@@ -42,6 +42,15 @@ function isStandalone(): boolean {
   )
 }
 
+const IS_STANDALONE = isStandalone()
+
+const STANDALONE_STYLE = IS_STANDALONE
+  ? {
+      marginTop: 'calc(3.5rem + env(safe-area-inset-top))',
+      height: 'calc(100svh - 3.5rem - env(safe-area-inset-top))',
+    }
+  : undefined
+
 // ── Dark mode class sync ──────────────────────────────────────────────────
 
 function DarkSync(): null {
@@ -80,6 +89,15 @@ function DevToolbar() {
       >
         {isDay ? '주간' : '야간'}
       </button>
+    </div>
+  )
+}
+
+function FestivLogo() {
+  return (
+    <div className="flex items-center gap-1">
+      <FestivMark size={18} color="currentColor" />
+      <FestivWordmark size={14} color="currentColor" />
     </div>
   )
 }
@@ -179,16 +197,24 @@ function Nav() {
   const { pathname } = useLocation()
   const isAdmin =
     pathname.startsWith('/admin') || pathname.startsWith('/booth-admin')
-  if (isStandalone()) return null
+  if (IS_STANDALONE) {
+    return (
+      <div
+        className="fixed top-0 right-0 left-0 z-50 border-b border-border bg-surface font-festi"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
+        <div className="flex h-14 items-center px-4 text-ink">
+          <FestivLogo />
+        </div>
+      </div>
+    )
+  }
   return (
     <>
       {/* Desktop sidebar */}
       <nav className="fixed top-0 bottom-0 left-0 z-50 hidden w-45 flex-col overflow-y-auto border-r border-border bg-surface px-2.5 py-4 font-festi md:flex">
         <div className="px-2 pb-3 text-[#141A1F] dark:text-white">
-          <div className="flex items-center gap-1">
-            <FestivMark size={18} color="currentColor" />
-            <FestivWordmark size={14} color="currentColor" />
-          </div>
+          <FestivLogo />
         </div>
         <NavLinks />
       </nav>
@@ -196,10 +222,7 @@ function Nav() {
       {/* Mobile top bar */}
       <div className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center border-b border-border bg-surface px-4 font-festi md:hidden">
         <div className="text-[#141A1F] dark:text-white">
-          <div className="flex items-center gap-1">
-            <FestivMark size={18} color="currentColor" />
-            <FestivWordmark size={14} color="currentColor" />
-          </div>
+          <FestivLogo />
         </div>
         <div className="flex-1" />
         {isAdmin && (
@@ -259,7 +282,10 @@ function MobileLayout({ children }: { children: ReactNode }) {
   const { key } = useLocation()
   return (
     <div className="min-h-screen overflow-hidden bg-bg md:ml-45 md:flex md:items-start md:justify-center md:px-6 md:py-10">
-      <div className="relative mt-14 h-[calc(100svh-3.5rem)] w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]">
+      <div
+        className="relative mt-14 h-[calc(100svh-3.5rem)] w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]"
+        style={STANDALONE_STYLE}
+      >
         <div
           key={key}
           className="h-full w-full"
