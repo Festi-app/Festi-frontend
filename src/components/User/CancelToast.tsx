@@ -13,7 +13,7 @@ export function CancelToast({
   return (
     <>
       <div
-        className="pointer-events-none absolute inset-0 z-[60] bg-[rgba(0,0,0,0.45)]"
+        className="pointer-events-none absolute inset-0 z-60 bg-[rgba(0,0,0,0.45)]"
         style={{ animation: 'festi-fade-in 0.2s ease both' }}
       />
       <Toast

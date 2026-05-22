@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
-import { FestiTabBar } from '../../components/User/Navbar'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
-import { FilterChips } from '../../components/User/FilterChips'
-import { ProfileInfoRow } from '../../components/User/ProfileInfoRow'
+import { FilterChips } from '../../components/User/My/FilterChips'
+import { ProfileInfoRow } from '../../components/User/My/ProfileInfoRow'
 import { EmptyState } from '../../components/User/EmptyState'
 import { Toast } from '../../components/shared/Toast'
 import { useUserStore } from '../../stores/useUserStore'
@@ -34,7 +33,7 @@ function resolveBooth(s: { boothId: number; boothType: BoothType }) {
   return null
 }
 
-export function MobileMy({ dark = false }: { dark?: boolean }) {
+export function UserMy({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const [filter, setFilter] = useState('전체')
   const { savedBooths, isSaved, toggleSave } = useFavoritesStore()
@@ -249,8 +248,6 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
           })}
         </div>
       </div>
-
-      <FestiTabBar active="me" dark={dark} />
 
       {toast && (
         <Toast

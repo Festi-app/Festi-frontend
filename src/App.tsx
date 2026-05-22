@@ -10,28 +10,35 @@ import {
 } from 'react-router-dom'
 import { FestivMark, FestivWordmark } from './components/Logo'
 import { useUI } from './stores/useUIStore'
+import { UserNavBar } from './components/User/UserNavbar'
 
 import { AdminBooths } from './pages/Admin/Booths'
-import { AdminFestival } from './pages/Admin/Festival'
+
 import { AdminFoodTrucks } from './pages/Admin/FoodTrucks'
 import { AdminBoothRequests } from './pages/Admin/BoothRequests'
 import { AdminTimetable } from './pages/Admin/Timetable'
 import { AdminNotices } from './pages/Admin/Notices'
-import { MobileWaitingRegister } from './pages/User/WaitingRegister'
-import { MobileWaitingStatus } from './pages/User/WaitingStatus'
-import { MobileWaitingDetail } from './pages/User/WaitingDetail'
-import { MobileBoothDetail, MobileBoothList } from './pages/User/Detail'
-import { MobileHome } from './pages/User/Home'
-import { MobileLogin } from './pages/User/Login'
-import { MobileMap } from './pages/User/Map'
-import { MobileMy } from './pages/User/My'
-import { MobileOnboarding } from './pages/User/Onboarding'
-import { MobileOffSeason } from './pages/User/OffSeason'
-import { MobileSplash } from './pages/User/Splash'
+
+import { UserHome } from './pages/User/Home'
+
+import { UserMap } from './pages/User/Map'
+import { UserMy } from './pages/User/My'
+
 import { BoothAdminLogin } from './pages/BoothAdmin/Login'
 import { BoothAdminRegister } from './pages/BoothAdmin/Register'
 import { BoothAdminDashboard } from './pages/BoothAdmin/Dashboard'
 import { useDayNightStore } from './stores/useDayNightStore'
+import { UserWaitingRegister } from './pages/User/UserWaitingRegister'
+
+import { UserOffSeason } from './pages/User/Auth/OffSeason'
+import { AdminFestival } from './pages/Admin/AdminFestival'
+import { UserSplash } from './pages/User/UserSplash'
+import { UserOnboarding } from './pages/User/Auth/UserOnboarding'
+import { UserLogin } from './pages/User/Auth/UserLogin'
+import { UserWaitingDetail } from './pages/User/UserWaitingDetail'
+import { UserWaitingStatus } from './pages/User/UserWaitingStatus'
+import { UserBoothDetail } from './pages/User/Booth/UserBoothDetail'
+import { UserBoothList } from './pages/User/Booth/UserBoothList'
 
 // ── Standalone (PWA home screen) detection ────────────────────────────────
 
@@ -149,20 +156,14 @@ const NAV_SECTIONS = [
 
 const ALL_NAV_LINKS = NAV_SECTIONS.flatMap((s) => s.links)
 
-function NavLinks({
-  onClick,
-  mobile,
-}: {
-  onClick?: () => void
-  mobile?: boolean
-}) {
+function NavLinks({ onClick, User }: { onClick?: () => void; User?: boolean }) {
   return (
     <>
       {NAV_SECTIONS.map((section) => (
-        <div key={section.title} className={mobile ? 'mb-2' : 'mb-3'}>
+        <div key={section.title} className={User ? 'mb-2' : 'mb-3'}>
           <div
             className={`px-2.5 font-bold tracking-wider text-ink-40 ${
-              mobile ? 'pb-1 pt-2 text-[10px]' : 'pb-1.5 text-[9px]'
+              User ? 'pb-1 pt-2 text-[10px]' : 'pb-1.5 text-[9px]'
             }`}
           >
             {section.title.toUpperCase()}
@@ -175,7 +176,7 @@ function NavLinks({
               onClick={onClick}
               className={({ isActive }) =>
                 `block rounded-lg no-underline ${
-                  mobile ? 'px-3 py-2.5 text-sm' : 'px-2.5 py-2 text-xs'
+                  User ? 'px-3 py-2.5 text-sm' : 'px-2.5 py-2 text-xs'
                 } ${
                   isActive
                     ? 'bg-mint font-bold text-[#141A1F]'
@@ -219,7 +220,7 @@ function Nav() {
         <NavLinks />
       </nav>
 
-      {/* Mobile top bar */}
+      {/* User top bar */}
       <div className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center bg-surface px-4 font-festi md:hidden">
         <div className="text-[#141A1F] dark:text-white">
           <FestivLogo large />
@@ -263,10 +264,10 @@ function Nav() {
         )}
       </div>
 
-      {/* Mobile dropdown */}
+      {/* User dropdown */}
       {isAdmin && open && (
         <div className="fixed top-14 right-0 left-0 z-50 max-h-[70vh] overflow-y-auto border-b border-border bg-surface px-3 py-2 font-festi shadow-xl md:hidden">
-          <NavLinks mobile onClick={() => setOpen(false)} />
+          <NavLinks User onClick={() => setOpen(false)} />
         </div>
       )}
     </>
@@ -278,7 +279,13 @@ export { ALL_NAV_LINKS }
 
 // ── Layout wrappers ───────────────────────────────────────────────────────
 
-function MobileLayout({ children }: { children: ReactNode }) {
+function UserLayout({
+  children,
+  footer,
+}: {
+  children: ReactNode
+  footer?: ReactNode
+}) {
   const { key } = useLocation()
   return (
     <div className="min-h-screen overflow-hidden bg-bg md:ml-45 md:flex md:items-start md:justify-center md:px-6 md:py-10">
@@ -296,8 +303,24 @@ function MobileLayout({ children }: { children: ReactNode }) {
         >
           {children}
         </div>
+        {footer}
       </div>
     </div>
+  )
+}
+
+function UserTabLayout({
+  children,
+  active,
+}: {
+  children: ReactNode
+  active: string
+}) {
+  const { dark } = useUI()
+  return (
+    <UserLayout footer={<UserNavBar active={active} dark={dark} />}>
+      {children}
+    </UserLayout>
   )
 }
 
@@ -314,9 +337,9 @@ function AdminLayout({ children }: { children: ReactNode }) {
 function HomeRoute() {
   const { dark } = useUI()
   return (
-    <MobileLayout>
-      <MobileHome dark={dark} />
-    </MobileLayout>
+    <UserTabLayout active="home">
+      <UserHome dark={dark} />
+    </UserTabLayout>
   )
 }
 function getIdParam(params: URLSearchParams): number | undefined {
@@ -327,27 +350,25 @@ function getIdParam(params: URLSearchParams): number | undefined {
 function MapRoute() {
   const { dark } = useUI()
   return (
-    <MobileLayout>
-      <MobileMap dark={dark} />
-    </MobileLayout>
+    <UserTabLayout active="map">
+      <UserMap dark={dark} />
+    </UserTabLayout>
   )
 }
+
 function BoothRoute() {
-  const { dark } = useUI()
-  const [searchParams] = useSearchParams()
-  const type = searchParams.get('type') ?? 'night'
-  const id = getIdParam(searchParams)
   return (
-    <MobileLayout>
-      <MobileBoothDetail dark={dark} type={type} id={id} />
-    </MobileLayout>
+    <UserLayout>
+      <UserBoothDetail />
+    </UserLayout>
   )
 }
+
 function BoothListRoute() {
   return (
-    <MobileLayout>
-      <MobileBoothList />
-    </MobileLayout>
+    <UserLayout>
+      <UserBoothList />
+    </UserLayout>
   )
 }
 
@@ -356,17 +377,17 @@ function WaitingRegisterRoute() {
   const [searchParams] = useSearchParams()
   const id = getIdParam(searchParams)
   return (
-    <MobileLayout>
-      <MobileWaitingRegister dark={dark} id={id} />
-    </MobileLayout>
+    <UserLayout>
+      <UserWaitingRegister dark={dark} id={id} />
+    </UserLayout>
   )
 }
 function WaitingStatusRoute() {
   const { dark } = useUI()
   return (
-    <MobileLayout>
-      <MobileWaitingStatus dark={dark} />
-    </MobileLayout>
+    <UserLayout>
+      <UserWaitingStatus dark={dark} />
+    </UserLayout>
   )
 }
 function WaitingDetailRoute() {
@@ -374,49 +395,49 @@ function WaitingDetailRoute() {
   const [searchParams] = useSearchParams()
   const id = getIdParam(searchParams)
   return (
-    <MobileLayout>
-      <MobileWaitingDetail dark={dark} id={id} />
-    </MobileLayout>
+    <UserLayout>
+      <UserWaitingDetail dark={dark} id={id} />
+    </UserLayout>
   )
 }
 function MyRoute() {
   const { dark } = useUI()
   return (
-    <MobileLayout>
-      <MobileMy dark={dark} />
-    </MobileLayout>
+    <UserLayout>
+      <UserMy dark={dark} />
+    </UserLayout>
   )
 }
 function LoginRoute() {
   const { dark } = useUI()
   return (
-    <MobileLayout>
-      <MobileLogin dark={dark} />
-    </MobileLayout>
+    <UserLayout>
+      <UserLogin dark={dark} />
+    </UserLayout>
   )
 }
 function OnboardingRoute() {
   const { dark } = useUI()
   return (
-    <MobileLayout>
-      <MobileOnboarding dark={dark} />
-    </MobileLayout>
+    <UserLayout>
+      <UserOnboarding dark={dark} />
+    </UserLayout>
   )
 }
 function SplashRoute() {
   const { dark } = useUI()
   return (
-    <MobileLayout>
-      <MobileSplash dark={dark} />
-    </MobileLayout>
+    <UserLayout>
+      <UserSplash dark={dark} />
+    </UserLayout>
   )
 }
 function OffSeasonRoute() {
   const { dark } = useUI()
   return (
-    <MobileLayout>
-      <MobileOffSeason dark={dark} />
-    </MobileLayout>
+    <UserLayout>
+      <UserOffSeason dark={dark} />
+    </UserLayout>
   )
 }
 function AdminFestivalRoute() {

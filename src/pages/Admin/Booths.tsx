@@ -5,13 +5,12 @@ import { ZONES, NIGHT_ZONES } from '../../data/zones'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
-import { BoothPermissionModal } from '../../components/Admin/BoothPermissionModal'
-import { BoothConfigureSidebar } from '../../components/Admin/BoothConfigureSidebar'
-import { BoothAssignSidebar } from '../../components/Admin/BoothAssignSidebar'
+import { BoothConfigureSidebar } from '../../components/Admin/Booth/BoothConfigure/BoothConfigureSidebar'
+import { BoothAssignSidebar } from '../../components/Admin/Booth/BoothAssign/BoothAssignSidebar'
 import {
   type OrgAccount,
   CATEGORY_COLORS,
-} from '../../components/Admin/boothShared'
+} from '../../components/Admin/Booth/boothShared'
 import { cn } from '../../lib/cn'
 import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import soongsilNightMap from '../../assets/soongsil-night-map.png'
@@ -29,6 +28,7 @@ import {
   type BoothCategory,
   type BoothMapMode,
 } from '../../stores/useBoothSectionStore'
+import { BoothPermissionModal } from '../../components/Admin/Booth/BoothPermissionModal'
 
 // ── Org constants ─────────────────────────────────────────────────────────────
 

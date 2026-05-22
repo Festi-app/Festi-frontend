@@ -21,12 +21,12 @@ export function ConfirmModal({
   return (
     <>
       <div
-        className="absolute inset-0 z-[60] bg-[rgba(0,0,0,0.45)]"
+        className="absolute inset-0 z-60 bg-[rgba(0,0,0,0.45)]"
         style={{ animation: 'festi-fade-in 0.18s ease both' }}
         onClick={onClose}
       />
       <div
-        className="absolute inset-x-5 top-1/2 z-[70] -translate-y-1/2 rounded-3xl bg-surface p-6 shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
+        className="absolute inset-x-5 top-1/2 z-70 -translate-y-1/2 rounded-3xl bg-surface p-6 shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
         style={{
           animation:
             'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
