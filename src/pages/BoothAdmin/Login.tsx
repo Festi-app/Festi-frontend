@@ -40,7 +40,9 @@ export function BoothAdminLogin() {
             </div>
             <FestivWordmark size={18} color={FESTIV_TOKENS.ink} />
             <span className="text-[12px] text-ink-40">·</span>
-            <span className="text-[12px] font-medium text-ink-40">축제를 더 즐겁게</span>
+            <span className="text-[12px] font-medium text-ink-40">
+              축제를 더 즐겁게
+            </span>
           </div>
           <div className="text-[26px] font-extrabold tracking-tight text-ink">
             부스 관리자 로그인

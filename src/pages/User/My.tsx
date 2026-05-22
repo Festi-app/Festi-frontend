@@ -209,19 +209,11 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
                       <Pill color={pillColor} ink={pillInk}>
                         {category}
                       </Pill>
-                      <Pill
-                        color="transparent"
-                        ink={muted}
-                        style={{ padding: 0 }}
-                      >
+                      <Pill color="transparent" ink={muted} className="p-0!">
                         {getZoneName(booth.zoneId, booth.type)}
                       </Pill>
                       {booth.sections && booth.sections.length > 0 && (
-                        <Pill
-                          color="transparent"
-                          ink={muted}
-                          style={{ padding: 0 }}
-                        >
+                        <Pill color="transparent" ink={muted} className="p-0!">
                           #{formatSections(booth.sections)}
                         </Pill>
                       )}

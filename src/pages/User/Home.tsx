@@ -83,7 +83,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
           {/* Live chip + 공지 버튼 */}
           <div className="mb-3.5 flex items-center justify-between">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-ink py-1 pr-2.5 pl-1 text-xs font-bold tracking-[-0.2px] text-bg">
-              <span className="rounded-full bg-pop px-2 py-0.75 text-[10px] font-extrabold tracking-[0.3px] text-[#141A1F]">
+              <span className="rounded-full bg-pop px-2 py-0.75 text-[10px] font-extrabold tracking-[0.3px] text-ink">
                 LIVE
               </span>
               2026 봄축제 · DAY {currentDay}
@@ -168,9 +168,9 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                 >
                   i
                   {timetableTip && (
-                    <div className="absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-[10px] bg-[#141A1F] px-3 py-2 text-left text-[11px] font-semibold leading-normal text-white shadow-lg">
+                    <div className="absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-[10px] bg-ink px-3 py-2 text-left text-[11px] font-semibold leading-normal text-white shadow-lg">
                       현장상황에 따라 달라질 수 있습니다
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#141A1F]" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-ink" />
                     </div>
                   )}
                 </button>

@@ -89,7 +89,7 @@ export function BoothDetailContent({
   const circleColor =
     isTruck || isNight
       ? FESTIV_TOKENS.alert
-      : CAT_COLOR[category] ?? FESTIV_TOKENS.pop
+      : (CAT_COLOR[category] ?? FESTIV_TOKENS.pop)
 
   const pillBg = isTruck
     ? FESTIV_TOKENS.sunSoft

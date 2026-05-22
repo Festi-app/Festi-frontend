@@ -49,10 +49,7 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
   }
 
   return (
-    <div
-      className="relative flex h-full w-full flex-col overflow-hidden font-festi"
-      style={{ background: dark ? '#0F1216' : '#F2F3F4' }}
-    >
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
       <div className="shrink-0 px-5 pt-13.5">
         <AppHeader dark={dark} className="mt-2 mb-1" />
       </div>
@@ -65,10 +62,7 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
       </div>
 
       <div className="flex flex-1 flex-col justify-center px-5 py-4">
-        <div
-          className="rounded-[20px] border border-border p-4 shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)]"
-          style={{ background: dark ? '#1A1E23' : '#FFFFFF' }}
-        >
+        <div className="rounded-[20px] border border-border bg-surface p-4 shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)]">
           <div className="mb-4">
             <div className="text-[20px] font-extrabold tracking-[-0.5px] text-ink">
               회원가입
@@ -129,24 +123,15 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
         </div>
       </div>
 
-      <div
-        className="shrink-0 px-5 pb-8 pt-3"
-        style={{ background: dark ? '#0F1216' : '#F2F3F4' }}
-      >
+      <div className="shrink-0 bg-bg px-5 pb-8 pt-3">
         <button
           type="button"
           onClick={handleSubmit}
-          className="flex w-full items-center justify-center gap-2 rounded-[16px] py-4 text-[16px] font-extrabold tracking-[-0.3px] active:opacity-80"
-          style={{
-            background: isValid
-              ? FESTIV_TOKENS.coral
-              : dark
-                ? '#252A30'
-                : '#D3DBDE',
-            color: isValid ? '#fff' : dark ? '#5E676D' : '#8C949A',
-            boxShadow: isValid ? '0 8px 22px rgba(0,198,224,0.35)' : undefined,
-            transition: 'background 0.2s, box-shadow 0.2s',
-          }}
+          className={`flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-[16px] font-extrabold tracking-[-0.3px] transition-[background,box-shadow] duration-200 active:opacity-80 ${
+            isValid
+              ? 'bg-coral text-white shadow-[0_8px_22px_rgba(0,198,224,0.35)]'
+              : 'bg-[#D3DBDE] text-ink-40 dark:bg-surface-alt'
+          }`}
         >
           {isValid && <div className="size-5 opacity-80">{I.check()}</div>}
           가입하기
@@ -154,18 +139,9 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
       </div>
 
       {showToast && (
-        <div
-          className="absolute inset-x-0 bottom-32 z-50 flex justify-center px-5"
-          style={{
-            animation:
-              'festi-toast-in 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both',
-          }}
-        >
-          <div className="flex items-center gap-2.5 rounded-2xl bg-[#141A1F] px-5 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.25)]">
-            <div
-              className="flex size-6 shrink-0 items-center justify-center rounded-full"
-              style={{ background: FESTIV_TOKENS.pop }}
-            >
+        <div className="absolute inset-x-0 bottom-32 z-50 flex justify-center px-5 animate-[festi-toast-in_0.28s_cubic-bezier(0.25,0.46,0.45,0.94)_both]">
+          <div className="flex items-center gap-2.5 rounded-2xl bg-ink px-5 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.25)]">
+            <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-pop">
               <div className="size-3.5 text-white">{I.check()}</div>
             </div>
             <span className="text-[14px] font-bold tracking-[-0.2px] text-white">
@@ -174,13 +150,6 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes festi-toast-in {
-          from { opacity: 0; transform: translateY(10px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   )
 }

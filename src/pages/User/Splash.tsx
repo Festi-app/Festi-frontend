@@ -27,12 +27,8 @@ export function MobileSplash({ dark = false }: { dark?: boolean }) {
 
   return (
     <div
-      className="flex h-full w-full flex-col items-center justify-center font-festi"
-      style={{
-        background: bg,
-        opacity: out ? 0 : 1,
-        transition: 'opacity 0.4s ease',
-      }}
+      className={`flex h-full w-full flex-col items-center justify-center font-festi transition-opacity duration-400 ease-[ease] ${out ? 'opacity-0' : 'opacity-100'}`}
+      style={{ background: bg }}
     >
       {/* 로고 */}
       <div
@@ -41,10 +37,7 @@ export function MobileSplash({ dark = false }: { dark?: boolean }) {
           animationDelay: '0.1s',
         }}
       >
-        <div
-          className="mb-5 flex size-20 items-center justify-center rounded-[28px] shadow-[0_8px_24px_rgba(0,0,0,0.12),0_16px_48px_rgba(0,198,224,0.35)]"
-          style={{ background: FESTIV_TOKENS.coral }}
-        >
+        <div className="mb-5 flex size-20 items-center justify-center rounded-[28px] bg-coral shadow-[0_8px_24px_rgba(0,0,0,0.12),0_16px_48px_rgba(0,198,224,0.35)]">
           <FestivMark color="#fff" size={48} />
         </div>
       </div>
@@ -61,9 +54,8 @@ export function MobileSplash({ dark = false }: { dark?: boolean }) {
 
       {/* 슬로건 */}
       <div
-        className="mt-2 flex flex-wrap items-center justify-center gap-x-0.5 text-[13px] font-medium tracking-[-0.1px]"
+        className="mt-2 flex flex-wrap items-center justify-center gap-x-0.5 text-[13px] font-medium tracking-[-0.1px] text-ink-60"
         style={{
-          color: dark ? '#8B939B' : FESTIV_TOKENS.ink60,
           animation: 'splash-fade-up 0.5s ease both',
           animationDelay: '0.5s',
         }}
@@ -82,9 +74,8 @@ export function MobileSplash({ dark = false }: { dark?: boolean }) {
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="size-1.5 rounded-full"
+            className="size-1.5 rounded-full bg-coral"
             style={{
-              background: FESTIV_TOKENS.coral,
               animation: `splash-dot 1.2s ease-in-out ${i * 0.2}s infinite`,
             }}
           />
