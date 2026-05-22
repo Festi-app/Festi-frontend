@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
+import { ROUTES } from '../../constants/routes'
 import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
 import { FESTIV_TOKENS } from '../../tokens'
@@ -21,7 +22,7 @@ export function BoothAdminLogin() {
   function handleLogin() {
     const ok = login(username, password)
     if (ok) {
-      navigate('/booth-admin')
+      navigate(ROUTES.BOOTH_ADMIN.DASHBOARD)
     } else {
       setError(true)
     }

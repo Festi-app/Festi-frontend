@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I } from '../../tokens'
+import { ROUTES } from '../../constants/routes'
 import { tabBarOuterPb } from '../../lib/safeArea'
 
 const OUTER_STYLE = {
@@ -17,10 +18,10 @@ export function FestiTabBar({
   const navigate = useNavigate()
   const muted = dark ? '#8B939B' : '#5E676D'
   const items = [
-    { id: 'home', label: '홈', icon: I.home, to: '/home' },
-    { id: 'map', label: '배치도', icon: I.map, to: '/map' },
-    { id: 'wait', label: '웨이팅', icon: I.ticket, to: '/waiting' },
-    { id: 'me', label: '마이', icon: I.user, to: '/me' },
+    { id: 'home', label: '홈', icon: I.home, to: ROUTES.HOME },
+    { id: 'map', label: '배치도', icon: I.map, to: ROUTES.MAP },
+    { id: 'wait', label: '웨이팅', icon: I.ticket, to: ROUTES.WAITING },
+    { id: 'me', label: '마이', icon: I.user, to: ROUTES.MY },
   ]
 
   return (

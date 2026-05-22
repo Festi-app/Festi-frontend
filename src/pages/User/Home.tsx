@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
+import { boothUrl, boothListUrl } from '../../constants/routes'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { I, PhotoSlot } from '../../tokens'
 import { DAY_BOOTHS, NIGHT_BOOTHS, TRUCK_BOOTHS } from '../../data/booths'
 import { getZoneName } from '../../data/zones'
 import { formatSections } from '../../lib/format'
 import { useTimetableStore } from '../../stores/useTimetableStore'
+import { useFestivalStore } from '../../stores/useFestivalStore'
 import { SectionHeader } from '../../components/User/SectionHeader'
 import { WaitingCarousel } from '../../components/User/WaitingCarousel'
 import { NoticeSheet } from '../../components/User/NoticeSheet'
@@ -63,8 +65,16 @@ function BoothListCard({
 
 export function MobileHome({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
-  const { venue, currentDay, nowMin, days } = useTimetableStore()
+  const { festivalName, venue, currentDay, nowMin, days } = useTimetableStore()
+  const { startDate } = useFestivalStore()
   const [timetableDay, setTimetableDay] = useState(currentDay)
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const start = new Date(startDate + 'T00:00:00')
+  const diffDays = Math.round((start.getTime() - today.getTime()) / 86400000)
+  const isUpcoming = diffDays > 0
+  const dDayLabel = isUpcoming ? `D-${diffDays}` : `DAY ${1 - diffDays}`
   const [noticeOpen, setNoticeOpen] = useState(false)
   const [timetableTip, setTimetableTip] = useState(false)
 
@@ -84,9 +94,9 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
           <div className="mb-3.5 flex items-center justify-between">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-ink py-1 pr-2.5 pl-1 text-xs font-bold tracking-[-0.2px] text-bg">
               <span className="rounded-full bg-pop px-2 py-0.75 text-[10px] font-extrabold tracking-[0.3px] text-ink">
-                LIVE
+                {isUpcoming ? 'UPCOMING' : 'LIVE'}
               </span>
-              2026 봄축제 · DAY {currentDay}
+              {festivalName} · {dDayLabel}
             </div>
             <button
               type="button"
@@ -97,9 +107,18 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
             </button>
           </div>
           <div className="text-[30px] leading-[1.15] font-extrabold tracking-[-1px] text-ink">
-            오늘은 어떤 부스를
-            <br />
-            가볼까요?
+            {isUpcoming ? (
+              <>
+                부스 라인업 <br />
+                미리보기 👀
+              </>
+            ) : (
+              <>
+                오늘은 어떤 부스를
+                <br />
+                가볼까요?
+              </>
+            )}
           </div>
         </div>
         <div className="pt-4.5">
@@ -115,7 +134,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
             sub="오늘 운영 중인 부스"
             dark={dark}
             more
-            onMore={() => navigate('/booths?type=day')}
+            onMore={() => navigate('day')}
             className="mt-5"
           />
           <div className="mb-6 flex flex-col gap-2.5 px-5">
@@ -127,7 +146,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                 zoneName={getZoneName(b.zoneId, b.type)}
                 sections={b.sections}
                 description={b.description}
-                onClick={() => navigate(`/booth?type=day&id=${b.id}`)}
+                onClick={() => navigate(boothUrl('day', b.id))}
               />
             ))}
           </div>
@@ -138,7 +157,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
             sub="오늘 밤 운영 중인 부스"
             dark={dark}
             more
-            onMore={() => navigate('/booths?type=night')}
+            onMore={() => navigate(boothListUrl('night'))}
           />
           <div className="mb-6 flex flex-col gap-2.5 px-5">
             {NIGHT_BOOTHS.slice(0, 3).map((b) => (
@@ -149,7 +168,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                 zoneName={getZoneName(b.zoneId, b.type)}
                 sections={b.sections}
                 description={b.description}
-                onClick={() => navigate(`/booth?type=night&id=${b.id}`)}
+                onClick={() => navigate(boothUrl('night', b.id))}
               />
             ))}
           </div>
@@ -200,7 +219,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
             sub="한경직 기념관 앞 · 총 6대"
             dark={dark}
             more
-            onMore={() => navigate('/booths?type=truck')}
+            onMore={() => navigate(boothListUrl('truck'))}
           />
           <div className="flex flex-col gap-2.5 px-5">
             {TRUCK_BOOTHS.slice(0, 3).map((t) => (
@@ -211,7 +230,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
                 zoneName={getZoneName(t.zoneId, t.type)}
                 sections={t.sections}
                 description={t.description}
-                onClick={() => navigate(`/booth?type=truck&id=${t.id}`)}
+                onClick={() => navigate(boothUrl('truck', t.id))}
               />
             ))}
           </div>

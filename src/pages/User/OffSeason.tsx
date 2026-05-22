@@ -1,6 +1,8 @@
+import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS } from '../../tokens'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
 import { useFestivalStore } from '../../stores/useFestivalStore'
+import { ROUTES } from '../../constants/routes'
 
 function getDDayInfo(startDate: string, endDate: string) {
   const now = new Date()
@@ -21,6 +23,7 @@ function getDDayInfo(startDate: string, endDate: string) {
 export function MobileOffSeason({ dark = false }: { dark?: boolean }) {
   const { startDate, endDate } = useFestivalStore()
   const dday = getDDayInfo(startDate, endDate)
+  const navigate = useNavigate()
 
   const bg = dark
     ? `linear-gradient(160deg, #1A2028 0%, #0F1216 100%)`
@@ -74,6 +77,14 @@ export function MobileOffSeason({ dark = false }: { dark?: boolean }) {
           </>
         )}
       </div>
+
+      <button
+        type="button"
+        onClick={() => navigate(ROUTES.HOME)}
+        className="mt-6 rounded-[16px] border border-border bg-surface px-6 py-3 text-[13px] font-bold text-ink-80"
+      >
+        축제 미리 구경하기
+      </button>
 
       <div className="absolute bottom-10 flex flex-col items-center gap-1.5 text-ink-60">
         <span className="text-[12px] font-medium">축제를 더 즐겁게,</span>

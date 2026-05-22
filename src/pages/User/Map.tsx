@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { tabBarPb, tabBarPbTall } from '../../lib/safeArea'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { FESTIV_TOKENS } from '../../tokens'
+import { waitingRegisterUrl } from '../../constants/routes'
 import { StatGrid } from '../../components/User/StatGrid'
 import { BoothDetailContent } from './Detail'
 import {
@@ -863,9 +864,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               )}
               {mapView === 'night' && linkedBooth && (
                 <WaitingActions
-                  onWaiting={() =>
-                    navigate(`/waiting/register?id=${linkedBooth.id}`)
-                  }
+                  onWaiting={() => navigate(waitingRegisterUrl(linkedBooth.id))}
                   onAlreadyWaiting={() => setCancelBoothId(linkedBooth.id)}
                   waitBadge={linkedBooth.wait}
                   alreadyWaiting={waitings.some(
@@ -917,9 +916,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               {mapView === 'night' && linkedBooth && (
                 <WaitingActions
                   sticky
-                  onWaiting={() =>
-                    navigate(`/waiting/register?id=${linkedBooth.id}`)
-                  }
+                  onWaiting={() => navigate(waitingRegisterUrl(linkedBooth.id))}
                   onAlreadyWaiting={() => setCancelBoothId(linkedBooth.id)}
                   waitBadge={linkedBooth.wait}
                   alreadyWaiting={waitings.some(
@@ -970,7 +967,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
               {selectedMarker.type === 'night' && (
                 <WaitingActions
                   onWaiting={() =>
-                    navigate(`/waiting/register?id=${selectedMarker.id}`)
+                    navigate(waitingRegisterUrl(selectedMarker.id))
                   }
                   onAlreadyWaiting={() => setCancelBoothId(selectedMarker.id)}
                   waitBadge={selectedMarker.wait}
@@ -1031,7 +1028,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
                 <WaitingActions
                   sticky
                   onWaiting={() =>
-                    navigate(`/waiting/register?id=${selectedMarker.id}`)
+                    navigate(waitingRegisterUrl(selectedMarker.id))
                   }
                   onAlreadyWaiting={() => setCancelBoothId(selectedMarker.id)}
                   waitBadge={selectedMarker.wait}

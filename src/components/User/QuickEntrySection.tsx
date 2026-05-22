@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I, PhotoSlot } from '../../tokens'
+import { boothUrl } from '../../constants/routes'
 import { NIGHT_BOOTHS } from '../../data/booths'
 import { getBoothZoneName } from '../../data/zones'
 
@@ -59,7 +60,7 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
             <button
               key={b.id}
               type="button"
-              onClick={() => navigate(`/booth?type=night&id=${b.id}`)}
+              onClick={() => navigate(boothUrl('night', b.id))}
               className="w-36 shrink-0 rounded-[20px] border border-border bg-surface p-2.5 text-left transition-transform duration-100 active:scale-[0.97]"
             >
               <div className="relative mb-2.5">

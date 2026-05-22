@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '../../constants/routes'
 import {
   useBoothAdminStore,
   type BoothAdminAccount,
@@ -781,14 +782,14 @@ export function BoothAdminDashboard() {
   const [tab, setTab] = useState<TabKey>('info')
 
   useEffect(() => {
-    if (!account) navigate('/booth-admin/login')
+    if (!account) navigate(ROUTES.BOOTH_ADMIN.LOGIN)
   }, [account, navigate])
 
   if (!account) return null
 
   function handleLogout() {
     logout()
-    navigate('/booth-admin/login')
+    navigate(ROUTES.BOOTH_ADMIN.LOGIN)
   }
 
   if (account.status === 'pending') {

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { boothUrl, waitingRegisterUrl } from '../../constants/routes'
 import {
   TRUCK_BOOTHS,
   DAY_BOOTHS,
@@ -303,7 +304,7 @@ export function MobileBoothDetail({
               onClick={() =>
                 alreadyWaiting
                   ? setConfirmCancel(true)
-                  : navigate(`/waiting/register?id=${boothData.id}`, {
+                  : navigate(waitingRegisterUrl(boothData.id), {
                       replace: true,
                     })
               }
@@ -380,9 +381,9 @@ export function MobileBoothDetail({
 // ── Screen: Booth List ────────────────────────────────────────────────────────
 
 const BOOTH_LIST_CONFIG = {
-  night: { items: NIGHT_BOOTHS, title: '야간 부스', base: '/booth?type=night' },
-  day: { items: DAY_BOOTHS, title: '주간 부스', base: '/booth?type=day' },
-  truck: { items: TRUCK_BOOTHS, title: '푸드트럭', base: '/booth?type=truck' },
+  night: { items: NIGHT_BOOTHS, title: '야간 부스' },
+  day: { items: DAY_BOOTHS, title: '주간 부스' },
+  truck: { items: TRUCK_BOOTHS, title: '푸드트럭' },
 } as const
 
 export function MobileBoothList() {
@@ -394,7 +395,7 @@ export function MobileBoothList() {
     | 'night'
     | 'truck'
 
-  const { items, title, base: detailBase } = BOOTH_LIST_CONFIG[type]
+  const { items, title } = BOOTH_LIST_CONFIG[type]
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
@@ -410,7 +411,7 @@ export function MobileBoothList() {
             return (
               <div
                 key={b.id}
-                onClick={() => navigate(`${detailBase}&id=${b.id}`)}
+                onClick={() => navigate(boothUrl(type, b.id))}
                 className="cursor-pointer overflow-hidden rounded-[20px] border border-border bg-surface transition-transform duration-100 active:scale-[0.98]"
               >
                 <div className="flex items-stretch gap-3.5 p-3">
