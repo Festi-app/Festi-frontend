@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS } from '../../tokens'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
-// import { useFestivalStore, isFestivalActive } from '../../stores/useFestivalStore'
+import { ROUTES } from '../../constants/routes'
 
 export function UserSplash({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
@@ -12,9 +12,9 @@ export function UserSplash({ dark = false }: { dark?: boolean }) {
     const t = setTimeout(() => {
       setOut(true)
       // 개발 중: 항상 홈으로 이동 — 실서비스 시 아래 주석 해제 후 위 줄 제거
-      const dest = '/home'
+      const dest = ROUTES.HOME
       // const { startDate, endDate } = useFestivalStore.getState()
-      // const dest = isFestivalActive(startDate, endDate) ? '/home' : '/off-season'
+      // const dest = isFestivalActive(startDate, endDate) ? ROUTES.HOME : ROUTES.OFF_SEASON
       setTimeout(() => navigate(dest, { replace: true }), 400)
     }, 2000)
     return () => clearTimeout(t)

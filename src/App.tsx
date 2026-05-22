@@ -39,6 +39,7 @@ import { UserWaitingDetail } from './pages/User/UserWaitingDetail'
 import { UserWaitingStatus } from './pages/User/UserWaitingStatus'
 import { UserBoothDetail } from './pages/User/Booth/UserBoothDetail'
 import { UserBoothList } from './pages/User/Booth/UserBoothList'
+import { ROUTES, boothUrl, boothListUrl } from './constants/routes'
 
 // ── Standalone (PWA home screen) detection ────────────────────────────────
 
@@ -115,41 +116,41 @@ const NAV_SECTIONS = [
   {
     title: '유저',
     links: [
-      { to: '/splash', label: '로딩 화면' },
-      { to: '/off-season', label: '비축제 기간' },
-      { to: '/login', label: '로그인' },
-      { to: '/onboarding', label: '회원가입' },
-      { to: '/home', label: '홈' },
-      { to: '/map', label: '배치도' },
-      { to: '/waiting', label: '웨이팅' },
-      { to: '/me', label: '마이' },
-      { to: '/waiting/register', label: '웨이팅 등록' },
-      { to: '/waiting/detail', label: '웨이팅 상세' },
-      { to: '/booths?type=day', label: '주간 부스 목록' },
-      { to: '/booths?type=night', label: '야간 부스 목록' },
-      { to: '/booths?type=truck', label: '푸드트럭 목록' },
-      { to: '/booth?type=day', label: '주간 부스 상세' },
-      { to: '/booth', label: '야간 부스 상세' },
-      { to: '/booth?type=truck', label: '푸드트럭 상세' },
+      { to: ROUTES.SPLASH, label: '로딩 화면' },
+      { to: ROUTES.OFF_SEASON, label: '비축제 기간' },
+      { to: ROUTES.LOGIN, label: '로그인' },
+      { to: ROUTES.ONBOARDING, label: '회원가입' },
+      { to: ROUTES.HOME, label: '홈' },
+      { to: ROUTES.MAP, label: '배치도' },
+      { to: ROUTES.WAITING, label: '웨이팅' },
+      { to: ROUTES.MY, label: '마이' },
+      { to: ROUTES.WAITING_REGISTER, label: '웨이팅 등록' },
+      { to: ROUTES.WAITING_DETAIL, label: '웨이팅 상세' },
+      { to: boothListUrl('day'), label: '주간 부스 목록' },
+      { to: boothListUrl('night'), label: '야간 부스 목록' },
+      { to: boothListUrl('truck'), label: '푸드트럭 목록' },
+      { to: boothUrl('day'), label: '주간 부스 상세' },
+      { to: ROUTES.BOOTH, label: '야간 부스 상세' },
+      { to: boothUrl('truck'), label: '푸드트럭 상세' },
     ],
   },
   {
     title: '관리자',
     links: [
-      { to: '/admin/festival', label: '축제 설정' },
-      { to: '/admin/booths', label: '부스 배치' },
-      { to: '/admin/trucks', label: '푸드트럭' },
-      { to: '/admin/booth-requests', label: '부스 신청 관리' },
-      { to: '/admin/timetable', label: '공연 타임테이블' },
-      { to: '/admin/notices', label: '공지 관리' },
+      { to: ROUTES.ADMIN.FESTIVAL, label: '축제 설정' },
+      { to: ROUTES.ADMIN.BOOTHS, label: '부스 배치' },
+      { to: ROUTES.ADMIN.TRUCKS, label: '푸드트럭' },
+      { to: ROUTES.ADMIN.BOOTH_REQUESTS, label: '부스 신청 관리' },
+      { to: ROUTES.ADMIN.TIMETABLE, label: '공연 타임테이블' },
+      { to: ROUTES.ADMIN.NOTICES, label: '공지 관리' },
     ],
   },
   {
     title: '부스 관리자',
     links: [
-      { to: '/booth-admin/login', label: '로그인' },
-      { to: '/booth-admin/register', label: '회원가입' },
-      { to: '/booth-admin', label: '대시보드' },
+      { to: ROUTES.BOOTH_ADMIN.LOGIN, label: '로그인' },
+      { to: ROUTES.BOOTH_ADMIN.REGISTER, label: '회원가입' },
+      { to: ROUTES.BOOTH_ADMIN.DASHBOARD, label: '대시보드' },
     ],
   },
 ]
@@ -517,39 +518,54 @@ export default function App() {
         <DevToolbar />
       </AdminOnly>
       <Routes>
-        <Route path="/" element={<Navigate to="/splash" replace />} />
-        <Route path="/splash" element={<SplashRoute />} />
-        <Route path="/off-season" element={<OffSeasonRoute />} />
-        <Route path="/home" element={<HomeRoute />} />
-        <Route path="/map" element={<MapRoute />} />
-        <Route path="/booth" element={<BoothRoute />} />
-        <Route path="/booths" element={<BoothListRoute />} />
-
-        <Route path="/waiting" element={<WaitingStatusRoute />} />
-        <Route path="/waiting/register" element={<WaitingRegisterRoute />} />
-        <Route path="/waiting/detail" element={<WaitingDetailRoute />} />
         <Route
-          path="/truck"
-          element={<Navigate to="/booth?type=truck" replace />}
+          path={ROUTES.ROOT}
+          element={<Navigate to={ROUTES.SPLASH} replace />}
         />
-        <Route path="/me" element={<MyRoute />} />
-        <Route path="/login" element={<LoginRoute />} />
-        <Route path="/onboarding" element={<OnboardingRoute />} />
-        <Route path="/admin/festival" element={<AdminFestivalRoute />} />
-        <Route path="/admin/booths" element={<AdminBoothsRoute />} />
-        <Route path="/admin/trucks" element={<AdminFoodTrucksRoute />} />
+        <Route path={ROUTES.SPLASH} element={<SplashRoute />} />
+        <Route path={ROUTES.OFF_SEASON} element={<OffSeasonRoute />} />
+        <Route path={ROUTES.HOME} element={<HomeRoute />} />
+        <Route path={ROUTES.MAP} element={<MapRoute />} />
+        <Route path={ROUTES.BOOTH} element={<BoothRoute />} />
+        <Route path={ROUTES.BOOTHS} element={<BoothListRoute />} />
+
+        <Route path={ROUTES.WAITING} element={<WaitingStatusRoute />} />
         <Route
-          path="/admin/booth-requests"
+          path={ROUTES.WAITING_REGISTER}
+          element={<WaitingRegisterRoute />}
+        />
+        <Route path={ROUTES.WAITING_DETAIL} element={<WaitingDetailRoute />} />
+        <Route
+          path={ROUTES.TRUCK}
+          element={<Navigate to={boothUrl('truck')} replace />}
+        />
+        <Route path={ROUTES.MY} element={<MyRoute />} />
+        <Route path={ROUTES.LOGIN} element={<LoginRoute />} />
+        <Route path={ROUTES.ONBOARDING} element={<OnboardingRoute />} />
+        <Route path={ROUTES.ADMIN.FESTIVAL} element={<AdminFestivalRoute />} />
+        <Route path={ROUTES.ADMIN.BOOTHS} element={<AdminBoothsRoute />} />
+        <Route path={ROUTES.ADMIN.TRUCKS} element={<AdminFoodTrucksRoute />} />
+        <Route
+          path={ROUTES.ADMIN.BOOTH_REQUESTS}
           element={<AdminBoothRequestsRoute />}
         />
-        <Route path="/admin/timetable" element={<AdminTimetableRoute />} />
-        <Route path="/admin/notices" element={<AdminNoticesRoute />} />
-        <Route path="/booth-admin/login" element={<BoothAdminLoginRoute />} />
         <Route
-          path="/booth-admin/register"
+          path={ROUTES.ADMIN.TIMETABLE}
+          element={<AdminTimetableRoute />}
+        />
+        <Route path={ROUTES.ADMIN.NOTICES} element={<AdminNoticesRoute />} />
+        <Route
+          path={ROUTES.BOOTH_ADMIN.LOGIN}
+          element={<BoothAdminLoginRoute />}
+        />
+        <Route
+          path={ROUTES.BOOTH_ADMIN.REGISTER}
           element={<BoothAdminRegisterRoute />}
         />
-        <Route path="/booth-admin" element={<BoothAdminDashboardRoute />} />
+        <Route
+          path={ROUTES.BOOTH_ADMIN.DASHBOARD}
+          element={<BoothAdminDashboardRoute />}
+        />
       </Routes>
     </>
   )

@@ -1,11 +1,26 @@
 import { FestivMark, FestivWordmark } from '../../../components/Logo'
+import { ROUTES } from '../../../constants/routes'
 import { useFestivalStore } from '../../../stores/useFestivalStore'
+import { useTimetableStore } from '../../../stores/useTimetableStore'
 import { FESTIV_TOKENS } from '../../../tokens'
 import { getDDayInfo } from '../../../utils/getDayInfo'
+import { useNavigate } from 'react-router-dom'
+
+
+const DAY_KO = ['일', '월', '화', '수', '목', '금', '토'] as const
+
+function formatFestivalDate(dateStr: string) {
+  const d = new Date(dateStr + 'T00:00:00')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${mm}.${dd} ${DAY_KO[d.getDay()]}`
+}
 
 export function UserOffSeason({ dark = false }: { dark?: boolean }) {
   const { startDate, endDate } = useFestivalStore()
+  const { festivalName } = useTimetableStore()
   const dday = getDDayInfo(startDate, endDate)
+  const navigate = useNavigate()
 
   const bg = dark
     ? `linear-gradient(160deg, #1A2028 0%, #0F1216 100%)`
@@ -23,9 +38,11 @@ export function UserOffSeason({ dark = false }: { dark?: boolean }) {
       <FestivWordmark size={28} color={dark ? '#F2F5F7' : FESTIV_TOKENS.ink} />
 
       <div className="mt-4 text-center">
-        <div className="text-[13px] font-semibold text-ink-60">2026 봄축제</div>
+        <div className="text-[13px] font-semibold text-ink-60">
+          {festivalName}
+        </div>
         <div className="mt-0.5 text-[13px] font-medium text-ink-60">
-          05.20 수 — 05.22 금
+          {formatFestivalDate(startDate)} — {formatFestivalDate(endDate)}
         </div>
       </div>
 
@@ -59,6 +76,14 @@ export function UserOffSeason({ dark = false }: { dark?: boolean }) {
           </>
         )}
       </div>
+
+      <button
+        type="button"
+        onClick={() => navigate(ROUTES.HOME)}
+        className="mt-6 rounded-2xl border border-border bg-surface px-6 py-3 text-[13px] font-bold text-ink-80"
+      >
+        축제 미리 구경하기
+      </button>
 
       <div className="absolute bottom-10 flex flex-col items-center gap-1.5 text-ink-60">
         <span className="text-[12px] font-medium">축제를 더 즐겁게,</span>

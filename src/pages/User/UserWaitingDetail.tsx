@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
+import { ROUTES, boothUrl } from '../../constants/routes'
 import { PhotoSlot } from '../../tokens'
 import { ScreenHeader } from '../../components/User/ScreenHeader'
 import { NIGHT_BOOTHS } from '../../data/booths'
@@ -31,7 +32,7 @@ export function UserWaitingDetail({
   const [cancelledWaiting, setCancelledWaiting] =
     useState<typeof waiting>(undefined)
   const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
-    useWaitingCancel(() => navigate('/waiting'))
+  useWaitingCancel(() => navigate(ROUTES.WAITING))
   const [notifValues, setNotifValues] = useState([true, true])
 
   function onConfirmCancel() {
@@ -40,7 +41,7 @@ export function UserWaitingDetail({
   }
 
   if (!waiting && !showCancelToast) {
-    navigate('/waiting', { replace: true })
+    navigate(ROUTES.WAITING, { replace: true })
     return null
   }
 
@@ -88,7 +89,7 @@ export function UserWaitingDetail({
               </div>
               <button
                 type="button"
-                onClick={() => navigate(`/booth?type=night&id=${booth.id}`)}
+                onClick={() => navigate(boothUrl('night', booth.id))}
                 className="shrink-0 rounded-full border border-border bg-surface-alt px-3 py-1.5 text-xs font-bold text-ink-80"
               >
                 부스 보기

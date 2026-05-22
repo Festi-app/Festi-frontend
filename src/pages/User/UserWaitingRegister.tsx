@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { boothUrl, waitingDetailUrl } from '../../constants/routes'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { ScreenHeader } from '../../components/User/ScreenHeader'
 import { FieldLabel } from '../../components/shared/FieldLabel'
@@ -60,7 +61,7 @@ export function UserWaitingRegister({
     })
     setShowToast(true)
     setTimeout(() => {
-      navigate(`/waiting/detail?id=${booth.id}`, { replace: true })
+      navigate(waitingDetailUrl(booth.id), { replace: true })
     }, 1800)
   }
 
@@ -72,7 +73,7 @@ export function UserWaitingRegister({
         {/* Booth card */}
         <button
           type="button"
-          onClick={() => navigate(`/booth?type=night&id=${booth.id}`)}
+          onClick={() => navigate(boothUrl('night', booth.id))}
           className="flex w-full gap-3 rounded-[18px] border border-border bg-surface p-3 text-left"
         >
           <div className="size-14 shrink-0 overflow-hidden rounded-[14px]">

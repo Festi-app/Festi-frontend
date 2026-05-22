@@ -6,6 +6,7 @@ import { AppHeader } from '../../../components/User/ScreenHeader'
 import { InputField } from '../../../components/shared/InputField'
 import { PasswordField } from '../../../components/shared/PasswordField'
 import { formatPhone } from '../../../lib/format'
+import { ROUTES } from '../../../constants/routes'
 
 export function UserOnboarding({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
@@ -45,7 +46,7 @@ export function UserOnboarding({ dark = false }: { dark?: boolean }) {
     setSubmitted(true)
     if (!isValid) return
     setShowToast(true)
-    setTimeout(() => navigate('/home'), 1800)
+    setTimeout(() => navigate(ROUTES.HOME), 1800)
   }
 
   return (

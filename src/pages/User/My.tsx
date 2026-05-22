@@ -15,6 +15,7 @@ import { NIGHT_BOOTHS, DAY_BOOTHS, TRUCK_BOOTHS } from '../../data/booths'
 import { getZoneName } from '../../data/zones'
 import { useUI } from '../../stores/useUIStore'
 import { formatPhone, formatSections } from '../../lib/format'
+import { boothUrl } from '../../constants/routes'
 
 function resolveBooth(s: { boothId: number; boothType: BoothType }) {
   const { boothId, boothType } = s
@@ -190,7 +191,7 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
             return (
               <div
                 key={`${type}-${booth.id}`}
-                onClick={() => navigate(`/booth?type=${type}&id=${booth.id}`)}
+                onClick={() => navigate(boothUrl(type, booth.id))}
                 className="w-full cursor-pointer overflow-hidden rounded-[20px] border border-border bg-surface text-left transition-transform duration-100 active:scale-[0.98]"
               >
                 <div className="flex gap-3 p-3">

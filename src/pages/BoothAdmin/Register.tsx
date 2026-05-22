@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { ROUTES } from '../../constants/routes'
 import {
   useBoothAdminStore,
   type OrgType,
@@ -137,7 +138,7 @@ export function BoothAdminRegister() {
       nightBoothName,
       nightBoothDesc,
     })
-    navigate('/booth-admin/login?registered=1')
+    navigate(`${ROUTES.BOOTH_ADMIN.LOGIN}?registered=1`)
   }
 
   return (

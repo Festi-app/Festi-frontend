@@ -10,6 +10,7 @@ import { QuickEntrySection } from '../../components/User/QuickEntrySection'
 import { useWaitingCancel } from '../../hooks/useWaitingCancel'
 import { useWaitingStore } from '../../stores/useWaitingStore'
 import { WaitingBoothCard } from '../../components/User/Waiting/WaitingBoothCard'
+import { waitingDetailUrl } from '../../constants/routes'
 
 export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
@@ -41,7 +42,7 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
             progressPct={main.progressPct}
             aheadTeams={main.aheadTeams}
             onCancel={() => setConfirmCancel(true)}
-            onClick={() => navigate(`/waiting/detail?id=${main.boothId}`)}
+            onClick={() => navigate(waitingDetailUrl(main.boothId))}
           />
 
           {main.aheadTeams <= 3 && (
@@ -94,7 +95,7 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
                   key={w.boothId}
                   waiting={w}
                   ink60={ink60}
-                  onClick={() => navigate(`/waiting/detail?id=${w.boothId}`)}
+                  onClick={() => navigate(waitingDetailUrl(w.boothId))}
                 />
               ))}
             </div>

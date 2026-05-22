@@ -4,6 +4,7 @@ import { FESTIV_TOKENS, I } from '../../../tokens'
 import { FestivMark, FestivWordmark } from '../../../components/Logo'
 import { Toast } from '../../../components/shared/Toast'
 import { useUserStore } from '../../../stores/useUserStore'
+import { ROUTES } from '../../../constants/routes'
 
 export function UserLogin({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
@@ -23,7 +24,7 @@ export function UserLogin({ dark = false }: { dark?: boolean }) {
       setLoading(false)
       if (userId === storedUserId) {
         storeSetUserId(userId)
-        navigate('/home', { replace: true })
+        navigate(ROUTES.HOME, { replace: true })
       } else {
         setLoginFailed(true)
         setTimeout(() => setLoginFailed(false), 2000)
@@ -95,7 +96,7 @@ export function UserLogin({ dark = false }: { dark?: boolean }) {
         <span className="text-[13px] text-ink-60">아직 계정이 없으신가요?</span>
         <button
           type="button"
-          onClick={() => navigate('/onboarding')}
+          onClick={() => navigate(ROUTES.ONBOARDING)}
           className="text-[13px] font-bold text-coral"
         >
           회원가입
