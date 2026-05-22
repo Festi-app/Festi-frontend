@@ -46,7 +46,7 @@ export function BoothDetailContent({
   name: string
   category?: string
   id?: number
-  sections?: number[] // booth_locations.index[] (0-based) — 구역 내 슬롯 위치
+  sections?: number[]
   type: string
   catPill?: { color: string; ink: string }
   operatingHours?: string
@@ -77,13 +77,20 @@ export function BoothDetailContent({
       ? { color: CAT_SOFT[category], ink: '#141A1F' }
       : { color: surfaceAlt, ink: ink80 })
 
+  const CAT_COLOR: Record<string, string> = {
+    정보: FESTIV_TOKENS.mint,
+    체험: FESTIV_TOKENS.grape,
+    마켓: FESTIV_TOKENS.sun,
+    활동: FESTIV_TOKENS.pop,
+    주점: FESTIV_TOKENS.alert,
+    야식: FESTIV_TOKENS.sun,
+  }
+  void circleColorProp
   const circleColor =
-    circleColorProp ??
-    (isTruck
-      ? FESTIV_TOKENS.sun
-      : isNight
-        ? FESTIV_TOKENS.alert
-        : FESTIV_TOKENS.pop)
+    isTruck || isNight
+      ? FESTIV_TOKENS.alert
+      : (CAT_COLOR[category] ?? FESTIV_TOKENS.pop)
+
   const pillBg = isTruck
     ? FESTIV_TOKENS.sunSoft
     : isNight
@@ -99,18 +106,17 @@ export function BoothDetailContent({
   return (
     <>
       <div className="mb-4 flex items-start gap-3">
-        {id != null && (
-          <div
-            className="flex size-11 shrink-0 items-center justify-center rounded-full font-extrabold text-white"
-            style={{
-              fontSize: 15,
-              background: circleColor,
-              boxShadow: `inset 0 0 0 3px #fff, 0 4px 12px ${circleColor}66`,
-            }}
-          >
-            {id}
-          </div>
-        )}
+        <div
+          className="flex size-11 shrink-0 items-center justify-center rounded-full"
+          style={{
+            background: circleColor,
+            boxShadow: `inset 0 0 0 3px #fff, 0 4px 12px ${circleColor}66`,
+          }}
+        >
+          <span className="text-[13px] font-extrabold text-white">
+            #{sections && sections.length > 0 ? sections[0] + 1 : id}
+          </span>
+        </div>
         <div className="min-w-0 flex-1">
           <div className="mb-1.5 flex flex-wrap gap-1.5">
             <Pill color={pillBg} ink={pillInk}>

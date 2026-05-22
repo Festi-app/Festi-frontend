@@ -34,6 +34,8 @@
   --color-chip-ink: var(--chip-ink);
   --font-spot:
     'Pretendard', 'Pretendard Variable', -apple-system, system-ui, sans-serif;
+  --font-festi:
+    'Pretendard', 'Pretendard Variable', -apple-system, system-ui, sans-serif;
 }
 
 :root {

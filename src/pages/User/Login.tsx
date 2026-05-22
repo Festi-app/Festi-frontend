@@ -14,7 +14,6 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
   const [loginFailed, setLoginFailed] = useState(false)
 
   const wordmarkColor = dark ? '#F2F5F7' : FESTIV_TOKENS.ink
-  const muted = dark ? '#8B939B' : '#5E676D'
   const isValid = userId.trim().length > 0 && password.length >= 1
 
   function handleLogin() {
@@ -36,17 +35,11 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
     <div className="relative flex h-full w-full flex-col bg-bg font-festi">
       {/* 상단 로고 */}
       <div className="flex flex-col items-center pt-20 pb-10">
-        <div
-          className="mb-4 flex size-16 items-center justify-center rounded-[22px] shadow-[0_8px_28px_rgba(0,198,224,0.3)]"
-          style={{ background: FESTIV_TOKENS.coral }}
-        >
+        <div className="mb-4 flex size-16 items-center justify-center rounded-[22px] bg-coral shadow-[0_8px_28px_rgba(0,198,224,0.3)]">
           <FestivMark color="#fff" size={38} />
         </div>
         <FestivWordmark size={24} color={wordmarkColor} />
-        <div
-          className="mt-1.5 text-[13px] font-medium"
-          style={{ color: muted }}
-        >
+        <div className="mt-1.5 text-[13px] font-medium text-ink-60">
           축제를 더 즐겁게
         </div>
       </div>
@@ -57,7 +50,7 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
           <div className="text-[20px] font-extrabold tracking-[-0.5px] text-ink">
             로그인
           </div>
-          <div className="mt-1 text-[13px]" style={{ color: muted }}>
+          <div className="mt-1 text-[13px] text-ink-60">
             아이디와 비밀번호를 입력해주세요.
           </div>
         </div>
@@ -87,15 +80,11 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
             type="button"
             onClick={handleLogin}
             disabled={!isValid || loading}
-            className="mt-1 w-full rounded-[14px] py-4 text-[15px] font-extrabold tracking-[-0.3px] transition-opacity disabled:opacity-40"
-            style={{ background: FESTIV_TOKENS.coral, color: '#fff' }}
+            className="mt-1 w-full rounded-[14px] bg-coral py-4 text-[15px] font-extrabold tracking-[-0.3px] text-white transition-opacity disabled:opacity-40"
           >
             {loading ? '로그인 중…' : '로그인'}
           </button>
-          <div
-            className="mt-3 text-center text-[11px]"
-            style={{ color: muted }}
-          >
+          <div className="mt-3 text-center text-[11px] text-ink-60">
             테스트 성공: test
           </div>
         </div>
@@ -103,14 +92,11 @@ export function MobileLogin({ dark = false }: { dark?: boolean }) {
 
       {/* 하단 회원가입 */}
       <div className="mt-6 flex items-center justify-center gap-1.5">
-        <span className="text-[13px]" style={{ color: muted }}>
-          아직 계정이 없으신가요?
-        </span>
+        <span className="text-[13px] text-ink-60">아직 계정이 없으신가요?</span>
         <button
           type="button"
           onClick={() => navigate('/onboarding')}
-          className="text-[13px] font-bold"
-          style={{ color: FESTIV_TOKENS.coral }}
+          className="text-[13px] font-bold text-coral"
         >
           회원가입
         </button>

@@ -93,11 +93,11 @@ function DevToolbar() {
   )
 }
 
-function FestivLogo() {
+function FestivLogo({ large }: { large?: boolean }) {
   return (
     <div className="flex items-center gap-1">
-      <FestivMark size={18} color="currentColor" />
-      <FestivWordmark size={14} color="currentColor" />
+      <FestivMark size={large ? 24 : 18} color="currentColor" />
+      <FestivWordmark size={large ? 18 : 14} color="currentColor" />
     </div>
   )
 }
@@ -220,9 +220,9 @@ function Nav() {
       </nav>
 
       {/* Mobile top bar */}
-      <div className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center border-b border-border bg-surface px-4 font-festi md:hidden">
+      <div className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center bg-surface px-4 font-festi md:hidden">
         <div className="text-[#141A1F] dark:text-white">
-          <FestivLogo />
+          <FestivLogo large />
         </div>
         <div className="flex-1" />
         {isAdmin && (
