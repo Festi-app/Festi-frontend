@@ -2,7 +2,17 @@ import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS } from '../../tokens'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
 import { useFestivalStore } from '../../stores/useFestivalStore'
+import { useTimetableStore } from '../../stores/useTimetableStore'
 import { ROUTES } from '../../constants/routes'
+
+const DAY_KO = ['일', '월', '화', '수', '목', '금', '토'] as const
+
+function formatFestivalDate(dateStr: string) {
+  const d = new Date(dateStr + 'T00:00:00')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${mm}.${dd} ${DAY_KO[d.getDay()]}`
+}
 
 function getDDayInfo(startDate: string, endDate: string) {
   const now = new Date()
@@ -22,6 +32,7 @@ function getDDayInfo(startDate: string, endDate: string) {
 
 export function MobileOffSeason({ dark = false }: { dark?: boolean }) {
   const { startDate, endDate } = useFestivalStore()
+  const { festivalName } = useTimetableStore()
   const dday = getDDayInfo(startDate, endDate)
   const navigate = useNavigate()
 
@@ -41,9 +52,11 @@ export function MobileOffSeason({ dark = false }: { dark?: boolean }) {
       <FestivWordmark size={28} color={dark ? '#F2F5F7' : FESTIV_TOKENS.ink} />
 
       <div className="mt-4 text-center">
-        <div className="text-[13px] font-semibold text-ink-60">2026 봄축제</div>
+        <div className="text-[13px] font-semibold text-ink-60">
+          {festivalName}
+        </div>
         <div className="mt-0.5 text-[13px] font-medium text-ink-60">
-          05.20 수 — 05.22 금
+          {formatFestivalDate(startDate)} — {formatFestivalDate(endDate)}
         </div>
       </div>
 

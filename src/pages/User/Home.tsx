@@ -66,14 +66,16 @@ function BoothListCard({
 export function MobileHome({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { festivalName, venue, currentDay, nowMin, days } = useTimetableStore()
-  const { startDate } = useFestivalStore()
+  const { startDate, endDate } = useFestivalStore()
   const [timetableDay, setTimetableDay] = useState(currentDay)
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const start = new Date(startDate + 'T00:00:00')
+  const end = new Date(endDate + 'T00:00:00')
   const diffDays = Math.round((start.getTime() - today.getTime()) / 86400000)
   const isUpcoming = diffDays > 0
+  const isEnded = today > end
   const dDayLabel = isUpcoming ? `D-${diffDays}` : `DAY ${1 - diffDays}`
   const [noticeOpen, setNoticeOpen] = useState(false)
   const [timetableTip, setTimetableTip] = useState(false)
@@ -93,10 +95,20 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
           {/* Live chip + 공지 버튼 */}
           <div className="mb-3.5 flex items-center justify-between">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-ink py-1 pr-2.5 pl-1 text-xs font-bold tracking-[-0.2px] text-bg">
-              <span className="rounded-full bg-pop px-2 py-0.75 text-[10px] font-extrabold tracking-[0.3px] text-ink">
-                {isUpcoming ? 'UPCOMING' : 'LIVE'}
+              <span
+                className="rounded-full px-2 py-0.75 text-[10px] font-extrabold tracking-[0.3px] text-ink"
+                style={{
+                  background: isUpcoming
+                    ? '#A9E5E7'
+                    : isEnded
+                      ? '#FF5A5A'
+                      : '#22C36A',
+                }}
+              >
+                {isUpcoming ? 'UPCOMING' : isEnded ? 'ENDED' : 'LIVE'}
               </span>
-              {festivalName} · {dDayLabel}
+              {festivalName}
+              {!isEnded && ` · ${dDayLabel}`}
             </div>
             <button
               type="button"
@@ -111,6 +123,11 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
               <>
                 부스 라인업 <br />
                 미리보기 👀
+              </>
+            ) : isEnded ? (
+              <>
+                다음 축제에서
+                <br />또 만나요!
               </>
             ) : (
               <>
