@@ -2,17 +2,16 @@ import { useState } from 'react'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
-import { NoticeList } from '../../components/Admin/NoticeList'
-import {
-  NoticeFormPanel,
-  NoticeEmptyPanel,
-} from '../../components/Admin/NoticeFormPanel'
+
+import { useNoticeStore } from '../../stores/useNoticeStore'
+import { I } from '../../tokens'
 import {
   EMPTY_DRAFT,
   type NoticeDraft,
-} from '../../components/Admin/noticeShared'
-import { useNoticeStore } from '../../stores/useNoticeStore'
-import { I } from '../../tokens'
+} from '../../components/Admin/Notice/noticeShared'
+import { NoticeFormPanel } from '../../components/Admin/Notice/NoticeFormPanel'
+import { NoticeEmptyPanel } from '../../components/Admin/Notice/NoticeEmptyPanel'
+import { NoticeList } from '../../components/Admin/Notice/NoticeList'
 
 type PanelMode = 'idle' | 'create' | 'edit'
 

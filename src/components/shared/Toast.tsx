@@ -13,7 +13,7 @@ export function Toast({
 }) {
   return (
     <div
-      className={`absolute inset-x-5 ${bottom} z-[70] flex items-center gap-3 rounded-[20px] bg-[#141A1F] px-4 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.25)]`}
+      className={`absolute inset-x-5 ${bottom} z-70 flex items-center gap-3 rounded-[20px] bg-[#141A1F] px-4 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.25)]`}
       style={{
         animation:
           'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',

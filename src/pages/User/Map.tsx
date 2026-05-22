@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { FESTIV_TOKENS } from '../../tokens'
 import { waitingRegisterUrl } from '../../constants/routes'
 import { StatGrid } from '../../components/User/StatGrid'
-import { BoothDetailContent } from './Detail'
+
 import {
   DAY_BOOTHS,
   NIGHT_BOOTHS,
@@ -16,7 +16,6 @@ import {
 import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import soongsilNightMap from '../../assets/soongsil-night-map.png'
 import soongsilTruckMap from '../../assets/soongsil-truck-map.png'
-import { FestiTabBar } from '../../components/User/Navbar'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
 import { CancelToast } from '../../components/User/CancelToast'
 import { MapSheet } from '../../components/User/Map/MapSheet'
@@ -47,14 +46,15 @@ import {
   useTruckPlacementStore,
 } from '../../stores/useTruckPlacementStore'
 import { useWaitingStore } from '../../stores/useWaitingStore'
+import { BoothDetailContent } from '../../components/User/BoothDetailContent'
 
 const ALL_BOOTH_ZONES = [...ZONES, ...NIGHT_ZONES, ...TRUCK_ZONES]
 
-type MobileMapView = MapView
+type UserMapView = MapView
 
 // ── Screen: Map ───────────────────────────────────────────────────────────────
 
-export function MobileMap({ dark = false }: { dark?: boolean }) {
+export function UserMap({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { isDay, setIsDay } = useDayNightStore()
@@ -70,7 +70,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
   const [selectedFestivalDay, setSelectedFestivalDay] = useState('2일차')
   const CURRENT_DAY_LABEL = '2일차'
   const [dayDropdownOpen, setDayDropdownOpen] = useState(false)
-  const [mapView, setMapView] = useState<MobileMapView>(isDay ? 'day' : 'night')
+  const [mapView, setMapView] = useState<UserMapView>(isDay ? 'day' : 'night')
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | number | null>(null)
@@ -215,7 +215,7 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
     [linkedTruckBooth]
   )
 
-  function changeMapView(next: MobileMapView) {
+  function changeMapView(next: UserMapView) {
     setMapView(next)
     if (next === 'day') setIsDay(true)
     if (next === 'night') setIsDay(false)
@@ -1076,8 +1076,6 @@ export function MobileMap({ dark = false }: { dark?: boolean }) {
           }}
         />
       )}
-
-      <FestiTabBar active="map" dark={dark} />
 
       {(() => {
         const cancelTarget =

@@ -1,69 +1,21 @@
 import { useState } from 'react'
 import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
-import { boothUrl, boothListUrl } from '../../constants/routes'
-import { FestiTabBar } from '../../components/User/Navbar'
-import { I, PhotoSlot } from '../../tokens'
+import { I } from '../../tokens'
 import { DAY_BOOTHS, NIGHT_BOOTHS, TRUCK_BOOTHS } from '../../data/booths'
 import { getZoneName } from '../../data/zones'
-import { formatSections } from '../../lib/format'
 import { useTimetableStore } from '../../stores/useTimetableStore'
-import { useFestivalStore } from '../../stores/useFestivalStore'
-import { SectionHeader } from '../../components/User/SectionHeader'
+import { SectionHeader } from '../../components/User/Home/SectionHeader'
 import { WaitingCarousel } from '../../components/User/WaitingCarousel'
-import { NoticeSheet } from '../../components/User/NoticeSheet'
-import { DayDropdown } from '../../components/User/DayDropdown'
-import { TimetableCard } from '../../components/User/TimetableCard'
+import { NoticeSheet } from '../../components/User/Home/NoticeSheet'
+import { DayDropdown } from '../../components/User/Home/DayDropdown'
+import { TimetableCard } from '../../components/User/Home/TimetableCard'
 import { QuickEntrySection } from '../../components/User/QuickEntrySection'
+import { UserBoothListCard } from '../../components/User/Home/UserBoothListCard'
+import { useFestivalStore } from '../../stores/useFestivalStore'
+import { boothListUrl, boothUrl } from '../../constants/routes'
 
-// ── Booth preview card ────────────────────────────────────────────────────────
-
-function BoothListCard({
-  name,
-  tone,
-  zoneName,
-  sections,
-  description,
-  onClick,
-}: {
-  name?: string
-  tone?: string
-  zoneName?: string
-  sections?: number[]
-  description?: string
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-start gap-3 rounded-[18px] border border-border bg-surface p-2.5 text-left transition-transform duration-100 active:scale-[0.98]"
-    >
-      <div className="size-16 shrink-0 overflow-hidden rounded-[14px]">
-        <PhotoSlot label="" tone={tone} radius={14} ratio="1/1" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-[15px] font-bold tracking-[-0.3px] text-ink">
-          {name}
-        </div>
-        <div className="mt-0.5 text-xs text-ink-60">
-          {zoneName}
-          {sections && sections.length > 0 && <> #{formatSections(sections)}</>}
-        </div>
-        {description && (
-          <div className="mt-1 truncate text-[11px] text-ink-40">
-            {description}
-          </div>
-        )}
-      </div>
-      <div className="mt-0.5 size-4 text-ink-40">{I.chev(undefined, 'r')}</div>
-    </button>
-  )
-}
-
-// ── Screen: Home ─────────────────────────────────────────────────────────────
-
-export function MobileHome({ dark = false }: { dark?: boolean }) {
+export function UserHome({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { festivalName, venue, currentDay, nowMin, days } = useTimetableStore()
   const { startDate, endDate } = useFestivalStore()
@@ -156,7 +108,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
           />
           <div className="mb-6 flex flex-col gap-2.5 px-5">
             {DAY_BOOTHS.slice(0, 3).map((b) => (
-              <BoothListCard
+              <UserBoothListCard
                 key={b.id}
                 name={b.name}
                 tone={b.tone}
@@ -178,7 +130,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
           />
           <div className="mb-6 flex flex-col gap-2.5 px-5">
             {NIGHT_BOOTHS.slice(0, 3).map((b) => (
-              <BoothListCard
+              <UserBoothListCard
                 key={b.id}
                 name={b.name}
                 tone={b.tone}
@@ -240,7 +192,7 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
           />
           <div className="flex flex-col gap-2.5 px-5">
             {TRUCK_BOOTHS.slice(0, 3).map((t) => (
-              <BoothListCard
+              <UserBoothListCard
                 key={t.id}
                 name={t.name}
                 tone={t.tone}
@@ -255,7 +207,6 @@ export function MobileHome({ dark = false }: { dark?: boolean }) {
         {/* pt-4.5 */}
       </div>{' '}
       {/* scroll body */}
-      <FestiTabBar active="home" dark={dark} />
       {noticeOpen && <NoticeSheet onClose={() => setNoticeOpen(false)} />}
     </div>
   )
