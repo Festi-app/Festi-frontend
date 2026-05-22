@@ -358,18 +358,23 @@ function MapRoute() {
 }
 
 function BoothRoute() {
+  const { dark } = useUI()
+  const [searchParams] = useSearchParams()
+  const id = getIdParam(searchParams)
+  const type = searchParams.get('type') ?? 'night'
+
   return (
     <UserLayout>
-      <UserBoothDetail />
+      <UserBoothDetail dark={dark} type={type} id={id} />
     </UserLayout>
   )
 }
 
 function BoothListRoute() {
   return (
-    <UserLayout>
+    <UserTabLayout active="map">
       <UserBoothList />
-    </UserLayout>
+    </UserTabLayout>
   )
 }
 
@@ -386,9 +391,9 @@ function WaitingRegisterRoute() {
 function WaitingStatusRoute() {
   const { dark } = useUI()
   return (
-    <UserLayout>
+    <UserTabLayout active="wait">
       <UserWaitingStatus dark={dark} />
-    </UserLayout>
+    </UserTabLayout>
   )
 }
 function WaitingDetailRoute() {
@@ -396,17 +401,17 @@ function WaitingDetailRoute() {
   const [searchParams] = useSearchParams()
   const id = getIdParam(searchParams)
   return (
-    <UserLayout>
+    <UserTabLayout active="wait">
       <UserWaitingDetail dark={dark} id={id} />
-    </UserLayout>
+    </UserTabLayout>
   )
 }
 function MyRoute() {
   const { dark } = useUI()
   return (
-    <UserLayout>
+    <UserTabLayout active="me">
       <UserMy dark={dark} />
-    </UserLayout>
+    </UserTabLayout>
   )
 }
 function LoginRoute() {
