@@ -6,7 +6,6 @@ import { FESTIV_TOKENS } from '../../../tokens'
 import { getDDayInfo } from '../../../utils/getDayInfo'
 import { useNavigate } from 'react-router-dom'
 
-
 const DAY_KO = ['일', '월', '화', '수', '목', '금', '토'] as const
 
 function formatFestivalDate(dateStr: string) {

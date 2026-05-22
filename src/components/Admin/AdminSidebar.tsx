@@ -14,7 +14,7 @@ export function AdminSidebar({ active }: { active: string }) {
     badge: number | null
     to: string
   }> = [
-     {
+    {
       id: 'home',
       label: '대시보드',
       icon: I.home,

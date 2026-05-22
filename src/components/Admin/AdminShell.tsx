@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react'
 import { AdminSidebar } from './AdminSidebar'
 
-
-
 export function AdminShell({
   active = 'booths',
   children,

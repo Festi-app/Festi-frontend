@@ -32,7 +32,7 @@ export function UserWaitingDetail({
   const [cancelledWaiting, setCancelledWaiting] =
     useState<typeof waiting>(undefined)
   const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
-  useWaitingCancel(() => navigate(ROUTES.WAITING))
+    useWaitingCancel(() => navigate(ROUTES.WAITING))
   const [notifValues, setNotifValues] = useState([true, true])
 
   function onConfirmCancel() {
