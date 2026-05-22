@@ -14,7 +14,7 @@ import { NotificationSettings } from '../../components/User/Waiting/Notification
 import { useWaitingStore } from '../../stores/useWaitingStore'
 
 const NOTIFICATION_ROWS = [
-  { label: '내 차례 3팀 전 알림', sub: '카카오톡 + 푸시' },
+  { label: '내 차례 3팀 전 알림', sub: '푸시' },
   { label: '내 차례 호출 알림', sub: '진동 + 사운드' },
 ]
 
