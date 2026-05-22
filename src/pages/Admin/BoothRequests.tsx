@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '../../constants/routes'
+import { ADMIN_STEPS } from '../../constants/queryParams'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
@@ -213,7 +215,7 @@ export function AdminBoothRequests() {
     if (missing.length > 0) {
       setSectionGateModal(missing)
     } else {
-      navigate('/admin/booths?step=assign')
+      navigate(`${ROUTES.ADMIN.BOOTHS}?step=${ADMIN_STEPS.ASSIGN}`)
     }
   }
 

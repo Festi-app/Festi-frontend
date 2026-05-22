@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useWaitingStore } from '../../stores/useWaitingStore'
+import { waitingDetailUrl } from '../../constants/routes'
 
 const COLORS = [
   { bg: '#00C6E0', shadow: 'rgba(0,198,224,0.4)', text: '#fff' },
@@ -50,7 +51,7 @@ export function WaitingCarousel() {
             >
               <button
                 type="button"
-                onClick={() => navigate(`/waiting/detail?id=${w.boothId}`)}
+                onClick={() => navigate(waitingDetailUrl(w.boothId))}
                 className="relative flex w-full items-center gap-3.5 overflow-hidden rounded-[20px] p-4 text-left transition-transform duration-100 active:scale-[0.98]"
                 style={{
                   background: c.bg,

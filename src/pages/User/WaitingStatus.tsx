@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
+import { waitingDetailUrl } from '../../constants/routes'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { WaitingTicketCard } from '../../components/User/WaitingTicket'
@@ -104,7 +105,7 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
             progressPct={main.progressPct}
             aheadTeams={main.aheadTeams}
             onCancel={() => setConfirmCancel(true)}
-            onClick={() => navigate(`/waiting/detail?id=${main.boothId}`)}
+            onClick={() => navigate(waitingDetailUrl(main.boothId))}
           />
 
           {main.aheadTeams <= 3 && (
@@ -157,7 +158,7 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
                   key={w.boothId}
                   waiting={w}
                   ink60={ink60}
-                  onClick={() => navigate(`/waiting/detail?id=${w.boothId}`)}
+                  onClick={() => navigate(waitingDetailUrl(w.boothId))}
                 />
               ))}
             </div>

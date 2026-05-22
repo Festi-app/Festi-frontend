@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
+import { boothUrl } from '../../constants/routes'
 import { FestiTabBar } from '../../components/User/Navbar'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { FilterChips } from '../../components/User/FilterChips'
@@ -191,7 +192,7 @@ export function MobileMy({ dark = false }: { dark?: boolean }) {
             return (
               <div
                 key={`${type}-${booth.id}`}
-                onClick={() => navigate(`/booth?type=${type}&id=${booth.id}`)}
+                onClick={() => navigate(boothUrl(type, booth.id))}
                 className="w-full cursor-pointer overflow-hidden rounded-[20px] border border-border bg-surface text-left transition-transform duration-100 active:scale-[0.98]"
               >
                 <div className="flex gap-3 p-3">

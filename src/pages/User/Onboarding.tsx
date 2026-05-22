@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I } from '../../tokens'
+import { ROUTES } from '../../constants/routes'
 import { FestivWordmark } from '../../components/Logo'
 import { AppHeader } from '../../components/User/ScreenHeader'
 import { InputField } from '../../components/shared/InputField'
@@ -45,7 +46,7 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
     setSubmitted(true)
     if (!isValid) return
     setShowToast(true)
-    setTimeout(() => navigate('/home'), 1800)
+    setTimeout(() => navigate(ROUTES.HOME), 1800)
   }
 
   return (
