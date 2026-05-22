@@ -12,7 +12,7 @@ import { NIGHT_BOOTHS } from '../../data/booths'
 import { getBoothZoneName } from '../../data/zones'
 
 const NOTIFICATION_ROWS = [
-  { label: '내 차례 3팀 전 알림', sub: '푸시' },
+  { label: '내 차례 3팀 전 알림', sub: '푸시 알림' },
   { label: '내 차례 호출 알림', sub: '진동 + 사운드' },
 ]
 
