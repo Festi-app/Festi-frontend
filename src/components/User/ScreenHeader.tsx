@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { I } from '../../tokens'
-import { FestivHeaderLogo } from '../Logo'
+import { FestivMark, FestivWordmark } from '../Logo'
 
 // ── 메인 탭 공통 헤더 ─────────────────────────────────────────────────────────
 
@@ -17,7 +17,10 @@ export function AppHeader({
   const color = dark ? '#FFFFFF' : '#141A1F'
   return (
     <div className={`flex items-center justify-between ${className ?? ''}`}>
-      <FestivHeaderLogo size={28} color={color} />
+      <div className="flex items-center gap-1.5">
+        <FestivMark size={25} color={color} />
+        <FestivWordmark size={22} color={color} />
+      </div>
       {right}
     </div>
   )
@@ -44,8 +47,8 @@ export function ScreenHeader({
 }) {
   const navigate = useNavigate()
   return (
-    <div className="shrink-0 border-b border-border bg-surface px-5 pt-13.5 pb-4">
-      <div className="mt-1.5 flex items-center gap-2">
+    <div className="shrink-0 border-b border-border bg-surface px-5 pt-5 pb-4">
+      <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={() => navigate(-1)}

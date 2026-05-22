@@ -11,7 +11,7 @@ import {
 } from '../../stores/useTruckPlacementStore'
 import type {
   FoodTruck,
-  MenuItem,
+  TruckMenuItem,
   TruckDay,
   TruckTime,
 } from '../../stores/useTruckPlacementStore'
@@ -424,7 +424,7 @@ export function AdminFoodTrucks() {
     })
   }
 
-  function updateMenu(menuId: string, patch: Partial<MenuItem>) {
+  function updateMenu(menuId: string, patch: Partial<TruckMenuItem>) {
     if (!selected) return
     updateTruck({
       menus: selected.menus.map((m) =>

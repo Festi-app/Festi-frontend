@@ -18,7 +18,7 @@ export function FestiTabBar({
   ]
 
   return (
-    <div className="absolute right-3 bottom-3.5 left-3 z-30 flex items-stretch rounded-[28px] border border-[rgba(15,42,51,0.06)] bg-white/90 p-1.5 font-festi shadow-[0_8px_32px_rgba(20,26,31,0.14)] backdrop-blur-xl dark:border-white/5 dark:bg-[#13262D]/90">
+    <div className="absolute right-3 bottom-3.5 left-3 z-50 flex items-stretch rounded-[28px] border border-[rgba(15,42,51,0.06)] bg-white/90 p-1.5 font-festi shadow-[0_8px_32px_rgba(20,26,31,0.14)] backdrop-blur-xl dark:border-white/5 dark:bg-[#13262D]/90">
       {items.map((it) => {
         const on = it.id === active
         return (

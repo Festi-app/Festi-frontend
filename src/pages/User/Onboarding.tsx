@@ -5,24 +5,22 @@ import { FestivWordmark } from '../../components/Logo'
 import { AppHeader } from '../../components/User/ScreenHeader'
 import { InputField } from '../../components/shared/InputField'
 import { PasswordField } from '../../components/shared/PasswordField'
+import { formatPhone } from '../../lib/format'
 
 export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const [userId, setUserId] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [phone, setPhone] = useState('')
+  const [name, setName] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [showToast, setShowToast] = useState(false)
   const wordmarkColor = dark ? '#F2F5F7' : FESTIV_TOKENS.ink
 
   const errors = {
-    name: submitted && name.trim().length === 0 ? '이름을 입력해주세요' : '',
     email:
-      submitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-        ? '이메일 형식을 확인해주세요'
-        : '',
+      submitted && userId.trim().length === 0 ? '아이디를 입력해주세요' : '',
     password:
       submitted && password.length < 6 ? '비밀번호는 6자 이상이어야 해요' : '',
     passwordConfirm:
@@ -33,21 +31,15 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
       submitted && phone.replace(/-/g, '').length < 10
         ? '전화번호를 정확히 입력해주세요'
         : '',
-  }
-
-  function formatPhone(raw: string) {
-    const digits = raw.replace(/\D/g, '').slice(0, 11)
-    if (digits.length <= 3) return digits
-    if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`
-    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+    name: submitted && name.trim().length === 0 ? '이름을 입력해주세요' : '',
   }
 
   const isValid =
-    name.trim().length > 0 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+    userId.trim().length > 0 &&
     password.length >= 6 &&
     passwordConfirm === password &&
-    phone.replace(/-/g, '').length >= 10
+    phone.replace(/-/g, '').length >= 10 &&
+    name.trim().length > 0
 
   function handleSubmit() {
     setSubmitted(true)
@@ -61,45 +53,30 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
       className="relative flex h-full w-full flex-col overflow-hidden font-festi"
       style={{ background: dark ? '#0F1216' : '#F2F3F4' }}
     >
-      {/* 공유 헤더 */}
       <div className="shrink-0 px-5 pt-13.5">
         <AppHeader dark={dark} className="mt-2 mb-1" />
       </div>
 
-      {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto px-5 pb-36 pt-4">
-        {/* 타이틀 */}
-        <div className="mb-8 mt-2">
-          <div className="text-[26px] font-extrabold leading-tight tracking-[-0.6px] text-ink">
-            축제를 더 즐겁게,
-            <br />
-            <FestivWordmark size={26} color={wordmarkColor} />
-            <span>와 함께해요.</span>
-          </div>
-          <div className="mt-2 text-[14px] text-ink-60">
-            간단한 정보를 입력하고 시작해보세요.
-          </div>
+      <div className="shrink-0 px-5 pt-3 pb-2">
+        <div className="text-[12px] font-bold leading-tight tracking-[-0.5px] text-ink">
+          축제를 더 즐겁게, <FestivWordmark size={12} color={wordmarkColor} />
+          <span>와 함께해요.</span>
         </div>
+      </div>
 
-        {/* 폼 */}
+      <div className="flex flex-1 flex-col justify-center px-5 py-4">
         <div
-          className="rounded-[20px] border border-border p-5 shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)]"
+          className="rounded-[20px] border border-border p-4 shadow-[0_1px_2px_rgba(20,26,31,0.04),0_8px_24px_rgba(20,26,31,0.06)]"
           style={{ background: dark ? '#1A1E23' : '#FFFFFF' }}
         >
           <InputField
-            label="이름"
-            placeholder="실명을 입력하세요."
-            value={name}
-            onChange={setName}
-            error={errors.name}
-          />
-          <InputField
-            label="이메일"
-            type="email"
-            placeholder="example@email.com"
-            value={email}
-            onChange={setEmail}
+            label="아이디"
+            type="text"
+            placeholder="아이디를 입력해주세요"
+            value={userId}
+            onChange={setUserId}
             error={errors.email}
+            className="mb-2.5"
           />
           <PasswordField
             label="비밀번호"
@@ -107,6 +84,7 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
             value={password}
             onChange={setPassword}
             error={errors.password}
+            className="mb-2.5"
           />
           <PasswordField
             label="비밀번호 확인"
@@ -114,6 +92,7 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
             value={passwordConfirm}
             onChange={setPasswordConfirm}
             error={errors.passwordConfirm}
+            className="mb-2.5"
           />
           <InputField
             label="전화번호"
@@ -122,22 +101,28 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
             value={phone}
             onChange={(v) => setPhone(formatPhone(v))}
             error={errors.phone}
+            className="mb-2.5"
+          />
+          <InputField
+            label="이름"
+            placeholder="실명을 입력하세요."
+            value={name}
+            onChange={setName}
+            error={errors.name}
+            className="mb-0"
           />
         </div>
 
-        {/* 약관 동의 안내 */}
-        <div className="mt-4 px-1 text-center text-[12px] leading-relaxed text-ink-40">
+        <div className="mt-2.5 px-1 text-center text-[11px] leading-relaxed text-ink-40">
           가입 시{' '}
           <span className="font-semibold text-ink-60">서비스 이용약관</span> 및{' '}
           <span className="font-semibold text-ink-60">개인정보 처리방침</span>에
-          <br />
           동의하는 것으로 간주됩니다.
         </div>
       </div>
 
-      {/* 하단 고정 버튼 */}
       <div
-        className="absolute inset-x-0 bottom-0 border-t border-border px-5 pb-10 pt-3"
+        className="shrink-0 px-5 pb-8 pt-3"
         style={{ background: dark ? '#0F1216' : '#F2F3F4' }}
       >
         <button
@@ -160,7 +145,6 @@ export function MobileOnboarding({ dark = false }: { dark?: boolean }) {
         </button>
       </div>
 
-      {/* 완료 토스트 */}
       {showToast && (
         <div
           className="absolute inset-x-0 bottom-32 z-50 flex justify-center px-5"

@@ -1,33 +1,30 @@
 import { FESTIV_TOKENS, PhotoSlot, Pill } from '../../tokens'
 import { FestivMark } from '../Logo'
 
-// const STAR_PATH =
-//   'M50,2 L50.6,48.6 L83.9,16.1 L51.4,49.4 L98,50 L51.4,50.6 L83.9,83.9 L50.6,51.4 L50,98 L49.4,51.4 L16.1,83.9 L48.6,50.6 L2,50 L48.6,49.4 L16.1,16.1 L49.4,48.6 Z'
-
 export function WaitingTicketCard({
   dark = false,
   boothName,
-  boothId,
   boothTone,
+  boothArea,
+  boothSections,
   registered,
   waitNo,
   callNo,
   progressPct,
   aheadTeams,
-  etaMin,
   onCancel,
   onClick,
 }: {
   dark?: boolean
   boothName: string
-  boothId: number
-  boothTone: string
+  boothTone?: string
+  boothArea?: string
+  boothSections?: number[]
   registered: string
   waitNo: number
   callNo: number
   progressPct: number
   aheadTeams: number
-  etaMin: number
   onCancel: () => void
   onClick?: () => void
 }) {
@@ -60,16 +57,6 @@ export function WaitingTicketCard({
                        radial-gradient(circle at 20% 100%, ${FESTIV_TOKENS.pop}33 0%, transparent 50%)`,
         }}
       />
-
-      {/*/!* 별 워터마크 *!/*/}
-      {/*<svg*/}
-      {/*  width={200}*/}
-      {/*  height={200}*/}
-      {/*  viewBox="0 0 100 100"*/}
-      {/*  className="pointer-events-none absolute -top-7 -right-5 opacity-[0.13]"*/}
-      {/*>*/}
-      {/*  <path fill="white" d={STAR_PATH} />*/}
-      {/*</svg>*/}
 
       {/* 로고 워터마크 */}
       <div className="pointer-events-none absolute -top-7 -right-5 opacity-[0.13]">
@@ -117,9 +104,6 @@ export function WaitingTicketCard({
             <span className="opacity-70">
               앞에 <strong className="text-white">{aheadTeams}팀</strong> 남음
             </span>
-            <span className="opacity-70">
-              예상 대기 <strong className="text-white">~{etaMin}분</strong>
-            </span>
           </div>
         </div>
       </div>
@@ -139,15 +123,23 @@ export function WaitingTicketCard({
       {/* 부스 정보 + 취소 */}
       <div className="relative flex items-center gap-3">
         <div className="size-11 shrink-0 overflow-hidden rounded-xl">
-          <PhotoSlot label="" tone={boothTone} radius={12} />
+          <PhotoSlot label="" tone={boothTone} radius={12} ratio="1/1" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[15px] font-extrabold tracking-[-0.3px]">
-            {boothName}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[15px] font-extrabold tracking-[-0.3px]">
+              {boothName}
+            </span>
           </div>
-          <div className="mt-0.5 text-[11px] opacity-70">
-            #{boothId} · {registered}
+          <div className="mt-0.5 text-[11px] opacity-60">
+            {boothArea}
+            {boothSections && boothSections.length > 0 && (
+              <span className="ml-1 opacity-80">
+                · #{boothSections.map((s) => s + 1).join('·')}
+              </span>
+            )}
           </div>
+          <div className="mt-0.5 text-[11px] opacity-70">{registered}</div>
         </div>
         <button
           type="button"

@@ -5,15 +5,17 @@ export function SectionHeader({
   sub,
   more = false,
   onMore,
+  className = '',
 }: {
   title: string
   sub: string
   dark?: boolean
   more?: boolean
   onMore?: () => void
+  className?: string
 }) {
   return (
-    <div className="mb-3 flex items-end justify-between px-5">
+    <div className={`mb-3 flex items-end justify-between px-5 ${className}`}>
       <div>
         <div className="text-lg font-extrabold tracking-[-0.5px] text-ink">
           {title}

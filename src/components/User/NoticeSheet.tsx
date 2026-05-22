@@ -1,54 +1,28 @@
+import { useMemo } from 'react'
 import { I } from '../../tokens'
-
-const NOTICES = [
-  {
-    id: 1,
-    title: '2일차 야간 부스 운영 시간 변경',
-    body: '우천으로 인해 야간 부스 운영이 22시에서 21시로 단축됩니다. 양해 부탁드립니다.',
-    date: '05.16',
-  },
-  {
-    id: 2,
-    title: '스탬프 투어 경품 추가',
-    body: '스탬프 10개 완성 시 경품이 추가되었습니다. 학생회관 부스에서 교환 가능합니다.',
-    date: '05.16',
-  },
-  {
-    id: 3,
-    title: '베어드홀 앞 혼잡 안내',
-    body: '현재 베어드홀 앞 구역이 혼잡합니다. 우회로를 이용해 주시기 바랍니다.',
-    date: '05.16',
-  },
-  {
-    id: 4,
-    title: '분실물 센터 운영 안내',
-    body: '분실물 센터는 학생회관 1층 안내 데스크에서 운영합니다. 운영 시간은 10시~22시입니다.',
-    date: '05.15',
-  },
-  {
-    id: 5,
-    title: '포토부스 운영 시작',
-    body: '형남공학관 앞 포토부스가 운영을 시작했습니다. 축제 기념 사진을 남겨보세요!',
-    date: '05.15',
-  },
-  {
-    id: 6,
-    title: '축제 기간 주차 안내',
-    body: '축제 기간 중 캠퍼스 내 일반 차량 진입이 제한됩니다. 외부 주차장을 이용해 주세요.',
-    date: '05.14',
-  },
-]
+import { useNoticeStore } from '../../stores/useNoticeStore'
 
 export function NoticeSheet({ onClose }: { onClose: () => void }) {
+  const { notices } = useNoticeStore()
+  const sorted = useMemo(
+    () =>
+      [...notices].sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1
+        if (!a.pinned && b.pinned) return 1
+        return b.createdAt.localeCompare(a.createdAt)
+      }),
+    [notices]
+  )
+
   return (
     <>
       <div
-        className="absolute inset-0 z-30 bg-[rgba(0,0,0,0.4)]"
+        className="absolute inset-0 z-[55] bg-[rgba(0,0,0,0.4)]"
         style={{ animation: 'festi-fade-in 0.18s ease both' }}
         onClick={onClose}
       />
       <div
-        className="absolute inset-x-0 bottom-0 z-40 flex flex-col rounded-t-[24px] bg-surface pb-10"
+        className="absolute inset-x-0 bottom-0 z-[60] flex flex-col rounded-t-[24px] bg-surface pb-8"
         style={{
           maxHeight: '70%',
           animation:
@@ -78,21 +52,26 @@ export function NoticeSheet({ onClose }: { onClose: () => void }) {
           </button>
         </div>
         <div className="flex flex-col gap-2 overflow-y-auto px-5">
-          {NOTICES.map((n) => (
+          {sorted.map((n) => (
             <div
               key={n.id}
               className="rounded-[16px] border border-border bg-bg p-4"
             >
               <div className="mb-1 flex items-center gap-2">
+                {n.pinned && (
+                  <span className="shrink-0 rounded-md bg-cta/15 px-1.5 py-0.5 text-[10px] font-extrabold text-cta">
+                    고정
+                  </span>
+                )}
                 <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
                   {n.title}
                 </div>
-                <span className="shrink-0 text-[11px] text-ink-40">
-                  {n.date}
+                <span className="ml-auto shrink-0 text-[11px] text-ink-40">
+                  {n.createdAt.slice(5).replace('-', '.')}
                 </span>
               </div>
               <div className="mt-1 text-[12px] leading-relaxed text-ink-60">
-                {n.body}
+                {n.content}
               </div>
             </div>
           ))}

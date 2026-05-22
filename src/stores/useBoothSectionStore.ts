@@ -15,6 +15,7 @@ export interface BoothPermission {
   category: BoothCategory
   day: PermDay
   time: PermTime
+  boothId?: number
 }
 
 export type BoothMapMode = '주간' | '야간' | '푸드트럭'

@@ -8,6 +8,7 @@ export function InputField({
   onChange,
   maxLength,
   error,
+  className,
 }: {
   label: string
   type?: string
@@ -16,11 +17,12 @@ export function InputField({
   onChange: (v: string) => void
   maxLength?: number
   error?: string
+  className?: string
 }) {
   const [focused, setFocused] = useState(false)
 
   return (
-    <div className="mb-4">
+    <div className={`mb-4 ${className ?? ''}`}>
       <div className="mb-1.5 text-[13px] font-bold tracking-[-0.2px] text-ink-80">
         {label}
       </div>
