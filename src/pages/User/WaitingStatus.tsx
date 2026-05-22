@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { FestiTabBar } from '../../components/User/Navbar'
@@ -87,7 +88,10 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
       {main ? (
-        <div className="min-h-0 flex-1 overflow-auto overscroll-none px-5 pt-5 pb-27.5">
+        <div
+          className="min-h-0 flex-1 overflow-auto overscroll-none px-5 pt-5"
+          style={{ paddingBottom: tabBarPb }}
+        >
           <WaitingTicketCard
             dark={dark}
             boothName={main.boothName}
@@ -175,7 +179,7 @@ export function MobileWaitingStatus({ dark = false }: { dark?: boolean }) {
             sub="부스 웨이팅을 등록해 보세요"
             className="flex-1 px-5"
           />
-          <div className="shrink-0 pb-27.5">
+          <div className="shrink-0" style={{ paddingBottom: tabBarPb }}>
             <QuickEntrySection compact />
           </div>
         </div>

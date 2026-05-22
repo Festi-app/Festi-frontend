@@ -23,6 +23,7 @@ import { useWaitingStore } from '../../stores/useWaitingStore'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
 import { useWaitingCancel } from '../../hooks/useWaitingCancel'
 import { formatSections } from '../../lib/format'
+import { tabBarPb } from '../../lib/safeArea'
 
 // ── Reusable booth detail body ────────────────────────────────────────────────
 
@@ -393,7 +394,10 @@ export function MobileBoothList() {
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
       <ScreenHeader title={title} />
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-3.5 pb-27.5">
+      <div
+        className="min-h-0 flex-1 overflow-y-auto px-4 pt-3.5"
+        style={{ paddingBottom: tabBarPb }}
+      >
         <div className="flex flex-col gap-3">
           {items.map((b) => {
             const saved = isSaved(type, b.id)
