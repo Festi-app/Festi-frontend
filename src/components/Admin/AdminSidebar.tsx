@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I } from '../../tokens'
 import { FestivMark, FestivWordmark } from '../Logo'
 import { cn } from '../../lib/cn'
+import { ROUTES } from '../../constants/routes'
 
 export function AdminSidebar({ active }: { active: string }) {
   const navigate = useNavigate()
@@ -13,48 +14,54 @@ export function AdminSidebar({ active }: { active: string }) {
     badge: number | null
     to: string
   }> = [
-    { id: 'home', label: '대시보드', icon: I.home, badge: null, to: '/home' },
+     {
+      id: 'home',
+      label: '대시보드',
+      icon: I.home,
+      badge: null,
+      to: ROUTES.HOME,
+    },
     {
       id: 'festival',
       label: '축제 설정',
       icon: I.settings,
       badge: null,
-      to: '/admin/festival',
+      to: ROUTES.ADMIN.FESTIVAL,
     },
     {
       id: 'booths',
       label: '부스 배치',
       icon: I.map,
       badge: 77,
-      to: '/admin/booths',
+      to: ROUTES.ADMIN.BOOTHS,
     },
     {
       id: 'trucks',
       label: '푸드트럭',
       icon: I.truck,
       badge: 11,
-      to: '/admin/trucks',
+      to: ROUTES.ADMIN.TRUCKS,
     },
     {
       id: 'booth-requests',
       label: '부스 신청 관리',
       icon: I.user,
       badge: null,
-      to: '/admin/booth-requests',
+      to: ROUTES.ADMIN.BOOTH_REQUESTS,
     },
     {
       id: 'timetable',
       label: '공연 타임테이블',
       icon: I.clock,
       badge: null,
-      to: '/admin/timetable',
+      to: ROUTES.ADMIN.TIMETABLE,
     },
     {
       id: 'notices',
       label: '공지/이벤트',
       icon: I.megaphone,
       badge: null,
-      to: '/admin/notices',
+      to: ROUTES.ADMIN.NOTICES,
     },
   ]
 
@@ -71,7 +78,7 @@ export function AdminSidebar({ active }: { active: string }) {
       </div>
 
       <div
-        onClick={() => navigate('/admin/festival')}
+        onClick={() => navigate(ROUTES.ADMIN.FESTIVAL)}
         className="mb-4.5 flex cursor-pointer items-center gap-2 rounded-[14px] border border-border bg-surface-alt px-3 py-2.5"
       >
         <div className="size-8 rounded-[10px] bg-mint p-1.75 text-[#141A1F]">
