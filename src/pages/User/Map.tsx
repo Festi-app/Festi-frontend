@@ -32,8 +32,8 @@ import { MapSearchOverlay } from '../../components/User/Map/MapSearchOverlay'
 import {
   useMapGesture,
   MIN_SCALE,
-} from '../../features/User/Map/hooks/useMapGesture'
-import { useSheetDrag } from '../../features/User/Map/hooks/useSheetDrag'
+} from '../../features/Map/hooks/useMapGesture'
+import { useSheetDrag } from '../../features/Map/hooks/useSheetDrag'
 import { ZONES, NIGHT_ZONES, getZoneName } from '../../data/zones'
 import { useDayNightStore } from '../../stores/useDayNightStore'
 import {
