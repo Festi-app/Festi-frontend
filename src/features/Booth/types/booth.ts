@@ -15,7 +15,7 @@ export interface BoothSummaryDto {
   name: string
   category: BoothCategory
   type: BoothType
-  imageUrl: string
+  imageUrl: string | null
   isWaitingOpen: boolean
 }
 
@@ -32,9 +32,9 @@ export interface GetBoothResponseDto {
   name: string
   category: BoothCategory
   type: BoothType
-  description: string
-  operatingHours: string
-  imageUrl: string
+  description: string | null
+  operatingHours: string | null
+  imageUrl: string | null
   isWaitingOpen: boolean
 }
 
@@ -42,8 +42,8 @@ export interface MenuResponseDto {
   id: UUID
   name: string
   price: number
-  description: string
-  imageUrl: string
+  description: string | null
+  imageUrl: string | null
   isSoldOut: boolean
   sortOrder: number
 }
