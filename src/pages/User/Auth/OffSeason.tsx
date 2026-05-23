@@ -1,7 +1,6 @@
 import { FestivMark, FestivWordmark } from '../../../components/Logo'
 import { ROUTES } from '../../../constants/routes'
-import { useFestivalStore } from '../../../stores/useFestivalStore'
-import { useTimetableStore } from '../../../stores/useTimetableStore'
+import { useFestival } from '../../../features/Festival/hooks/useFestival'
 import { FESTIV_TOKENS } from '../../../tokens'
 import { getDDayInfo } from '../../../utils/getDayInfo'
 import { useNavigate } from 'react-router-dom'
@@ -16,8 +15,10 @@ function formatFestivalDate(dateStr: string) {
 }
 
 export function UserOffSeason({ dark = false }: { dark?: boolean }) {
-  const { startDate, endDate } = useFestivalStore()
-  const { festivalName } = useTimetableStore()
+  const { data: festival } = useFestival()
+  const startDate = festival?.startDate ?? ''
+  const endDate = festival?.endDate ?? ''
+  const festivalName = festival?.name ?? '축제'
   const dday = getDDayInfo(startDate, endDate)
   const navigate = useNavigate()
 

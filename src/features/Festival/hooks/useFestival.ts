@@ -4,6 +4,7 @@ import { getFestival } from '../apis/getFestival'
 export const festivalKeys = {
   all: ['festival'] as const,
   root: () => ['festival', 'root'] as const,
+  days: () => ['festival', 'days'] as const,
   notices: () => ['festival', 'notices'] as const,
   timelines: () => ['festival', 'timelines'] as const,
 }

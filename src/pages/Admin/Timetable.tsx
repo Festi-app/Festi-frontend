@@ -2,50 +2,67 @@ import { useState } from 'react'
 import { FESTIV_TOKENS, I } from '../../tokens'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
-import { AdminBtn } from '../../components/Admin/AdminBtn'
-import {
-  useTimetableStore,
-  type TimetableSlot,
-} from '../../stores/useTimetableStore'
 import { cn } from '../../lib/cn'
 import { toMin } from '../../lib/time'
-
-const DAYS = [1, 2, 3] as const
+import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
+import { useFestivalTimelines } from '../../features/Festival/hooks/useFestivalTimelines'
+import { useCreateFestivalTimeline } from '../../features/Festival/hooks/useCreateFestivalTimeline'
+import { useUpdateFestivalTimeline } from '../../features/Festival/hooks/useUpdateFestivalTimeline'
+import { useDeleteFestivalTimeline } from '../../features/Festival/hooks/useDeleteFestivalTimeline'
+import type { TimelineResponseDto } from '../../features/Festival/types/TimelineResponseDto'
 
 const EMPTY_FORM = { time: '', end: '', name: '', artist: '' }
+
+function toApiTime(t: string): string {
+  // input type="time" returns "HH:MM", API expects "HH:MM:SS"
+  return t.length === 5 ? `${t}:00` : t
+}
 
 // ── Slot row ──────────────────────────────────────────────────────────────────
 
 function SlotRow({
   slot,
-  isFirst,
-  isLast,
+  festivalDayId,
   isNow,
-  day,
 }: {
-  slot: TimetableSlot
-  isFirst: boolean
-  isLast: boolean
+  slot: TimelineResponseDto
+  festivalDayId: string
   isNow: boolean
-  day: number
 }) {
-  const { updateSlot, deleteSlot, moveSlot } = useTimetableStore()
+  const updateTimeline = useUpdateFestivalTimeline()
+  const deleteTimeline = useDeleteFestivalTimeline()
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState({ ...slot })
+  const [draft, setDraft] = useState({
+    time: slot.startTime,
+    end: slot.endTime,
+    name: slot.title,
+    artist: slot.artist,
+  })
 
   function save() {
     if (!draft.time || !draft.end || !draft.name || !draft.artist) return
-    updateSlot(day, slot.id, {
-      time: draft.time,
-      end: draft.end,
-      name: draft.name,
-      artist: draft.artist,
-    })
-    setEditing(false)
+    updateTimeline.mutate(
+      {
+        timelineId: slot.id,
+        body: {
+          festivalDayId,
+          title: draft.name,
+          artist: draft.artist,
+          startTime: toApiTime(draft.time),
+          endTime: toApiTime(draft.end),
+        },
+      },
+      { onSuccess: () => setEditing(false) }
+    )
   }
 
   function cancel() {
-    setDraft({ ...slot })
+    setDraft({
+      time: slot.startTime,
+      end: slot.endTime,
+      name: slot.title,
+      artist: slot.artist,
+    })
     setEditing(false)
   }
 
@@ -126,28 +143,31 @@ function SlotRow({
         isNow ? 'bg-pop/4 hover:bg-pop/6' : 'hover:bg-surface-alt/60'
       )}
     >
-      {/* 시간 */}
       <div
         className={cn(
           'w-12 shrink-0 font-mono text-[13px] font-extrabold tabular-nums',
           isNow ? 'text-pop' : 'text-ink-60'
         )}
       >
-        {slot.time}
+        {slot.startTime}
       </div>
 
-      {/* 공연 정보 — 클릭하면 편집 모드 */}
       <button
         type="button"
         onClick={() => {
-          setDraft({ ...slot })
+          setDraft({
+            time: slot.startTime,
+            end: slot.endTime,
+            name: slot.title,
+            artist: slot.artist,
+          })
           setEditing(true)
         }}
         className="min-w-0 flex-1 cursor-pointer text-left"
       >
         <div className="flex items-center gap-1.5">
           <span className="text-[14px] font-bold tracking-[-0.3px] text-ink group-hover:text-cta">
-            {slot.name}
+            {slot.title}
           </span>
           {isNow && (
             <span
@@ -164,53 +184,21 @@ function SlotRow({
         <div className="mt-0.5 text-[11px] text-ink-60">
           {slot.artist}
           <span className="ml-1.5 text-ink-40">
-            {slot.time} — {slot.end}
+            {slot.startTime} — {slot.endTime}
           </span>
         </div>
       </button>
 
-      {/* 순서 이동 */}
-      <div className="flex shrink-0 flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-        <button
-          type="button"
-          onClick={() => moveSlot(day, slot.id, 'up')}
-          disabled={isFirst}
-          className="flex size-5 items-center justify-center rounded text-ink-40 hover:bg-border disabled:opacity-20"
-        >
-          <svg viewBox="0 0 12 12" width="10" height="10" fill="none">
-            <path
-              d="M2 8l4-4 4 4"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => moveSlot(day, slot.id, 'down')}
-          disabled={isLast}
-          className="flex size-5 items-center justify-center rounded text-ink-40 hover:bg-border disabled:opacity-20"
-        >
-          <svg viewBox="0 0 12 12" width="10" height="10" fill="none">
-            <path
-              d="M2 4l4 4 4-4"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </div>
-
-      {/* 편집 / 삭제 */}
       <div className="flex shrink-0 items-center gap-1">
         <button
           type="button"
           onClick={() => {
-            setDraft({ ...slot })
+            setDraft({
+              time: slot.startTime,
+              end: slot.endTime,
+              name: slot.title,
+              artist: slot.artist,
+            })
             setEditing(true)
           }}
           className="flex size-7 items-center justify-center rounded-lg border border-border bg-surface text-ink-40 transition-colors hover:border-cta hover:text-cta"
@@ -219,7 +207,7 @@ function SlotRow({
         </button>
         <button
           type="button"
-          onClick={() => deleteSlot(day, slot.id)}
+          onClick={() => deleteTimeline.mutate(slot.id)}
           className="flex size-7 items-center justify-center rounded-lg border border-border bg-surface text-ink-40 transition-colors hover:border-alert hover:text-alert"
         >
           <div className="size-3.5">{I.trash()}</div>
@@ -231,17 +219,35 @@ function SlotRow({
 
 // ── Add slot form ─────────────────────────────────────────────────────────────
 
-function AddSlotForm({ day, onDone }: { day: number; onDone: () => void }) {
-  const { addSlot } = useTimetableStore()
+function AddSlotForm({
+  festivalDayId,
+  onDone,
+}: {
+  festivalDayId: string
+  onDone: () => void
+}) {
+  const createTimeline = useCreateFestivalTimeline()
   const [form, setForm] = useState(EMPTY_FORM)
 
   const isValid = form.time && form.end && form.name && form.artist
 
   function submit() {
-    if (!isValid) return
-    addSlot(day, form)
-    setForm(EMPTY_FORM)
-    onDone()
+    if (!isValid || !festivalDayId) return
+    createTimeline.mutate(
+      {
+        festivalDayId,
+        title: form.name,
+        artist: form.artist,
+        startTime: toApiTime(form.time),
+        endTime: toApiTime(form.end),
+      },
+      {
+        onSuccess: () => {
+          setForm(EMPTY_FORM)
+          onDone()
+        },
+      }
+    )
   }
 
   return (
@@ -316,39 +322,31 @@ function AddSlotForm({ day, onDone }: { day: number; onDone: () => void }) {
 // ── Screen: Admin Timetable ───────────────────────────────────────────────────
 
 export function AdminTimetable() {
-  const { venue, currentDay, nowMin, days, setVenue, setCurrentDay } =
-    useTimetableStore()
-  const [selectedDay, setSelectedDay] = useState<number>(currentDay)
+  const { data: festivalDays = [] } = useFestivalDays()
+  const { data: timelines = [] } = useFestivalTimelines()
+
+  const [selectedDay, setSelectedDay] = useState<number>(1)
   const [adding, setAdding] = useState(false)
+  const [venue, setVenue] = useState('베어드홀 대공연장')
   const [venueDraft, setVenueDraft] = useState(venue)
   const [venueEditing, setVenueEditing] = useState(false)
-  const [saved, setSaved] = useState(false)
 
-  const slots = days[selectedDay] ?? []
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
+  const currentDay = 1
 
-  function handleSave() {
-    if (venueEditing) {
-      setVenue(venueDraft)
-      setVenueEditing(false)
-    }
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
+  const selectedDayData = festivalDays[selectedDay - 1]
+  const slots = timelines
+    .filter((t) => t.festivalDay.id === selectedDayData?.id)
+    .sort((a, b) => a.startTime.localeCompare(b.startTime))
+
+  const DAYS = festivalDays.map((_, i) => i + 1)
 
   return (
     <AdminShell active="timetable">
       <AdminTopBar
         title="공연 타임테이블"
-        sub={
-          saved
-            ? '저장 완료 · 사용자 화면에 반영됐어요'
-            : '공연 일정을 관리해요'
-        }
-        right={
-          <AdminBtn primary icon={I.check('#fff')} onClick={handleSave}>
-            저장
-          </AdminBtn>
-        }
+        sub="공연 일정을 관리해요"
+        right={<></>}
       />
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
@@ -435,6 +433,11 @@ export function AdminTimetable() {
                 </button>
               )
             })}
+            {DAYS.length === 0 && (
+              <div className="px-4 py-2.5 text-[13px] text-ink-40">
+                일차 정보 없음
+              </div>
+            )}
           </div>
 
           {/* 슬롯 목록 */}
@@ -444,9 +447,9 @@ export function AdminTimetable() {
                 공연 일정이 없어요
               </div>
             ) : (
-              slots.map((slot, i) => {
-                const slotStart = toMin(slot.time)
-                const slotEnd = toMin(slot.end)
+              slots.map((slot) => {
+                const slotStart = toMin(slot.startTime)
+                const slotEnd = toMin(slot.endTime)
                 const isNow =
                   selectedDay === currentDay &&
                   nowMin >= slotStart &&
@@ -455,23 +458,25 @@ export function AdminTimetable() {
                   <SlotRow
                     key={slot.id}
                     slot={slot}
-                    isFirst={i === 0}
-                    isLast={i === slots.length - 1}
+                    festivalDayId={selectedDayData?.id ?? ''}
                     isNow={isNow}
-                    day={selectedDay}
                   />
                 )
               })
             )}
 
-            {adding ? (
-              <AddSlotForm day={selectedDay} onDone={() => setAdding(false)} />
+            {adding && selectedDayData ? (
+              <AddSlotForm
+                festivalDayId={selectedDayData.id}
+                onDone={() => setAdding(false)}
+              />
             ) : (
               <div className="px-5 py-4">
                 <button
                   type="button"
                   onClick={() => setAdding(true)}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-3 text-[13px] font-bold text-ink-40 transition-colors hover:border-cta hover:text-cta"
+                  disabled={!selectedDayData}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-3 text-[13px] font-bold text-ink-40 transition-colors hover:border-cta hover:text-cta disabled:opacity-40"
                 >
                   <div className="size-4">{I.plus()}</div>
                   공연 추가
@@ -491,7 +496,6 @@ export function AdminTimetable() {
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-            {/* 현재 일차 선택 미리보기 */}
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <div className="text-[15px] font-extrabold tracking-[-0.4px] text-ink">
@@ -517,8 +521,8 @@ export function AdminTimetable() {
                 </div>
               ) : (
                 slots.map((slot, i) => {
-                  const slotStart = toMin(slot.time)
-                  const slotEnd = toMin(slot.end)
+                  const slotStart = toMin(slot.startTime)
+                  const slotEnd = toMin(slot.endTime)
                   const isNow =
                     selectedDay === currentDay &&
                     nowMin >= slotStart &&
@@ -539,12 +543,12 @@ export function AdminTimetable() {
                           isNow ? 'text-pop' : 'text-ink-60'
                         )}
                       >
-                        {slot.time}
+                        {slot.startTime}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1">
                           <span className="truncate text-[12px] font-bold text-ink">
-                            {slot.name}
+                            {slot.title}
                           </span>
                           {isNow && (
                             <span
@@ -566,33 +570,6 @@ export function AdminTimetable() {
                   )
                 })
               )}
-            </div>
-
-            {/* 현재 일차 설정 */}
-            <div className="mt-4 rounded-[14px] border border-border bg-bg p-3.5">
-              <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
-                현재 진행 일차
-              </div>
-              <div className="flex gap-1.5">
-                {DAYS.map((d) => (
-                  <button
-                    key={d}
-                    type="button"
-                    onClick={() => setCurrentDay(d)}
-                    className={cn(
-                      'flex-1 rounded-lg py-2 text-[12px] font-bold transition-colors',
-                      d === currentDay
-                        ? 'bg-cta text-cta-ink'
-                        : 'border border-border bg-surface text-ink-60'
-                    )}
-                  >
-                    {d}일차
-                  </button>
-                ))}
-              </div>
-              <div className="mt-2 text-[10px] text-ink-40">
-                홈 화면에서 기본으로 보여줄 일차를 선택하세요
-              </div>
             </div>
           </div>
         </div>

@@ -6,3 +6,5 @@ export interface FestivalDayResponseDto {
   nightStart: string
   nightEnd: string
 }
+
+export type GetFestivalDaysResponseDto = FestivalDayResponseDto[]

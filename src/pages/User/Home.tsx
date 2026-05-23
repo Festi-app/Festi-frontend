@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import { I } from '../../tokens'
 import { DAY_BOOTHS, NIGHT_BOOTHS, TRUCK_BOOTHS } from '../../data/booths'
 import { getZoneName } from '../../data/zones'
-import { useTimetableStore } from '../../stores/useTimetableStore'
+import { useFestival } from '../../features/Festival/hooks/useFestival'
+import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
+import { useFestivalTimelines } from '../../features/Festival/hooks/useFestivalTimelines'
 import { SectionHeader } from '../../components/User/Home/SectionHeader'
 import { WaitingCarousel } from '../../components/User/WaitingCarousel'
 import { NoticeSheet } from '../../components/User/Home/NoticeSheet'
@@ -12,13 +14,38 @@ import { DayDropdown } from '../../components/User/Home/DayDropdown'
 import { TimetableCard } from '../../components/User/Home/TimetableCard'
 import { QuickEntrySection } from '../../components/User/QuickEntrySection'
 import { UserBoothListCard } from '../../components/User/Home/UserBoothListCard'
-import { useFestivalStore } from '../../stores/useFestivalStore'
 import { boothListUrl, boothUrl } from '../../constants/routes'
 
 export function UserHome({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
-  const { festivalName, venue, currentDay, nowMin, days } = useTimetableStore()
-  const { startDate, endDate } = useFestivalStore()
+  const { data: festival } = useFestival()
+  const { data: festivalDays = [] } = useFestivalDays()
+  const { data: timelines = [] } = useFestivalTimelines()
+
+  const festivalName = festival?.name ?? '축제'
+  const startDate = festival?.startDate ?? ''
+  const endDate = festival?.endDate ?? ''
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
+  const currentDay = 1
+
+  const days = festivalDays.reduce<
+    Record<
+      number,
+      { time: string; end: string; name: string; artist: string }[]
+    >
+  >((acc, day, idx) => {
+    acc[idx + 1] = timelines
+      .filter((t) => t.festivalDay.id === day.id)
+      .map((t) => ({
+        time: t.startTime,
+        end: t.endTime,
+        name: t.title,
+        artist: t.artist,
+      }))
+      .sort((a, b) => a.time.localeCompare(b.time))
+    return acc
+  }, {})
+
   const [timetableDay, setTimetableDay] = useState(currentDay)
 
   const today = new Date()
@@ -163,12 +190,15 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
                   )}
                 </button>
               </div>
-              <div className="mt-0.5 text-xs text-ink-60">{venue}</div>
+              <div className="mt-0.5 text-xs text-ink-60">
+                {festival?.description ?? ''}
+              </div>
             </div>
             <DayDropdown
               value={timetableDay}
               onChange={setTimetableDay}
               currentDay={currentDay}
+              totalDays={festivalDays.length || 3}
             />
           </div>
 
