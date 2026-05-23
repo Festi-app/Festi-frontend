@@ -299,7 +299,7 @@ function UserLayout({
           className="h-full w-full"
           style={{
             animation:
-              'festi-page-in 0.26s cubic-bezier(0.25,0.46,0.45,0.94) both',
+              'festi-page-in 0.26s cubic-bezier(0.25,0.46,0.45,0.94) backwards',
           }}
         >
           {children}

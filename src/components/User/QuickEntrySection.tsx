@@ -66,7 +66,7 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
               <div className="relative mb-2.5">
                 <PhotoSlot label="" tone={b.tone} ratio="1/1" radius={14} />
                 <div className="absolute top-2 left-2 rounded-full bg-[rgba(15,42,51,0.85)] px-2 py-0.75 text-[11px] font-bold text-white">
-                  #{b.id}
+                  #{(b.sections?.[0] ?? 0) + 1}
                 </div>
                 <div
                   className="absolute right-2 bottom-2 rounded-full px-2 py-0.75 text-[11px] font-bold text-[#141A1F]"

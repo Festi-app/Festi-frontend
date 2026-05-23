@@ -103,7 +103,7 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
             sub="오늘 운영 중인 부스"
             dark={dark}
             more
-            onMore={() => navigate('day')}
+            onMore={() => navigate(boothListUrl('day'))}
             className="mt-5"
           />
           <div className="mb-6 flex flex-col gap-2.5 px-5">

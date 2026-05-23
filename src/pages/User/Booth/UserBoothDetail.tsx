@@ -8,7 +8,8 @@ import {
   DAY_BOOTH_MENUS,
   TRUCK_BOOTH_MENUS,
 } from '../../../data/booths'
-import { getBoothZoneName } from '../../../data/zones'
+import { getBoothZoneName, ALL_ZONES } from '../../../data/zones'
+import { TRUCK_ZONES } from '../../../stores/useTruckPlacementStore'
 import { I } from '../../../tokens'
 import { PhotoHero } from '../../../components/User/PhotoHero'
 import { Toast } from '../../../components/shared/Toast'
@@ -63,6 +64,9 @@ export function UserBoothDetail({
       (isNight ? NIGHT_BOOTHS[0] : isTruck ? TRUCK_BOOTHS[0] : DAY_BOOTHS[0])),
     label: isTruck ? 'cover · food truck' : `cover · booth #${resolvedId}`,
   }
+  const zoneColor = isTruck
+    ? TRUCK_ZONES.find((z) => z.id === boothData.zoneId)?.color
+    : ALL_ZONES.find((z) => z.id === boothData.zoneId)?.color
 
   const menus = useMemo(
     () =>
@@ -107,6 +111,7 @@ export function UserBoothDetail({
           days={rawBooth?.days}
           description={boothData.description}
           menus={menus}
+          circleColor={zoneColor}
         />
       </div>
 

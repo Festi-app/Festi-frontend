@@ -58,11 +58,11 @@ export function BoothDetailContent({
     마켓: FESTIV_TOKENS.sun,
     활동: FESTIV_TOKENS.pop,
   }
-  void circleColorProp
   const circleColor =
-    isTruck || isNight
+    circleColorProp ??
+    (isTruck || isNight
       ? FESTIV_TOKENS.alert
-      : (CAT_COLOR[category] ?? FESTIV_TOKENS.pop)
+      : (CAT_COLOR[category] ?? FESTIV_TOKENS.pop))
 
   const pillBg = isTruck
     ? FESTIV_TOKENS.sunSoft

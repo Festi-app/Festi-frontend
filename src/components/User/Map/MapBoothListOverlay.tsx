@@ -135,7 +135,7 @@ export function MapBoothListOverlay({
             {listTab === 'truck' ? (
               <div className="flex flex-col divide-y divide-border">
                 {TRUCK_BOOTHS.map((truck) => {
-                  const truckZone = ALL_BOOTH_ZONES.find(
+                  const truckZone = TRUCK_ZONES.find(
                     (z) => z.id === truck.zoneId
                   )
                   const pinColor = truckZone?.color ?? FESTIV_TOKENS.sun
@@ -150,7 +150,10 @@ export function MapBoothListOverlay({
                         className="flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
                         style={{ background: pinColor }}
                       >
-                        {truck.id}
+                        #
+                        {truck.sections && truck.sections.length > 0
+                          ? truck.sections[0] + 1
+                          : truck.id}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
@@ -187,7 +190,10 @@ export function MapBoothListOverlay({
                         className="flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
                         style={{ background: pinColor }}
                       >
-                        {m.id}
+                        #
+                        {m.sections && m.sections.length > 0
+                          ? m.sections[0] + 1
+                          : m.id}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">

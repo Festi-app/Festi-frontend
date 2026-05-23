@@ -22,8 +22,10 @@ export function ProfileInfoRow({
   saveDisabled?: boolean
 }) {
   return (
-    <div className="flex h-14 items-center gap-3 px-4 py-4">
-      <div className="w-18 text-[13px] font-semibold text-ink-60">{label}</div>
+    <div className="flex h-14 items-center gap-3 px-4">
+      <div className="w-18 shrink-0 text-[13px] font-semibold text-ink-60">
+        {label}
+      </div>
       {editing && editable ? (
         <input
           type={inputType}
@@ -31,11 +33,11 @@ export function ProfileInfoRow({
           onChange={(e) => onChange?.(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && onSave?.()}
           autoFocus
-          className="flex-1 bg-transparent text-[15px] font-bold tracking-[-0.3px] text-ink outline-none"
+          className="min-w-0 flex-1 bg-transparent text-[16px] font-bold tracking-[-0.3px] text-ink outline-none"
         />
       ) : (
         <div
-          className={`flex-1 text-[15px] font-bold tracking-[-0.3px] ${editable ? 'text-ink' : 'text-ink-60'}`}
+          className={`min-w-0 flex-1 text-[15px] font-bold tracking-[-0.3px] ${editable ? 'text-ink' : 'text-ink-60'}`}
         >
           {value}
         </div>
@@ -46,7 +48,7 @@ export function ProfileInfoRow({
             type="button"
             onClick={onSave}
             disabled={saveDisabled}
-            className="rounded-full bg-cta px-3 py-1.5 text-[12px] font-extrabold text-cta-ink disabled:opacity-40"
+            className="shrink-0 rounded-full border border-transparent bg-cta px-3 py-1.5 text-[12px] font-extrabold text-cta-ink disabled:opacity-40"
           >
             저장
           </button>
@@ -54,7 +56,7 @@ export function ProfileInfoRow({
           <button
             type="button"
             onClick={onEdit}
-            className="rounded-full border border-border bg-surface-alt px-3 py-1.5 text-[12px] font-bold text-ink-80"
+            className="shrink-0 rounded-full border border-border bg-surface-alt px-3 py-1.5 text-[12px] font-bold text-ink-80"
           >
             수정
           </button>
