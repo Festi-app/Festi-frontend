@@ -1,10 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  TRUCK_BOOTHS,
-  DAY_BOOTHS,
-  NIGHT_BOOTHS,
-} from '../../../data/booths'
+import { TRUCK_BOOTHS, DAY_BOOTHS, NIGHT_BOOTHS } from '../../../data/booths'
 import { useMenus } from '../../../features/Menu/hooks/useMenus'
 import { getBoothZoneName, ALL_ZONES } from '../../../data/zones'
 import { TRUCK_ZONES } from '../../../stores/useTruckPlacementStore'
