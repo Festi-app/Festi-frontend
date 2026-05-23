@@ -956,12 +956,16 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                 days={selectedMarker.days}
                 description={selectedMarker.description}
                 area={
-                  ALL_BOOTH_ZONES.find((z) => z.id === selectedMarker.zoneId)
-                    ?.name
+                  (selectedMarker.type === 'truck'
+                    ? TRUCK_ZONES
+                    : ALL_BOOTH_ZONES
+                  ).find((z) => z.id === selectedMarker.zoneId)?.name
                 }
                 circleColor={
-                  ALL_BOOTH_ZONES.find((z) => z.id === selectedMarker.zoneId)
-                    ?.color
+                  (selectedMarker.type === 'truck'
+                    ? TRUCK_ZONES
+                    : ALL_BOOTH_ZONES
+                  ).find((z) => z.id === selectedMarker.zoneId)?.color
                 }
               />
               {selectedMarker.type === 'night' && (
@@ -1001,12 +1005,16 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                   days={selectedMarker.days}
                   description={selectedMarker.description}
                   area={
-                    ALL_BOOTH_ZONES.find((z) => z.id === selectedMarker.zoneId)
-                      ?.name
+                    (selectedMarker.type === 'truck'
+                      ? TRUCK_ZONES
+                      : ALL_BOOTH_ZONES
+                    ).find((z) => z.id === selectedMarker.zoneId)?.name
                   }
                   circleColor={
-                    ALL_BOOTH_ZONES.find((z) => z.id === selectedMarker.zoneId)
-                      ?.color
+                    (selectedMarker.type === 'truck'
+                      ? TRUCK_ZONES
+                      : ALL_BOOTH_ZONES
+                    ).find((z) => z.id === selectedMarker.zoneId)?.color
                   }
                   menus={
                     selectedMarker.type === 'night'

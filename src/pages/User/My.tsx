@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { tabBarPb } from '../../lib/safeArea'
+import { tabBarPb, tabBarOuterPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { FilterChips } from '../../components/User/My/FilterChips'
@@ -288,7 +288,7 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
           <div
             className="absolute inset-x-0 bottom-0 z-60 rounded-t-[28px] bg-surface px-5 pt-4 font-festi shadow-[0_-8px_40px_rgba(0,0,0,0.18)]"
             style={{
-              paddingBottom: tabBarPb,
+              paddingBottom: tabBarOuterPb,
               animation:
                 'festi-sheet-up 0.28s cubic-bezier(0.32,0.72,0,1) both',
             }}
