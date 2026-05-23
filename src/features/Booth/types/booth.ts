@@ -49,3 +49,21 @@ export interface MenuResponseDto {
 }
 
 export type GetBoothMenusResponseDto = MenuResponseDto[]
+
+// ─── Waiting ─────────────────────────────────────────────────────────────────
+
+export type WaitingStatus = 'WAITING' | 'CALLED' | 'SEATED' | 'CANCELLED'
+export type OffsetDateTime = string
+
+export interface PostBoothWaitingRequestDto {
+  partySize: number
+}
+
+export interface PostBoothWaitingResponseDto {
+  id: UUID
+  boothSummary: BoothSummaryDto
+  partySize: number
+  status: WaitingStatus
+  callCount: number
+  registeredAt: OffsetDateTime
+}
