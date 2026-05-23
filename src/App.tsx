@@ -201,7 +201,8 @@ function Nav() {
   const { pathname } = useLocation()
   const isAdmin =
     pathname.startsWith('/admin') || pathname.startsWith('/booth-admin')
-  if (NO_NAV_ROUTES.includes(pathname as (typeof NO_NAV_ROUTES)[number])) return null
+  if (NO_NAV_ROUTES.includes(pathname as (typeof NO_NAV_ROUTES)[number]))
+    return null
   if (IS_STANDALONE) {
     return (
       <div
