@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { I } from '../../../tokens'
 import { useNoticeStore } from '../../../stores/useNoticeStore'
+import { tabBarPb } from '../../../lib/safeArea'
 
 export function NoticeSheet({ onClose }: { onClose: () => void }) {
   const { notices } = useNoticeStore()
@@ -22,8 +23,9 @@ export function NoticeSheet({ onClose }: { onClose: () => void }) {
         onClick={onClose}
       />
       <div
-        className="absolute inset-x-0 bottom-0 z-60 flex flex-col rounded-t-3xl bg-surface pb-8"
+        className="absolute inset-x-0 bottom-0 z-60 flex flex-col rounded-t-3xl bg-surface"
         style={{
+          paddingBottom: tabBarPb,
           maxHeight: '70%',
           animation:
             'festi-sheet-up 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both',

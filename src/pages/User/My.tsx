@@ -286,8 +286,9 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
             onClick={closeProfile}
           />
           <div
-            className="absolute inset-x-0 bottom-0 z-60 rounded-t-[28px] bg-surface px-5 pt-4 pb-10 font-festi shadow-[0_-8px_40px_rgba(0,0,0,0.18)]"
+            className="absolute inset-x-0 bottom-0 z-60 rounded-t-[28px] bg-surface px-5 pt-4 font-festi shadow-[0_-8px_40px_rgba(0,0,0,0.18)]"
             style={{
+              paddingBottom: tabBarPb,
               animation:
                 'festi-sheet-up 0.28s cubic-bezier(0.32,0.72,0,1) both',
             }}
@@ -315,8 +316,8 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
             </div>
 
             <div className="overflow-hidden rounded-[20px] border border-border bg-bg">
-              <div className="mx-4 h-px bg-border" />
               <ProfileInfoRow label="아이디" value={userId} />
+              <div className="mx-4 h-px bg-border" />
               <ProfileInfoRow
                 label="이름"
                 value={name}

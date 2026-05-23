@@ -45,8 +45,6 @@ export function BoothDetailContent({
     체험: FESTIV_TOKENS.grapeSoft ?? '#EDE7F8',
     마켓: FESTIV_TOKENS.sunSoft ?? '#FFF3C2',
     활동: FESTIV_TOKENS.popSoft ?? '#D9F2E2',
-    주점: FESTIV_TOKENS.alertSoft ?? '#FFE5E5',
-    야식: FESTIV_TOKENS.sunSoft ?? '#FFF3C2',
   }
   const resolvedCatPill =
     catPill ??
@@ -59,8 +57,6 @@ export function BoothDetailContent({
     체험: FESTIV_TOKENS.grape,
     마켓: FESTIV_TOKENS.sun,
     활동: FESTIV_TOKENS.pop,
-    주점: FESTIV_TOKENS.alert,
-    야식: FESTIV_TOKENS.sun,
   }
   void circleColorProp
   const circleColor =

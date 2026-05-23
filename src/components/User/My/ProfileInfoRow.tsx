@@ -22,7 +22,7 @@ export function ProfileInfoRow({
   saveDisabled?: boolean
 }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-4">
+    <div className="flex h-14 items-center gap-3 px-4 py-4">
       <div className="w-18 text-[13px] font-semibold text-ink-60">{label}</div>
       {editing && editable ? (
         <input
