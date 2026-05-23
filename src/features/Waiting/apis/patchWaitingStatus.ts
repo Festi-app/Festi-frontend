@@ -1,12 +1,13 @@
 import { apiClient } from '../../../lib/axios'
 import { ENDPOINTS } from '../../../constants/endpoints'
-import type { Waiting, UpdateWaitingStatusBody } from '../types/waiting'
+import type { WaitingResponseDto } from '../types/WaitingResponseDto'
+import type { PatchWaitingStatusRequestDto } from '../types/PatchWaitingStatusRequestDto'
 
 export async function patchWaitingStatus(
   waitingId: string,
-  body: UpdateWaitingStatusBody
-): Promise<Waiting> {
-  const { data } = await apiClient.patch<Waiting>(
+  body: PatchWaitingStatusRequestDto
+): Promise<WaitingResponseDto> {
+  const { data } = await apiClient.patch<WaitingResponseDto>(
     ENDPOINTS.WAITINGS.STATUS(waitingId),
     body
   )

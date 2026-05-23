@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { patchWaitingStatus } from '../apis/patchWaitingStatus'
 import { waitingKeys } from './useMyWaitings'
-import type { UpdateWaitingStatusBody } from '../types/waiting'
+import type { PatchWaitingStatusRequestDto } from '../types/PatchWaitingStatusRequestDto'
 
 export function useUpdateWaitingStatus(boothId: string) {
   const queryClient = useQueryClient()
@@ -12,7 +12,7 @@ export function useUpdateWaitingStatus(boothId: string) {
       body,
     }: {
       waitingId: string
-      body: UpdateWaitingStatusBody
+      body: PatchWaitingStatusRequestDto
     }) => patchWaitingStatus(waitingId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: waitingKeys.booth(boothId) })
