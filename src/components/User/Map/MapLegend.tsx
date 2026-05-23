@@ -2,7 +2,7 @@ import { tabBarPb } from '../../../lib/safeArea'
 import {
   BOOTH_CATEGORIES,
   BOOTH_CATEGORY_THEMES,
-} from '../../../features/User/Map/utils/display'
+} from '../../../features/Map/utils/display'
 
 export function MapLegend() {
   return (

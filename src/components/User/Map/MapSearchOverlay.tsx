@@ -5,7 +5,7 @@ import {
   typeColor,
   typeLabel,
   waitStatus,
-} from '../../../features/User/Map/utils/display'
+} from '../../../features/Map/utils/display'
 
 const ALL_BOOTH_ZONES = [...ZONES, ...NIGHT_ZONES, ...TRUCK_ZONES]
 
