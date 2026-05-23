@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react'
-import { tabBarPb, tabBarPbTall } from '../../lib/safeArea'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { FESTIV_TOKENS } from '../../tokens'
 import { waitingRegisterUrl } from '../../constants/routes'
-import { StatGrid } from '../../components/User/StatGrid'
 
 import { useLocations } from '../../features/Map/hooks/useLocations'
+import { useBooth } from '../../features/Booth/hooks/useBooth'
+import { useBoothMenus } from '../../features/Booth/hooks/useBoothMenus'
 import type { GetLocationsResponseDto } from '../../features/Map/types/LocationsResponseDto'
 import type {
   BoothSummary,
@@ -16,9 +15,6 @@ import soongsilNightMap from '../../assets/soongsil-night-map.png'
 import soongsilTruckMap from '../../assets/soongsil-truck-map.png'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
 import { CancelToast } from '../../components/User/CancelToast'
-import { MapSheet } from '../../components/User/Map/MapSheet'
-import { BoothPinHeader } from '../../components/User/Map/BoothPinHeader'
-import { WaitingActions } from '../../components/User/Map/WaitingActions'
 import { MapZoomControls } from '../../components/User/Map/MapZoomControls'
 import {
   MapTopHeader,
@@ -27,21 +23,24 @@ import {
 import { MapLegend } from '../../components/User/Map/MapLegend'
 import { MapBoothListOverlay } from '../../components/User/Map/MapBoothListOverlay'
 import { MapSearchOverlay } from '../../components/User/Map/MapSearchOverlay'
+import { MapZoomableLayer } from '../../components/User/Map/MapZoomableLayer'
+import { MapDayNightZones } from '../../components/User/Map/MapDayNightZones'
+import { MapTruckZones } from '../../components/User/Map/MapTruckZones'
+import { MapDayNightSheet } from '../../components/User/Map/MapDayNightSheet'
+import { MapTruckSheet } from '../../components/User/Map/MapTruckSheet'
+import { MapMarkerSheet } from '../../components/User/Map/MapMarkerSheet'
 import {
   useMapGesture,
   MIN_SCALE,
 } from '../../features/Map/hooks/useMapGesture'
 import { useSheetDrag } from '../../features/Map/hooks/useSheetDrag'
-import { ZONES, NIGHT_ZONES, getZoneName } from '../../data/zones'
+import { ZONES, NIGHT_ZONES } from '../../data/zones'
 import { useDayNightStore } from '../../stores/useDayNightStore'
 import {
   TRUCK_ZONES,
   useTruckPlacementStore,
 } from '../../stores/useTruckPlacementStore'
 import { useWaitingStore } from '../../stores/useWaitingStore'
-import { BoothDetailContent } from '../../components/User/BoothDetailContent'
-
-const ALL_BOOTH_ZONES = [...ZONES, ...NIGHT_ZONES, ...TRUCK_ZONES]
 
 type UserMapView = MapView
 
@@ -66,23 +65,13 @@ const API_CAT_TO_KR: Record<string, string> = {
   ALCOHOL: '주류',
 }
 
-const CAT_COLOR_MAP: Record<string, string> = {
-  ACTIVITY: FESTIV_TOKENS.pop,
-  INFO: FESTIV_TOKENS.mint,
-  MARKET: FESTIV_TOKENS.sun,
-  EXPERIENCE: FESTIV_TOKENS.grape,
-  PROMOTION: FESTIV_TOKENS.coral,
-  ALCOHOL: FESTIV_TOKENS.alert,
-}
-
-// ── Screen: Map ───────────────────────────────────────────────────────────────
-
 export function UserMap({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { isDay, setIsDay } = useDayNightStore()
   const { zoneRotations } = useTruckPlacementStore()
   const { waitings, cancelWaiting } = useWaitingStore()
+
   const [selectedFestivalDay, setSelectedFestivalDay] = useState('2일차')
   const CURRENT_DAY_LABEL = '2일차'
   const [dayDropdownOpen, setDayDropdownOpen] = useState(false)
@@ -192,8 +181,9 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
     mapView === 'day' ? ZONES : mapView === 'night' ? NIGHT_ZONES : []
 
   const selectedBoothZone = selectedBoothCell
-    ? (ALL_BOOTH_ZONES.find((zone) => zone.id === selectedBoothCell.zoneId) ??
-      null)
+    ? ([...ZONES, ...NIGHT_ZONES].find(
+        (zone) => zone.id === selectedBoothCell.zoneId
+      ) ?? null)
     : null
 
   const linkedBooth = useMemo((): BoothSummary | null => {
@@ -203,8 +193,6 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
     return loc?.boothSummary ?? null
   }, [selectedBoothCell, locationsByZone])
 
-  const linkedMenus: never[] = []
-
   const linkedTruckBooth = useMemo((): BoothSummary | null => {
     if (!selectedSection) return null
     const zoneLocations = locationsByZone[selectedSection.zoneId] ?? []
@@ -212,7 +200,15 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
     return loc?.boothSummary ?? null
   }, [selectedSection, locationsByZone])
 
-  const linkedTruckMenus: never[] = []
+  const activeBoothId: string | null = useMemo(() => {
+    if (linkedBooth) return linkedBooth.id
+    if (linkedTruckBooth) return linkedTruckBooth.id
+    if (selectedUserTruck) return selectedUserTruck.id
+    return selectedId
+  }, [linkedBooth, linkedTruckBooth, selectedUserTruck, selectedId])
+
+  const { data: boothDetail } = useBooth(activeBoothId)
+  const { data: boothMenus = [] } = useBoothMenus(activeBoothId)
 
   const allMarkers = useMemo(
     () =>
@@ -240,7 +236,6 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
     if (listTab === 'night') return m.type === 'night'
     return m.type === 'truck'
   })
-
   const listMarkers = listCatFilter
     ? listMarkersBase.filter((m) => m.category === listCatFilter)
     : listMarkersBase
@@ -363,21 +358,43 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
     setListOpen(true)
   }
 
+  const sheetHandlers = {
+    sheetDragY,
+    sheetDismissing,
+    sheetExpanded,
+    onSheetTouchStart: handleSheetTouchStart,
+    onSheetTouchMove: handleSheetTouchMove,
+    onSheetTouchEnd: handleSheetTouchEnd,
+    onDismiss: dismissSheet,
+    onToggleExpand: () => setSheetExpanded((v) => !v),
+  }
+
+  const waitingProps = {
+    onWaiting: (id: string | number) =>
+      navigate(waitingRegisterUrl(id as unknown as number)),
+    onAlreadyWaiting: (id: string) => setCancelBoothId(id),
+    isAlreadyWaiting: (id: string) =>
+      waitings.some((w) => String(w.boothId) === id),
+  }
+
   return (
     <div
       ref={containerRef}
       className="relative h-full w-full overflow-hidden overscroll-none bg-[#E8F4F5] font-festi dark:bg-[#0B1A1F]"
     >
-      {/* Zoomable map layer */}
-      <div
-        className="absolute inset-0 touch-none cursor-grab active:cursor-grabbing"
+      <MapZoomableLayer
+        scale={scale}
+        offset={offset}
+        isPinching={isPinching}
+        activeMapAspect={activeMapAspect}
+        activeMapImage={activeMapImage}
+        dark={dark}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
         onClick={() => {
           setSheetExpanded(false)
           if (
@@ -387,194 +404,45 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
           )
             dismissSheet()
         }}
-        style={{
-          transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
-          transformOrigin: 'center center',
-          transition: isPinching ? 'none' : 'transform 0.15s ease-out',
-        }}
       >
-        <div
-          className="absolute inset-x-0"
-          style={{
-            top: '50%',
-            transform: 'translateY(-50%)',
-            aspectRatio: activeMapAspect,
-          }}
-        >
-          {/* Map image */}
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url(${activeMapImage})`,
-              backgroundSize: '100% 100%',
-              ...(dark
-                ? {}
-                : { filter: 'brightness(1.05) saturate(0.6)', opacity: 0.75 }),
+        {mapView !== 'truck' && (
+          <MapDayNightZones
+            activeBoothZones={activeBoothZones}
+            locationsByZone={locationsByZone}
+            selectedBoothCell={selectedBoothCell}
+            onSelectCell={(zoneId, slot, hasBooth) => {
+              setSelectedBoothCell({ zoneId, slot })
+              setSelectedId(null)
+              setSelectedSection(null)
+              setSheetExpanded(false)
+              setSheetExpandable(hasBooth)
+              setListOpen(false)
             }}
           />
-          {/* 엣지 페이드 */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-[8%] bg-[linear-gradient(180deg,#E8F4F5_0%,transparent_100%)] dark:bg-[linear-gradient(180deg,#0B1A1F_0%,transparent_100%)]" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[8%] bg-[linear-gradient(0deg,#E8F4F5_0%,transparent_100%)] dark:bg-[linear-gradient(0deg,#0B1A1F_0%,transparent_100%)]" />
-          {!dark && (
-            <div className="pointer-events-none absolute inset-0 bg-[rgba(232,244,245,0.18)]" />
-          )}
+        )}
+        {mapView === 'truck' && (
+          <MapTruckZones
+            zoneRotations={zoneRotations}
+            locationsByZone={locationsByZone}
+            selectedSection={selectedSection}
+            onSelectSection={(zoneId, slot, hasTruck) => {
+              setSelectedSection({ zoneId, slot })
+              setSelectedId(null)
+              setSelectedBoothCell(null)
+              setSheetExpanded(false)
+              setSheetExpandable(hasTruck)
+              setListOpen(false)
+            }}
+          />
+        )}
+      </MapZoomableLayer>
 
-          {/* 주간/야간 부스 섹션 */}
-          {mapView !== 'truck' &&
-            activeBoothZones.map((zone) => {
-              const zoneLocations = locationsByZone[zone.id] ?? []
-              return (
-                <div
-                  key={zone.id}
-                  className="absolute z-2 flex rounded-sm"
-                  style={{
-                    left: zone.left,
-                    top: zone.top,
-                    width: zone.width,
-                    height: zone.height,
-                    flexDirection: zone.dir,
-                    background: zone.color,
-                    border: '1.5px solid rgba(20,26,31,0.22)',
-                  }}
-                >
-                  {zoneLocations.map((loc, gi) => {
-                    const booth = loc.boothSummary
-                    const isLast = gi === zoneLocations.length - 1
-                    const isSelected =
-                      selectedBoothCell?.zoneId === zone.id &&
-                      selectedBoothCell.slot === loc.index
-                    const slotColor = booth
-                      ? (CAT_COLOR_MAP[booth.category] ?? zone.color)
-                      : 'transparent'
-                    return (
-                      <button
-                        key={loc.index}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setSelectedBoothCell({
-                            zoneId: zone.id,
-                            slot: loc.index,
-                          })
-                          setSelectedId(null)
-                          setSelectedSection(null)
-                          setSheetExpanded(false)
-                          setSheetExpandable(!!booth)
-                          setListOpen(false)
-                        }}
-                        className="relative flex min-h-0 min-w-0 select-none items-center justify-center overflow-hidden text-[7px] font-extrabold transition-[background,box-shadow,opacity]"
-                        style={{
-                          flex: 1,
-                          background: slotColor,
-                          color: FESTIV_TOKENS.ink,
-                          boxShadow: isSelected
-                            ? 'inset 0 0 0 2px rgba(255,255,255,0.95), 0 0 0 1px rgba(20,26,31,0.2)'
-                            : undefined,
-                          ...(isLast
-                            ? {}
-                            : zone.dir === 'row'
-                              ? {
-                                  borderRight:
-                                    '1.5px solid rgba(20,26,31,0.22)',
-                                }
-                              : {
-                                  borderBottom:
-                                    '1.5px solid rgba(20,26,31,0.22)',
-                                }),
-                        }}
-                      >
-                        {loc.index + 1}
-                      </button>
-                    )
-                  })}
-                </div>
-              )
-            })}
-
-          {/* 푸드트럭 구역 오버레이 */}
-          {mapView === 'truck' &&
-            TRUCK_ZONES.map((zone) => {
-              const zoneLocations = locationsByZone[zone.id] ?? []
-              const rotate = zoneRotations[zone.id] ?? zone.rotate
-              return (
-                <div
-                  key={zone.id}
-                  className="absolute flex"
-                  style={{
-                    left: zone.left,
-                    top: zone.top,
-                    width: zone.width,
-                    height: zone.height,
-                    flexDirection: zone.dir === 'row' ? 'row' : 'column',
-                    background: zone.color,
-                    border: `1.5px solid rgba(20,26,31,0.22)`,
-                    borderRadius: '2px',
-                    transform: `rotate(${rotate}deg)`,
-                    transformOrigin: 'center',
-                    zIndex: 2,
-                  }}
-                >
-                  {zoneLocations.map((loc, idx) => {
-                    const truck = loc.boothSummary
-                    const isSelected =
-                      selectedSection?.zoneId === zone.id &&
-                      selectedSection.slot === loc.index
-                    const isLast = idx === zoneLocations.length - 1
-                    return (
-                      <button
-                        key={loc.index}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setSelectedSection({
-                            zoneId: zone.id,
-                            slot: loc.index,
-                          })
-                          setSelectedId(null)
-                          setSelectedBoothCell(null)
-                          setSheetExpanded(false)
-                          setSheetExpandable(!!truck)
-                          setListOpen(false)
-                        }}
-                        className="flex min-h-0 min-w-0 flex-1 select-none items-center justify-center text-[7px] font-extrabold"
-                        style={{
-                          background: isSelected
-                            ? zone.color
-                            : truck
-                              ? zone.color + 'CC'
-                              : 'transparent',
-                          color: FESTIV_TOKENS.ink,
-                          boxShadow: isSelected
-                            ? 'inset 0 0 0 2px rgba(255,255,255,0.9)'
-                            : undefined,
-                          ...(isLast
-                            ? {}
-                            : zone.dir === 'row'
-                              ? { borderRight: '1px solid rgba(20,26,31,0.18)' }
-                              : {
-                                  borderBottom: '1px solid rgba(20,26,31,0.18)',
-                                }),
-                        }}
-                      >
-                        {truck ? truck.name.slice(0, 3) : null}
-                      </button>
-                    )
-                  })}
-                </div>
-              )
-            })}
-        </div>
-      </div>
-      {/* end zoomable layer */}
-
-      {/* Zoom buttons */}
       <MapZoomControls
         onZoomIn={() => zoom(0.5)}
         onZoomOut={() => zoom(-0.5)}
         canZoomOut={scale > MIN_SCALE}
       />
 
-      {/* Top header */}
       <MapTopHeader
         mapView={mapView}
         selectedFestivalDay={selectedFestivalDay}
@@ -590,348 +458,52 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
         }}
       />
 
-      {/* 주간 부스 유형 범례 */}
       {selectedId === null &&
         selectedSection === null &&
         selectedBoothCell === null &&
         mapView === 'day' &&
         !listOpen && <MapLegend />}
 
-      {/* Bottom sheet - selected user truck */}
       {(selectedUserTruck !== null ||
-        (sheetDismissing &&
-          selectedId === null &&
-          selectedSection === null &&
-          selectedBoothCell === null)) &&
-        selectedUserTruck &&
-        (() => {
-          const truckZoneColor =
-            TRUCK_ZONES.find((z) => {
-              const zoneLocations = locationsByZone[z.id] ?? []
-              return zoneLocations.some(
-                (l) => l.boothSummary?.id === selectedUserTruck.id
-              )
-            })?.color ?? FESTIV_TOKENS.sun
-          const truckArea = getZoneName(undefined, 'truck')
-          return (
-            <MapSheet
-              sheetDragY={sheetDragY}
-              sheetDismissing={sheetDismissing}
-              expanded={sheetExpanded}
-              onTouchStart={handleSheetTouchStart}
-              onTouchMove={handleSheetTouchMove}
-              onTouchEnd={handleSheetTouchEnd}
-              onDismiss={dismissSheet}
-              onToggleExpand={() => setSheetExpanded((v) => !v)}
-            >
-              {!sheetExpanded && (
-                <>
-                  <BoothPinHeader
-                    color={truckZoneColor}
-                    badgeText={selectedUserTruck.name.slice(0, 1)}
-                    badgeFontSize="text-[15px]"
-                    pill={{
-                      color: FESTIV_TOKENS.sunSoft ?? '#FFF5D6',
-                      ink: FESTIV_TOKENS.sun,
-                      content: '푸드트럭',
-                    }}
-                    name={selectedUserTruck.name}
-                    sub={undefined}
-                  />
-                  <StatGrid
-                    className="mt-3"
-                    stats={[
-                      { label: '운영 날짜', value: '전일 운영' },
-                      { label: '운영 시간', value: '' },
-                    ]}
-                  />
-                </>
-              )}
-              {sheetExpanded && (
-                <div className="relative h-full overflow-hidden">
-                  <div
-                    className="h-full overflow-y-auto overscroll-none px-5 pt-4"
-                    style={{ paddingBottom: tabBarPb }}
-                  >
-                    <BoothDetailContent
-                      type="truck"
-                      name={selectedUserTruck.name}
-                      area={truckArea}
-                      circleColor={truckZoneColor}
-                      menus={linkedTruckMenus}
-                    />
-                  </div>
-                </div>
-              )}
-            </MapSheet>
-          )
-        })()}
+        selectedSection !== null ||
+        (sheetDismissing && selectedId === null)) && (
+        <MapTruckSheet
+          dark={dark}
+          selectedSection={selectedSection}
+          linkedTruckBooth={linkedTruckBooth}
+          selectedUserTruck={selectedUserTruck}
+          locationsByZone={locationsByZone}
+          boothDetail={boothDetail}
+          boothMenus={boothMenus}
+          {...sheetHandlers}
+        />
+      )}
 
-      {/* Bottom sheet - selected zone section (truck) */}
-      {(selectedSection !== null || (sheetDismissing && selectedId === null)) &&
-        (() => {
-          const zone = TRUCK_ZONES.find((z) => z.id === selectedSection?.zoneId)
-          if (!zone && !sheetDismissing) return null
-          return (
-            <MapSheet
-              sheetDragY={sheetDragY}
-              sheetDismissing={sheetDismissing}
-              expanded={sheetExpanded}
-              expandable={!!linkedTruckBooth}
-              onTouchStart={handleSheetTouchStart}
-              onTouchMove={handleSheetTouchMove}
-              onTouchEnd={handleSheetTouchEnd}
-              onDismiss={dismissSheet}
-              onToggleExpand={() =>
-                sheetExpanded ? setSheetExpanded(false) : setSheetExpanded(true)
-              }
-            >
-              {zone && (
-                <>
-                  {!sheetExpanded && (
-                    <>
-                      {linkedTruckBooth ? (
-                        <BoothDetailContent
-                          dark={dark}
-                          type="truck"
-                          name={linkedTruckBooth.name}
-                          sections={
-                            selectedSection ? [selectedSection.slot] : undefined
-                          }
-                          area={zone.name}
-                          circleColor={zone.color}
-                        />
-                      ) : (
-                        <div className="mt-3 rounded-xl bg-surface-alt px-4 py-3 text-center text-[12px] text-ink-40">
-                          이 섹션에 배정된 푸드트럭이 없어요
-                        </div>
-                      )}
-                    </>
-                  )}
-                  {sheetExpanded && linkedTruckBooth && (
-                    <div className="relative h-full overflow-hidden">
-                      <div
-                        className="h-full overflow-y-auto overscroll-none px-5 pt-4"
-                        style={{ paddingBottom: tabBarPb }}
-                      >
-                        <BoothDetailContent
-                          dark={dark}
-                          type="truck"
-                          name={linkedTruckBooth.name}
-                          sections={
-                            selectedSection ? [selectedSection.slot] : undefined
-                          }
-                          area={zone.name}
-                          menus={linkedTruckMenus}
-                          circleColor={zone.color}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </MapSheet>
-          )
-        })()}
-
-      {/* Bottom sheet - selected booth section */}
       {(selectedBoothCell !== null || sheetDismissing) && selectedBoothZone && (
-        <MapSheet
-          sheetDragY={sheetDragY}
-          sheetDismissing={sheetDismissing}
-          expanded={sheetExpanded}
-          expandable={!!linkedBooth}
-          onTouchStart={handleSheetTouchStart}
-          onTouchMove={handleSheetTouchMove}
-          onTouchEnd={handleSheetTouchEnd}
-          onDismiss={dismissSheet}
-          onToggleExpand={() => setSheetExpanded((v) => !v)}
-        >
-          {!sheetExpanded && (
-            <>
-              {linkedBooth ? (
-                <BoothDetailContent
-                  dark={dark}
-                  type={mapView === 'night' ? 'night' : 'day'}
-                  name={linkedBooth.name}
-                  sections={
-                    selectedBoothCell ? [selectedBoothCell.slot] : undefined
-                  }
-                  category={
-                    API_CAT_TO_KR[linkedBooth.category] ?? linkedBooth.category
-                  }
-                  area={selectedBoothZone.name}
-                  circleColor={selectedBoothZone.color}
-                />
-              ) : (
-                <div className="my-3 rounded-xl bg-surface-alt px-4 py-3 text-center text-[12px] text-ink-40">
-                  이 섹션에 배정된 부스가 없어요
-                </div>
-              )}
-              {mapView === 'night' && linkedBooth && (
-                <WaitingActions
-                  onWaiting={() =>
-                    navigate(
-                      waitingRegisterUrl(linkedBooth.id as unknown as number)
-                    )
-                  }
-                  onAlreadyWaiting={() => setCancelBoothId(linkedBooth.id)}
-                  alreadyWaiting={waitings.some(
-                    (w) => String(w.boothId) === linkedBooth.id
-                  )}
-                />
-              )}
-            </>
-          )}
-          {sheetExpanded && linkedBooth && (
-            <div className="relative h-full overflow-hidden">
-              <div
-                className="h-full overflow-y-auto overscroll-none px-5 pt-4"
-                style={{
-                  paddingBottom:
-                    mapView === 'night' && linkedBooth
-                      ? tabBarPbTall
-                      : tabBarPb,
-                }}
-              >
-                <BoothDetailContent
-                  dark={dark}
-                  type={mapView === 'night' ? 'night' : 'day'}
-                  name={linkedBooth.name}
-                  sections={
-                    selectedBoothCell ? [selectedBoothCell.slot] : undefined
-                  }
-                  category={
-                    API_CAT_TO_KR[linkedBooth.category] ?? linkedBooth.category
-                  }
-                  area={selectedBoothZone.name}
-                  menus={linkedMenus}
-                  circleColor={selectedBoothZone.color}
-                />
-              </div>
-              {mapView === 'night' && linkedBooth && (
-                <WaitingActions
-                  sticky
-                  onWaiting={() =>
-                    navigate(
-                      waitingRegisterUrl(linkedBooth.id as unknown as number)
-                    )
-                  }
-                  onAlreadyWaiting={() => setCancelBoothId(linkedBooth.id)}
-                  alreadyWaiting={waitings.some(
-                    (w) => String(w.boothId) === linkedBooth.id
-                  )}
-                />
-              )}
-            </div>
-          )}
-        </MapSheet>
+        <MapDayNightSheet
+          dark={dark}
+          mapView={mapView}
+          selectedBoothCell={selectedBoothCell}
+          selectedBoothZone={selectedBoothZone}
+          linkedBooth={linkedBooth}
+          boothDetail={boothDetail}
+          boothMenus={boothMenus}
+          {...sheetHandlers}
+          {...waitingProps}
+        />
       )}
 
-      {/* Bottom sheet - selected booth (from search/list) */}
       {(selectedId !== null || sheetDismissing) && selectedMarker && (
-        <MapSheet
-          sheetDragY={sheetDragY}
-          sheetDismissing={sheetDismissing}
-          expanded={sheetExpanded}
-          expandable
-          onTouchStart={handleSheetTouchStart}
-          onTouchMove={handleSheetTouchMove}
-          onTouchEnd={handleSheetTouchEnd}
-          onDismiss={dismissSheet}
-          onToggleExpand={() => setSheetExpanded((v) => !v)}
-        >
-          {!sheetExpanded && (
-            <>
-              <BoothDetailContent
-                dark={dark}
-                type={selectedMarker.type}
-                name={selectedMarker.name}
-                sections={selectedMarker.sections}
-                category={selectedMarker.category}
-                area={
-                  (selectedMarker.type === 'truck'
-                    ? TRUCK_ZONES
-                    : ALL_BOOTH_ZONES
-                  ).find((z) => z.id === selectedMarker.zoneId)?.name
-                }
-                circleColor={
-                  (selectedMarker.type === 'truck'
-                    ? TRUCK_ZONES
-                    : ALL_BOOTH_ZONES
-                  ).find((z) => z.id === selectedMarker.zoneId)?.color
-                }
-              />
-              {selectedMarker.type === 'night' && (
-                <WaitingActions
-                  onWaiting={() =>
-                    navigate(
-                      waitingRegisterUrl(selectedMarker.id as unknown as number)
-                    )
-                  }
-                  onAlreadyWaiting={() =>
-                    setCancelBoothId(String(selectedMarker.id))
-                  }
-                  alreadyWaiting={waitings.some(
-                    (w) => String(w.boothId) === String(selectedMarker.id)
-                  )}
-                />
-              )}
-            </>
-          )}
-
-          {sheetExpanded && (
-            <div className="relative h-full overflow-hidden">
-              <div
-                className="h-full overflow-y-auto overscroll-none px-5 pt-4"
-                style={{
-                  paddingBottom:
-                    selectedMarker.type === 'night' ? tabBarPbTall : tabBarPb,
-                }}
-              >
-                <BoothDetailContent
-                  dark={dark}
-                  type={selectedMarker.type}
-                  name={selectedMarker.name}
-                  sections={selectedMarker.sections}
-                  category={selectedMarker.category}
-                  area={
-                    (selectedMarker.type === 'truck'
-                      ? TRUCK_ZONES
-                      : ALL_BOOTH_ZONES
-                    ).find((z) => z.id === selectedMarker.zoneId)?.name
-                  }
-                  circleColor={
-                    (selectedMarker.type === 'truck'
-                      ? TRUCK_ZONES
-                      : ALL_BOOTH_ZONES
-                    ).find((z) => z.id === selectedMarker.zoneId)?.color
-                  }
-                  menus={[]}
-                />
-              </div>
-              {selectedMarker.type === 'night' && (
-                <WaitingActions
-                  sticky
-                  onWaiting={() =>
-                    navigate(
-                      waitingRegisterUrl(selectedMarker.id as unknown as number)
-                    )
-                  }
-                  onAlreadyWaiting={() =>
-                    setCancelBoothId(String(selectedMarker.id))
-                  }
-                  alreadyWaiting={waitings.some(
-                    (w) => String(w.boothId) === String(selectedMarker.id)
-                  )}
-                />
-              )}
-            </div>
-          )}
-        </MapSheet>
+        <MapMarkerSheet
+          dark={dark}
+          selectedMarker={selectedMarker}
+          boothDetail={boothDetail}
+          boothMenus={boothMenus}
+          {...sheetHandlers}
+          {...waitingProps}
+        />
       )}
 
-      {/* Booth list overlay */}
       {listOpen && (
         <MapBoothListOverlay
           listTab={listTab}
@@ -952,7 +524,6 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
         />
       )}
 
-      {/* Search overlay */}
       {searchOpen && (
         <MapSearchOverlay
           searchQuery={searchQuery}
