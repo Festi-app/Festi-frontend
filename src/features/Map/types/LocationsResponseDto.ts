@@ -1,4 +1,8 @@
-import type { BoothType, BoothSummary, FestivalDaySummary } from '../../../types/common'
+import type {
+  BoothType,
+  BoothSummary,
+  FestivalDaySummary,
+} from '../../../types/common'
 
 export interface GetLocationsResponseDto {
   id: number

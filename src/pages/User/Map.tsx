@@ -7,7 +7,10 @@ import { StatGrid } from '../../components/User/StatGrid'
 
 import { useLocations } from '../../features/Map/hooks/useLocations'
 import type { GetLocationsResponseDto } from '../../features/Map/types/LocationsResponseDto'
-import type { BoothSummary, BoothType as ApiBoothType } from '../../types/common'
+import type {
+  BoothSummary,
+  BoothType as ApiBoothType,
+} from '../../types/common'
 import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import soongsilNightMap from '../../assets/soongsil-night-map.png'
 import soongsilTruckMap from '../../assets/soongsil-truck-map.png'
@@ -95,9 +98,8 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
     zoneId: string
     slot: number
   } | null>(null)
-  const [selectedUserTruck, setSelectedUserTruck] = useState<
-    BoothSummary | null
-  >(null)
+  const [selectedUserTruck, setSelectedUserTruck] =
+    useState<BoothSummary | null>(null)
   const [listOpen, setListOpen] = useState(() => {
     const s = location.state as { openList?: boolean } | null
     return s?.openList ?? false
@@ -110,7 +112,8 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
   const [cancelBoothId, setCancelBoothId] = useState<string | null>(null)
   const [showCancelToast, setShowCancelToast] = useState(false)
 
-  const currentApiDay = FESTIVAL_DAY_DATES[selectedFestivalDay] ?? FESTIVAL_DAY_DATES['2일차']
+  const currentApiDay =
+    FESTIVAL_DAY_DATES[selectedFestivalDay] ?? FESTIVAL_DAY_DATES['2일차']
   const { data: locations = [] } = useLocations({
     day: currentApiDay,
     type: MAPVIEW_TO_API_TYPE[mapView],
@@ -220,7 +223,8 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
           name: l.boothSummary!.name,
           zoneId: l.zoneLabel.charAt(0),
           type: mapView,
-          category: API_CAT_TO_KR[l.boothSummary!.category] ?? l.boothSummary!.category,
+          category:
+            API_CAT_TO_KR[l.boothSummary!.category] ?? l.boothSummary!.category,
           sections: [l.index],
         })),
     [locations, mapView]
@@ -522,7 +526,10 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation()
-                          setSelectedSection({ zoneId: zone.id, slot: loc.index })
+                          setSelectedSection({
+                            zoneId: zone.id,
+                            slot: loc.index,
+                          })
                           setSelectedId(null)
                           setSelectedBoothCell(null)
                           setSheetExpanded(false)
@@ -688,7 +695,9 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                           dark={dark}
                           type="truck"
                           name={linkedTruckBooth.name}
-                          sections={selectedSection ? [selectedSection.slot] : undefined}
+                          sections={
+                            selectedSection ? [selectedSection.slot] : undefined
+                          }
                           area={zone.name}
                           circleColor={zone.color}
                         />
@@ -709,7 +718,9 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                           dark={dark}
                           type="truck"
                           name={linkedTruckBooth.name}
-                          sections={selectedSection ? [selectedSection.slot] : undefined}
+                          sections={
+                            selectedSection ? [selectedSection.slot] : undefined
+                          }
                           area={zone.name}
                           menus={linkedTruckMenus}
                           circleColor={zone.color}
@@ -743,8 +754,12 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                   dark={dark}
                   type={mapView === 'night' ? 'night' : 'day'}
                   name={linkedBooth.name}
-                  sections={selectedBoothCell ? [selectedBoothCell.slot] : undefined}
-                  category={API_CAT_TO_KR[linkedBooth.category] ?? linkedBooth.category}
+                  sections={
+                    selectedBoothCell ? [selectedBoothCell.slot] : undefined
+                  }
+                  category={
+                    API_CAT_TO_KR[linkedBooth.category] ?? linkedBooth.category
+                  }
                   area={selectedBoothZone.name}
                   circleColor={selectedBoothZone.color}
                 />
@@ -755,7 +770,11 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
               )}
               {mapView === 'night' && linkedBooth && (
                 <WaitingActions
-                  onWaiting={() => navigate(waitingRegisterUrl(linkedBooth.id as unknown as number))}
+                  onWaiting={() =>
+                    navigate(
+                      waitingRegisterUrl(linkedBooth.id as unknown as number)
+                    )
+                  }
                   onAlreadyWaiting={() => setCancelBoothId(linkedBooth.id)}
                   alreadyWaiting={waitings.some(
                     (w) => String(w.boothId) === linkedBooth.id
@@ -779,8 +798,12 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                   dark={dark}
                   type={mapView === 'night' ? 'night' : 'day'}
                   name={linkedBooth.name}
-                  sections={selectedBoothCell ? [selectedBoothCell.slot] : undefined}
-                  category={API_CAT_TO_KR[linkedBooth.category] ?? linkedBooth.category}
+                  sections={
+                    selectedBoothCell ? [selectedBoothCell.slot] : undefined
+                  }
+                  category={
+                    API_CAT_TO_KR[linkedBooth.category] ?? linkedBooth.category
+                  }
                   area={selectedBoothZone.name}
                   menus={linkedMenus}
                   circleColor={selectedBoothZone.color}
@@ -789,7 +812,11 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
               {mapView === 'night' && linkedBooth && (
                 <WaitingActions
                   sticky
-                  onWaiting={() => navigate(waitingRegisterUrl(linkedBooth.id as unknown as number))}
+                  onWaiting={() =>
+                    navigate(
+                      waitingRegisterUrl(linkedBooth.id as unknown as number)
+                    )
+                  }
                   onAlreadyWaiting={() => setCancelBoothId(linkedBooth.id)}
                   alreadyWaiting={waitings.some(
                     (w) => String(w.boothId) === linkedBooth.id
@@ -838,9 +865,13 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
               {selectedMarker.type === 'night' && (
                 <WaitingActions
                   onWaiting={() =>
-                    navigate(waitingRegisterUrl(selectedMarker.id as unknown as number))
+                    navigate(
+                      waitingRegisterUrl(selectedMarker.id as unknown as number)
+                    )
                   }
-                  onAlreadyWaiting={() => setCancelBoothId(String(selectedMarker.id))}
+                  onAlreadyWaiting={() =>
+                    setCancelBoothId(String(selectedMarker.id))
+                  }
                   alreadyWaiting={waitings.some(
                     (w) => String(w.boothId) === String(selectedMarker.id)
                   )}
@@ -883,9 +914,13 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                 <WaitingActions
                   sticky
                   onWaiting={() =>
-                    navigate(waitingRegisterUrl(selectedMarker.id as unknown as number))
+                    navigate(
+                      waitingRegisterUrl(selectedMarker.id as unknown as number)
+                    )
                   }
-                  onAlreadyWaiting={() => setCancelBoothId(String(selectedMarker.id))}
+                  onAlreadyWaiting={() =>
+                    setCancelBoothId(String(selectedMarker.id))
+                  }
                   alreadyWaiting={waitings.some(
                     (w) => String(w.boothId) === String(selectedMarker.id)
                   )}
@@ -901,11 +936,19 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
         <MapBoothListOverlay
           listTab={listTab}
           listCatFilter={listCatFilter}
-          listMarkers={listMarkers as unknown as Parameters<typeof MapBoothListOverlay>[0]['listMarkers']}
+          listMarkers={
+            listMarkers as unknown as Parameters<
+              typeof MapBoothListOverlay
+            >[0]['listMarkers']
+          }
           onClose={() => setListOpen(false)}
           onChangeTab={setListTab}
           onChangeCatFilter={setListCatFilter}
-          onSelectBooth={selectBoothOnMap as Parameters<typeof MapBoothListOverlay>[0]['onSelectBooth']}
+          onSelectBooth={
+            selectBoothOnMap as Parameters<
+              typeof MapBoothListOverlay
+            >[0]['onSelectBooth']
+          }
         />
       )}
 
@@ -913,7 +956,11 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
       {searchOpen && (
         <MapSearchOverlay
           searchQuery={searchQuery}
-          searchResults={searchResults as unknown as Parameters<typeof MapSearchOverlay>[0]['searchResults']}
+          searchResults={
+            searchResults as unknown as Parameters<
+              typeof MapSearchOverlay
+            >[0]['searchResults']
+          }
           onChangeQuery={setSearchQuery}
           onClose={() => {
             setSearchOpen(false)

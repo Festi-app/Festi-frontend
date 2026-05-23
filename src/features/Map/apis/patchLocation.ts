@@ -3,7 +3,6 @@ import { ENDPOINTS } from '../../../constants/endpoints'
 import type { PatchLocationRequestDto } from '../types/PatchLocationRequestDto'
 import type { GetLocationsResponseDto } from '../types/LocationsResponseDto'
 
-
 export async function patchLocation(
   locationId: string,
   body: PatchLocationRequestDto
