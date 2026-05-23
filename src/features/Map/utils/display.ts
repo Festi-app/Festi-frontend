@@ -1,5 +1,5 @@
-import type { BoothCategory } from "../../../stores/useBoothSectionStore";
-import { FESTIV_TOKENS } from "../../../tokens";
+import type { BoothCategory } from '../../../stores/useBoothSectionStore'
+import { FESTIV_TOKENS } from '../../../tokens'
 
 export const BOOTH_CATEGORY_THEMES: Record<
   BoothCategory,
