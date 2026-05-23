@@ -174,7 +174,7 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
             />
           )}
           {filteredFavorites.map(({ booth, category, type, createdAt }) => {
-            const saved = isSaved(type, booth.id)
+            const saved = isSaved(type, String(booth.id))
 
             const pillColor =
               type === 'night'

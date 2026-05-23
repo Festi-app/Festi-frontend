@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import type { MenuResponseDto } from '../../features/Booth/types/MenuResponseDto'
 import { tabBarPb, tabBarPbTall } from '../../lib/safeArea'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { FESTIV_TOKENS } from '../../tokens'
@@ -723,15 +724,17 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                     <BoothDetailContent
                       type="truck"
                       name={selectedUserTruck.name}
-                      id={selectedUserTruck.id}
+                      id={String(selectedUserTruck.id)}
                       sections={selectedUserTruck.sections}
                       operatingHours={selectedUserTruck.operatingHours}
                       description={selectedUserTruck.description}
                       area={truckArea}
                       circleColor={truckZoneColor}
-                      menus={TRUCK_BOOTH_MENUS.filter(
-                        (m) => m.boothId === selectedUserTruck.id
-                      )}
+                      menus={
+                        TRUCK_BOOTH_MENUS.filter(
+                          (m) => m.boothId === selectedUserTruck.id
+                        ) as unknown as MenuResponseDto[]
+                      }
                     />
                   </div>
                 </div>
@@ -776,7 +779,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                           dark={dark}
                           type="truck"
                           name={truck?.name ?? linkedTruckBooth.name}
-                          id={linkedTruckBooth.id}
+                          id={String(linkedTruckBooth.id)}
                           sections={linkedTruckBooth.sections}
                           operatingHours={linkedTruckBooth.operatingHours}
                           description={linkedTruckBooth.description}
@@ -800,12 +803,14 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                           dark={dark}
                           type="truck"
                           name={truck?.name ?? linkedTruckBooth.name}
-                          id={linkedTruckBooth.id}
+                          id={String(linkedTruckBooth.id)}
                           sections={linkedTruckBooth.sections}
                           operatingHours={linkedTruckBooth.operatingHours}
                           description={linkedTruckBooth.description}
                           area={zone.name}
-                          menus={linkedTruckMenus}
+                          menus={
+                            linkedTruckMenus as unknown as MenuResponseDto[]
+                          }
                           circleColor={zone.color}
                         />
                       </div>
@@ -837,7 +842,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                   dark={dark}
                   type={activeBoothTime === '야간' ? 'night' : 'day'}
                   name={linkedBooth.name}
-                  id={linkedBooth.id}
+                  id={String(linkedBooth.id)}
                   sections={linkedBooth.sections}
                   category={linkedBooth.category}
                   operatingHours={linkedBooth.operatingHours}
@@ -851,7 +856,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                   dark={dark}
                   type={activeBoothTime === '야간' ? 'night' : 'day'}
                   name={selectedBoothCellPerm.orgName}
-                  id={selectedBoothCellPerm.boothId}
+                  id={selectedBoothCellPerm.boothId?.toString()}
                   sections={selectedBoothCellPerm.sections}
                   category={selectedBoothCellPerm.category}
                   area={selectedBoothZone.name}
@@ -890,14 +895,14 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                     dark={dark}
                     type={activeBoothTime === '야간' ? 'night' : 'day'}
                     name={linkedBooth.name}
-                    id={linkedBooth.id}
+                    id={String(linkedBooth.id)}
                     sections={linkedBooth.sections}
                     category={linkedBooth.category}
                     operatingHours={linkedBooth.operatingHours}
                     days={linkedBooth.days}
                     description={linkedBooth.description}
                     area={selectedBoothZone.name}
-                    menus={linkedMenus}
+                    menus={linkedMenus as unknown as MenuResponseDto[]}
                     circleColor={selectedBoothZone.color}
                   />
                 ) : selectedBoothCellPerm ? (
@@ -905,7 +910,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                     dark={dark}
                     type={activeBoothTime === '야간' ? 'night' : 'day'}
                     name={selectedBoothCellPerm.orgName}
-                    id={selectedBoothCellPerm.boothId}
+                    id={selectedBoothCellPerm.boothId?.toString()}
                     sections={selectedBoothCellPerm.sections}
                     category={selectedBoothCellPerm.category}
                     area={selectedBoothZone.name}
@@ -948,7 +953,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
               <BoothDetailContent
                 dark={dark}
                 type={selectedMarker.type}
-                id={selectedMarker.id}
+                id={String(selectedMarker.id)}
                 sections={selectedMarker.sections}
                 name={selectedMarker.name}
                 category={selectedMarker.category}
@@ -997,7 +1002,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                 <BoothDetailContent
                   dark={dark}
                   type={selectedMarker.type}
-                  id={selectedMarker.id}
+                  id={String(selectedMarker.id)}
                   sections={selectedMarker.sections}
                   name={selectedMarker.name}
                   category={selectedMarker.category}
@@ -1017,7 +1022,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                     ).find((z) => z.id === selectedMarker.zoneId)?.color
                   }
                   menus={
-                    selectedMarker.type === 'night'
+                    (selectedMarker.type === 'night'
                       ? NIGHT_BOOTH_MENUS.filter(
                           (m) => m.boothId === selectedMarker.id
                         )
@@ -1027,7 +1032,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
                           )
                         : DAY_BOOTH_MENUS.filter(
                             (m) => m.boothId === selectedMarker.id
-                          )
+                          )) as unknown as MenuResponseDto[]
                   }
                 />
               </div>
