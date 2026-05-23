@@ -1,4 +1,4 @@
-import { apiClient } from '../../../lib/apiClient'
+import { apiClient } from '../../../lib/axios'
 import { ENDPOINTS } from '../../../constants/endpoints'
 import type { GetBoothResponseDto } from '../types/GetBoothResponseDto'
 

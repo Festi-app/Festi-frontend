@@ -360,7 +360,7 @@ function MapRoute() {
 function BoothRoute() {
   const { dark } = useUI()
   const [searchParams] = useSearchParams()
-  const id = getIdParam(searchParams)
+  const id = searchParams.get('id') ?? undefined
   const type = searchParams.get('type') ?? 'night'
 
   return (

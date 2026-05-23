@@ -17,18 +17,18 @@ import { useUI } from '../../stores/useUIStore'
 import { formatPhone, formatSections } from '../../lib/format'
 import { boothUrl } from '../../constants/routes'
 
-function resolveBooth(s: { boothId: number; boothType: BoothType }) {
+function resolveBooth(s: { boothId: string; boothType: BoothType }) {
   const { boothId, boothType } = s
   if (boothType === 'night') {
-    const booth = NIGHT_BOOTHS.find((b) => b.id === boothId)
+    const booth = NIGHT_BOOTHS.find((b) => String(b.id) === boothId)
     if (booth) return { booth, category: '야간', type: 'night' as const }
   }
   if (boothType === 'day') {
-    const booth = DAY_BOOTHS.find((b) => b.id === boothId)
+    const booth = DAY_BOOTHS.find((b) => String(b.id) === boothId)
     if (booth) return { booth, category: '주간', type: 'day' as const }
   }
   if (boothType === 'truck') {
-    const booth = TRUCK_BOOTHS.find((b) => b.id === boothId)
+    const booth = TRUCK_BOOTHS.find((b) => String(b.id) === boothId)
     if (booth) return { booth, category: '푸드트럭', type: 'truck' as const }
   }
   return null
@@ -84,7 +84,7 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
 
   function handleToggleSave(
     boothType: 'night' | 'day' | 'truck',
-    boothId: number
+    boothId: string
   ) {
     const nowSaved = !isSaved(boothType, boothId)
     toggleSave(boothType, boothId)
@@ -232,7 +232,7 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleToggleSave(type, booth.id)
+                          handleToggleSave(type, String(booth.id))
                         }}
                         className="size-4.5 shrink-0 text-alert"
                       >
