@@ -22,6 +22,7 @@ export const ENDPOINTS = {
   },
   LOCATIONS: {
     LIST: '/api/locations',
+    DETAIL: (locationId: string) => `/api/locations/${locationId}`,
   },
   WAITINGS: {
     LIST: '/api/waitings',
