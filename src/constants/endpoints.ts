@@ -11,8 +11,12 @@ export const ENDPOINTS = {
   },
   FESTIVAL: {
     ROOT: '/api/festival',
-    TIMELINES: '/api/festival/timelines',
+    DAYS: '/api/festival/days',
+    DAY_DETAIL: (festivalDayId: string) => `/api/festival/days/${festivalDayId}`,
     NOTICES: '/api/festival/notices',
+    NOTICE_DETAIL: (noticeId: string) => `/api/festival/notices/${noticeId}`,
+    TIMELINES: '/api/festival/timelines',
+    TIMELINE_DETAIL: (timelineId: string) => `/api/festival/timelines/${timelineId}`,
   },
   BOOTHS: {
     LIST: '/api/booths',
