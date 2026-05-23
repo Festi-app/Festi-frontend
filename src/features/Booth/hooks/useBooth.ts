@@ -1,9 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getBooth } from '../apis/getBooth'
 import { boothKeys } from './useBooths'
-import type { UUID } from '../types/booth'
-
-export function useBooth(boothId: UUID) {
+export function useBooth(boothId: string) {
   return useQuery({
     queryKey: boothKeys.detail(boothId),
     queryFn: () => getBooth(boothId),

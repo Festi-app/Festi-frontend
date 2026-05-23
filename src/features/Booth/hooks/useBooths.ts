@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getBooths } from '../apis/getBooths'
-import type { GetBoothsRequestDto } from '../types/booth'
+import type { GetBoothsRequestDto } from '../types/GetBoothsRequestDto'
 
 export const boothKeys = {
   all: ['booths'] as const,

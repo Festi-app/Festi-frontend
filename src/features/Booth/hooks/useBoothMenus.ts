@@ -1,9 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getBoothMenus } from '../apis/getBoothMenus'
 import { boothKeys } from './useBooths'
-import type { UUID } from '../types/booth'
-
-export function useBoothMenus(boothId: UUID) {
+export function useBoothMenus(boothId: string) {
   return useQuery({
     queryKey: boothKeys.menus(boothId),
     queryFn: () => getBoothMenus(boothId),
