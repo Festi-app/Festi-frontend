@@ -5,7 +5,7 @@
 export type BoothType = 'day' | 'night' | 'truck' | 'special'
 
 /** booths.category */
-export type BoothCategory = '정보' | '체험' | '마켓' | '활동' | '주점' | '야식'
+export type BoothCategory = '정보' | '체험' | '마켓' | '활동'
 
 /** waitings.status */
 export type WaitingStatus = 'WAITING' | 'CALLED' | 'SEATED' | 'CANCELLED'
@@ -174,7 +174,6 @@ export const NIGHT_BOOTHS: Booth[] = [
     id: 16,
     name: '컴공과 칵테일 바',
     type: 'night',
-    category: '주점',
     tone: 'rose',
     wait: 7,
     operatingHours: '17:00 ~ 22:00',
@@ -187,7 +186,6 @@ export const NIGHT_BOOTHS: Booth[] = [
     id: 22,
     name: '의약학부 주점',
     type: 'night',
-    category: '주점',
     tone: 'mint',
     wait: 5,
     operatingHours: '17:00 ~ 22:00',
@@ -200,7 +198,6 @@ export const NIGHT_BOOTHS: Booth[] = [
     id: 38,
     name: '체대 곱창집',
     type: 'night',
-    category: '야식',
     tone: 'leaf',
     wait: 2,
     operatingHours: '18:00 ~ 23:00',
@@ -213,7 +210,6 @@ export const NIGHT_BOOTHS: Booth[] = [
     id: 44,
     name: '경영 포차',
     type: 'night',
-    category: '주점',
     tone: 'sun',
     wait: 0,
     operatingHours: '17:00 ~ 22:00',
@@ -226,7 +222,6 @@ export const NIGHT_BOOTHS: Booth[] = [
     id: 73,
     name: '국문과 술집',
     type: 'night',
-    category: '주점',
     tone: 'coral',
     wait: 4,
     operatingHours: '17:00 ~ 22:00',
@@ -239,7 +234,6 @@ export const NIGHT_BOOTHS: Booth[] = [
     id: 47,
     name: '미디어부 라멘바',
     type: 'night',
-    category: '야식',
     tone: 'grape',
     wait: 5,
     operatingHours: '18:00 ~ 23:00',
@@ -251,7 +245,6 @@ export const NIGHT_BOOTHS: Booth[] = [
     id: 53,
     name: '아랍어과 비빔밥',
     type: 'night',
-    category: '야식',
     tone: 'sun',
     wait: 2,
     operatingHours: '17:00 ~ 22:00',
@@ -377,16 +370,12 @@ const CATEGORY_COLOR: Record<string, string> = {
   체험: '#9B72E8',
   마켓: '#F5A623',
   활동: '#00D49C',
-  주점: '#FF6B6B',
-  야식: '#FFB347',
 }
 
 function toCategory(cat?: string): BoothCategory {
   if (cat === '마켓') return '마켓'
   if (cat === '체험') return '체험'
   if (cat === '정보') return '정보'
-  if (cat === '주점') return '주점'
-  if (cat === '야식') return '야식'
   return '활동'
 }
 
