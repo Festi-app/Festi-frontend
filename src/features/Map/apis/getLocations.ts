@@ -1,8 +1,14 @@
 import { apiClient } from '../../../lib/axios'
 import { ENDPOINTS } from '../../../constants/endpoints'
-import type { Location, GetLocationsParams } from '../types/location'
+import type { GetLocationsRequestDto } from '../types/GetLocationsRequestDto'
+import type { GetLocationsResponseDto } from '../types/LocationsResponseDto'
 
-export async function getLocations(params?: GetLocationsParams): Promise<Location[]> {
-  const { data } = await apiClient.get<Location[]>(ENDPOINTS.LOCATIONS.LIST, { params })
+export async function getLocations(
+  params: GetLocationsRequestDto
+): Promise<GetLocationsResponseDto[]> {
+  const { data } = await apiClient.get<GetLocationsResponseDto[]>(
+    ENDPOINTS.LOCATIONS.LIST,
+    { params }
+  )
   return data
 }
