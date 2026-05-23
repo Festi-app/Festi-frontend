@@ -1,13 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   TRUCK_BOOTHS,
   DAY_BOOTHS,
   NIGHT_BOOTHS,
-  NIGHT_BOOTH_MENUS,
-  DAY_BOOTH_MENUS,
-  TRUCK_BOOTH_MENUS,
 } from '../../../data/booths'
+import { useMenus } from '../../../features/Menu/hooks/useMenus'
 import { getBoothZoneName, ALL_ZONES } from '../../../data/zones'
 import { TRUCK_ZONES } from '../../../stores/useTruckPlacementStore'
 import { I } from '../../../tokens'
@@ -27,7 +25,7 @@ export function UserBoothDetail({
 }: {
   dark?: boolean
   type?: string
-  id?: number
+  id?: string
 }) {
   const navigate = useNavigate()
   const isNight = type === 'night'
@@ -43,40 +41,33 @@ export function UserBoothDetail({
       ? ('truck' as const)
       : ('day' as const)
 
+  const numericId = id ? Number(id) : undefined
   const fallbackId = isNight ? 16 : isTruck ? 1 : 6
-  const resolvedId = id ?? fallbackId
-  const favorite = isSaved(boothType, resolvedId)
+  const resolvedNumericId = numericId ?? fallbackId
+  const favorite = isSaved(boothType, resolvedNumericId)
   const alreadyWaiting =
-    isNight && waitings.some((w) => w.boothId === resolvedId)
+    isNight && waitings.some((w) => w.boothId === resolvedNumericId)
 
   function toggleFavorite() {
-    toggleSave(boothType, resolvedId)
+    toggleSave(boothType, resolvedNumericId)
     setToast(favorite ? 'unsaved' : 'saved')
     setTimeout(() => setToast(null), 2000)
   }
   const rawBooth = isNight
-    ? NIGHT_BOOTHS.find((b) => b.id === resolvedId)
+    ? NIGHT_BOOTHS.find((b) => b.id === resolvedNumericId)
     : isTruck
-      ? TRUCK_BOOTHS.find((t) => t.id === resolvedId)
-      : DAY_BOOTHS.find((b) => b.id === resolvedId)
+      ? TRUCK_BOOTHS.find((t) => t.id === resolvedNumericId)
+      : DAY_BOOTHS.find((b) => b.id === resolvedNumericId)
   const boothData = {
     ...(rawBooth ??
       (isNight ? NIGHT_BOOTHS[0] : isTruck ? TRUCK_BOOTHS[0] : DAY_BOOTHS[0])),
-    label: isTruck ? 'cover · food truck' : `cover · booth #${resolvedId}`,
+    label: isTruck ? 'cover · food truck' : `cover · booth #${id}`,
   }
   const zoneColor = isTruck
     ? TRUCK_ZONES.find((z) => z.id === boothData.zoneId)?.color
     : ALL_ZONES.find((z) => z.id === boothData.zoneId)?.color
 
-  const menus = useMemo(
-    () =>
-      isNight
-        ? NIGHT_BOOTH_MENUS.filter((m) => m.boothId === resolvedId)
-        : isTruck
-          ? TRUCK_BOOTH_MENUS.filter((m) => m.boothId === resolvedId)
-          : DAY_BOOTH_MENUS.filter((m) => m.boothId === resolvedId),
-    [isNight, isTruck, resolvedId]
-  )
+  const { data: menus = [] } = useMenus(id ?? '')
 
   const heroHeight = isTruck ? 'h-72' : 'h-80'
   const bodyHeight = isTruck
@@ -185,7 +176,7 @@ export function UserBoothDetail({
           </>
         }
         confirmLabel="취소하기"
-        onConfirm={() => handleCancel(resolvedId)}
+        onConfirm={() => handleCancel(resolvedNumericId)}
         onClose={() => setConfirmCancel(false)}
       />
 

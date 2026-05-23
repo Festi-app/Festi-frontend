@@ -1,8 +1,8 @@
 import { apiClient } from '../../../lib/axios'
 import { ENDPOINTS } from '../../../constants/endpoints'
-import type { MenuItem } from '../types/menu'
+import type { MenusResponseDto } from '../types/MenusResponseDto'
 
-export async function getMenus(boothId: string): Promise<MenuItem[]> {
-  const { data } = await apiClient.get<MenuItem[]>(ENDPOINTS.BOOTHS.MENUS(boothId))
+export async function getMenus(boothId: string): Promise<MenusResponseDto[]> {
+  const { data } = await apiClient.get<MenusResponseDto[]>(ENDPOINTS.BOOTHS.MENUS(boothId))
   return data
 }

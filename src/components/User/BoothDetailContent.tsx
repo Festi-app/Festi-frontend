@@ -1,4 +1,10 @@
-import type { MenuItem } from '../../data/booths'
+type MenuItem = {
+  name: string
+  description?: string | null
+  price?: number
+  isSoldOut?: boolean
+  tone?: string
+}
 import { FESTIV_TOKENS, Pill } from '../../tokens'
 import { MenuItemCard } from './MenuItemCard'
 import { SubHeader } from './ScreenHeader'
