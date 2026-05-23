@@ -1,4 +1,4 @@
-import type { MenuItem } from '../../data/booths'
+import type { MenuResponseDto } from '../../features/Booth/types/MenuResponseDto'
 import { FESTIV_TOKENS, Pill } from '../../tokens'
 import { MenuItemCard } from './MenuItemCard'
 import { SubHeader } from './ScreenHeader'
@@ -22,7 +22,7 @@ export function BoothDetailContent({
   dark?: boolean
   name: string
   category?: string
-  id?: number
+  id?: string
   sections?: number[]
   type: string
   catPill?: { color: string; ink: string }
@@ -30,7 +30,7 @@ export function BoothDetailContent({
   days?: string[]
   description?: string
   area?: string
-  menus?: MenuItem[]
+  menus?: MenuResponseDto[]
   circleColor?: string
 }) {
   const surfaceAlt = dark ? '#252A30' : '#F1F7F8'
@@ -134,13 +134,13 @@ export function BoothDetailContent({
         <>
           <SubHeader title="메뉴" right={`총 ${resolvedMenus.length}종`} />
           <div className="flex flex-col gap-2.5">
-            {resolvedMenus.map((m, i) => (
+            {resolvedMenus.map((m) => (
               <MenuItemCard
-                key={i}
+                key={m.id}
                 name={m.name}
                 description={m.description ?? ''}
-                price={m.price ?? 0}
-                tone={m.tone ?? 'leaf'}
+                price={m.price}
+                tone="leaf"
                 isSoldOut={m.isSoldOut}
                 showImage
               />
