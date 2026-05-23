@@ -1,10 +1,14 @@
-import { apiClient } from '../../../lib/apiClient'
+import { apiClient } from '../../../lib/axios'
 import { ENDPOINTS } from '../../../constants/endpoints'
-import type { PostFestivalTimelineRequestDto, PostFestivalTimelineResponseDto } from '../types/festival'
+import type { FestivalTimelineRequestDto } from '../types/FestivalTimelineRequestDto'
+import type { TimelineResponseDto } from '../types/TimelineResponseDto'
 
 export async function postFestivalTimeline(
-  body: PostFestivalTimelineRequestDto
-): Promise<PostFestivalTimelineResponseDto> {
-  const { data } = await apiClient.post<PostFestivalTimelineResponseDto>(ENDPOINTS.FESTIVAL.TIMELINES, body)
+  body: FestivalTimelineRequestDto
+): Promise<TimelineResponseDto> {
+  const { data } = await apiClient.post<TimelineResponseDto>(
+    ENDPOINTS.FESTIVAL.TIMELINES,
+    body
+  )
   return data
 }

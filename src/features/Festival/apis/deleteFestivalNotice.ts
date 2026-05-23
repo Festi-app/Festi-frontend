@@ -1,7 +1,5 @@
-import { apiClient } from '../../../lib/apiClient'
+import { apiClient } from '../../../lib/axios'
 import { ENDPOINTS } from '../../../constants/endpoints'
-import type { UUID } from '../types/festival'
-
-export async function deleteFestivalNotice(noticeId: UUID): Promise<void> {
+export async function deleteFestivalNotice(noticeId: string): Promise<void> {
   await apiClient.delete(ENDPOINTS.FESTIVAL.NOTICE_DETAIL(noticeId))
 }

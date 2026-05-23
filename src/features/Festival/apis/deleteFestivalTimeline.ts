@@ -1,7 +1,7 @@
-import { apiClient } from '../../../lib/apiClient'
+import { apiClient } from '../../../lib/axios'
 import { ENDPOINTS } from '../../../constants/endpoints'
-import type { UUID } from '../types/festival'
-
-export async function deleteFestivalTimeline(timelineId: UUID): Promise<void> {
+export async function deleteFestivalTimeline(
+  timelineId: string
+): Promise<void> {
   await apiClient.delete(ENDPOINTS.FESTIVAL.TIMELINE_DETAIL(timelineId))
 }

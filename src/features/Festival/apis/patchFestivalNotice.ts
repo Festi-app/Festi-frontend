@@ -1,12 +1,13 @@
-import { apiClient } from '../../../lib/apiClient'
+import { apiClient } from '../../../lib/axios'
 import { ENDPOINTS } from '../../../constants/endpoints'
-import type { PatchFestivalNoticeRequestDto, PatchFestivalNoticeResponseDto, UUID } from '../types/festival'
+import type { FestivalNoticeRequestDto } from '../types/FestivalNoticeRequestDto'
+import type { NoticeResponseDto } from '../types/NoticeResponseDto'
 
 export async function patchFestivalNotice(
-  noticeId: UUID,
-  body: PatchFestivalNoticeRequestDto
-): Promise<PatchFestivalNoticeResponseDto> {
-  const { data } = await apiClient.patch<PatchFestivalNoticeResponseDto>(
+  noticeId: string,
+  body: FestivalNoticeRequestDto
+): Promise<NoticeResponseDto> {
+  const { data } = await apiClient.patch<NoticeResponseDto>(
     ENDPOINTS.FESTIVAL.NOTICE_DETAIL(noticeId),
     body
   )

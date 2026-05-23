@@ -1,10 +1,14 @@
-import { apiClient } from '../../../lib/apiClient'
+import { apiClient } from '../../../lib/axios'
 import { ENDPOINTS } from '../../../constants/endpoints'
-import type { PostFestivalNoticeRequestDto, PostFestivalNoticeResponseDto } from '../types/festival'
+import type { FestivalNoticeRequestDto } from '../types/FestivalNoticeRequestDto'
+import type { NoticeResponseDto } from '../types/NoticeResponseDto'
 
 export async function postFestivalNotice(
-  body: PostFestivalNoticeRequestDto
-): Promise<PostFestivalNoticeResponseDto> {
-  const { data } = await apiClient.post<PostFestivalNoticeResponseDto>(ENDPOINTS.FESTIVAL.NOTICES, body)
+  body: FestivalNoticeRequestDto
+): Promise<NoticeResponseDto> {
+  const { data } = await apiClient.post<NoticeResponseDto>(
+    ENDPOINTS.FESTIVAL.NOTICES,
+    body
+  )
   return data
 }
