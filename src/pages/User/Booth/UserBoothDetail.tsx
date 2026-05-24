@@ -5,7 +5,7 @@ import { PhotoHero } from '../../../components/User/PhotoHero'
 import { Toast } from '../../../components/shared/Toast'
 import { CancelToast } from '../../../components/User/CancelToast'
 import { useToggleFavorite } from '../../../features/Favorite/hooks/useToggleFavorite'
-import { useWaitingStore } from '../../../stores/useWaitingStore'
+import { useMyWaitings } from '../../../features/Waiting/hooks/useMyWaitings'
 import { ConfirmModal } from '../../../components/User/ConfirmModal'
 import { useWaitingCancel } from '../../../hooks/useWaitingCancel'
 import { BoothDetailContent } from '../../../components/User/BoothDetailContent'
@@ -47,7 +47,7 @@ export function UserBoothDetail({
   const isNight = type === 'night'
   const isTruck = type === 'truck'
   const { isSaved, toggle } = useToggleFavorite()
-  const { waitings } = useWaitingStore()
+  const { data: waitings = [] } = useMyWaitings()
   const [toast, setToast] = useState<'saved' | 'unsaved' | null>(null)
   const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
     useWaitingCancel()
@@ -68,8 +68,14 @@ export function UserBoothDetail({
   const zoneLabel = locationEntry?.zoneLabel ?? undefined
 
   const favorite = id ? isSaved(id) : false
-  const alreadyWaiting =
-    isNight && waitings.some((w) => w.boothId === Number(id))
+  const activeWaiting = isNight
+    ? (waitings.find(
+        (w) =>
+          w.boothSummary?.id === id &&
+          (w.status === 'WAITING' || w.status === 'CALLED')
+      ) ?? null)
+    : null
+  const alreadyWaiting = activeWaiting !== null
 
   function toggleFavorite() {
     if (!id) return
@@ -188,7 +194,7 @@ export function UserBoothDetail({
           </>
         }
         confirmLabel="취소하기"
-        onConfirm={() => handleCancel(Number(id) || 0)}
+        onConfirm={() => activeWaiting && handleCancel(activeWaiting.id)}
         onClose={() => setConfirmCancel(false)}
       />
 

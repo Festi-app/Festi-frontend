@@ -10,8 +10,8 @@ export function WaitingTicketCard({
   registered,
   waitNo,
   callNo,
-  progressPct,
-  aheadTeams,
+  progressPct = 0,
+  aheadTeams = 0,
   onCancel,
   onClick,
 }: {
@@ -21,10 +21,10 @@ export function WaitingTicketCard({
   boothArea?: string
   boothSections?: number[]
   registered: string
-  waitNo: number
-  callNo: number
-  progressPct: number
-  aheadTeams: number
+  waitNo?: number | null
+  callNo?: number | null
+  progressPct?: number
+  aheadTeams?: number
   onCancel: () => void
   onClick?: () => void
 }) {
@@ -71,7 +71,7 @@ export function WaitingTicketCard({
             ink={FESTIV_TOKENS.mint}
             style={{ fontSize: 11 }}
           >
-            {aheadTeams <= 3 && (
+            {aheadTeams <= 3 && aheadTeams > 0 && (
               <span className="mr-1 inline-block size-1.5 animate-[festi-blink_1.6s_ease-in-out_infinite] rounded-full bg-mint" />
             )}
             대기번호
@@ -80,14 +80,14 @@ export function WaitingTicketCard({
 
         <div className="mt-4 flex items-baseline gap-3">
           <div className="font-festi text-[96px] leading-none font-extrabold tracking-[-4px] text-mint">
-            {waitNo}
+            {waitNo ?? '--'}
           </div>
           <div>
             <div className="text-[13px] font-semibold opacity-70">
               현재 호출
             </div>
             <div className="mt-0.5 text-[34px] leading-none font-extrabold tracking-[-1px]">
-              {callNo}
+              {callNo ?? '--'}
             </div>
           </div>
         </div>
@@ -102,7 +102,14 @@ export function WaitingTicketCard({
           </div>
           <div className="mt-2.5 flex justify-between text-xs font-semibold">
             <span className="opacity-70">
-              앞에 <strong className="text-white">{aheadTeams}팀</strong> 남음
+              {aheadTeams > 0 ? (
+                <>
+                  앞에 <strong className="text-white">{aheadTeams}팀</strong>{' '}
+                  남음
+                </>
+              ) : (
+                <span>대기 중</span>
+              )}
             </span>
           </div>
         </div>

@@ -1,3 +1,3 @@
 export interface PatchBoothWaitingsStatusRequestDto {
-  isOpen: boolean
+  open: boolean
 }

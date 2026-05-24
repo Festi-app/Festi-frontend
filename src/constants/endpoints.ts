@@ -67,4 +67,9 @@ export const ENDPOINTS = {
     ROOT: '/api/favorites',
     REMOVE: (favoriteId: string) => `/api/favorites/${favoriteId}`,
   },
+  PUSH_SUBSCRIPTIONS: {
+    ROOT: '/api/push-subscriptions',
+    DETAIL: (subscriptionId: string) =>
+      `/api/push-subscriptions/${subscriptionId}`,
+  },
 } as const

@@ -38,8 +38,8 @@ export const boothUrl = (type: BoothTypeParam, id?: string | number) =>
 export const boothListUrl = (type: BoothTypeParam) =>
   `${ROUTES.BOOTHS}?type=${type}`
 
-export const waitingDetailUrl = (id: number) =>
+export const waitingDetailUrl = (id: string | number) =>
   `${ROUTES.WAITING_DETAIL}?id=${id}`
 
-export const waitingRegisterUrl = (id: number) =>
+export const waitingRegisterUrl = (id: string | number) =>
   `${ROUTES.WAITING_REGISTER}?id=${id}`

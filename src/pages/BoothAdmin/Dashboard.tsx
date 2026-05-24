@@ -6,9 +6,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useMyBoothApplication } from '../../features/BoothApplication/hooks/useMyBoothApplication'
 import { boothApplicationKeys } from '../../features/BoothApplication/hooks/boothApplicationKeys'
 import { useUpdateBooth } from '../../features/Booth/hooks/useUpdateBooth'
+import { useBooth } from '../../features/Booth/hooks/useBooth'
 import { useBoothWaitings } from '../../features/Waiting/hooks/useBoothWaitings'
 import { useCallWaiting } from '../../features/Waiting/hooks/useCallWaiting'
 import { useUpdateWaitingStatus } from '../../features/Waiting/hooks/useUpdateWaitingStatus'
+import { useToggleBoothWaiting } from '../../features/Waiting/hooks/useToggleBoothWaiting'
 import type { BoothApplicationResponseDto } from '../../features/BoothApplication/types/BoothApplicationResponseDto'
 import type { WaitingResponseDto } from '../../features/Waiting/types/WaitingResponseDto'
 
@@ -245,9 +247,14 @@ function WaitingTab({
   boothId: string
   boothName: string
 }) {
+  const { data: booth } = useBooth(boothId)
   const { data: waitingList = [] } = useBoothWaitings(boothId)
   const { mutate: callWaiting } = useCallWaiting(boothId)
   const { mutate: updateStatus } = useUpdateWaitingStatus(boothId)
+  const { mutate: toggleOpen, isPending: isToggling } =
+    useToggleBoothWaiting(boothId)
+
+  const isWaitingOpen = booth?.isWaitingOpen ?? false
 
   const notifiedRef = useRef<Set<string>>(new Set())
   const [toast, setToast] = useState<string | null>(null)
@@ -305,11 +312,24 @@ function WaitingTab({
         </div>
       )}
 
-      <div className="mb-6">
-        <div className="text-[18px] font-extrabold text-ink">웨이팅 관리</div>
-        <div className="text-[12px] text-ink-60">
-          {boothName} · 3팀·1팀 전 자동 알림
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <div className="text-[18px] font-extrabold text-ink">웨이팅 관리</div>
+          <div className="text-[12px] text-ink-60">
+            {boothName} · 3팀·1팀 전 자동 알림
+          </div>
         </div>
+        <button
+          type="button"
+          disabled={isToggling}
+          onClick={() => toggleOpen({ open: !isWaitingOpen })}
+          className={cn(
+            'rounded-xl px-3.5 py-2 text-[12px] font-extrabold transition-colors disabled:opacity-50',
+            isWaitingOpen ? 'bg-cta/10 text-cta' : 'bg-surface-alt text-ink-60'
+          )}
+        >
+          {isWaitingOpen ? '웨이팅 오픈 중' : '웨이팅 마감'}
+        </button>
       </div>
 
       <div className="mb-5 grid grid-cols-4 gap-2.5">
