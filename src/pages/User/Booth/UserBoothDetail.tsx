@@ -4,7 +4,7 @@ import { I } from '../../../tokens'
 import { PhotoHero } from '../../../components/User/PhotoHero'
 import { Toast } from '../../../components/shared/Toast'
 import { CancelToast } from '../../../components/User/CancelToast'
-import { useFavoritesStore } from '../../../stores/useFavoritesStore'
+import { useToggleFavorite } from '../../../features/Favorite/hooks/useToggleFavorite'
 import { useWaitingStore } from '../../../stores/useWaitingStore'
 import { ConfirmModal } from '../../../components/User/ConfirmModal'
 import { useWaitingCancel } from '../../../hooks/useWaitingCancel'
@@ -33,28 +33,22 @@ export function UserBoothDetail({
   const navigate = useNavigate()
   const isNight = type === 'night'
   const isTruck = type === 'truck'
-  const { isSaved, toggleSave } = useFavoritesStore()
+  const { isSaved, toggle } = useToggleFavorite()
   const { waitings } = useWaitingStore()
   const [toast, setToast] = useState<'saved' | 'unsaved' | null>(null)
   const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
     useWaitingCancel()
 
-  const boothType = isNight
-    ? ('night' as const)
-    : isTruck
-      ? ('truck' as const)
-      : ('day' as const)
-
   const { data: booth, isLoading } = useBooth(id ?? '')
   const { data: menus = [] } = useBoothMenus(id ?? '')
 
-  const favorite = id ? isSaved(boothType, id) : false
+  const favorite = id ? isSaved(id) : false
   const alreadyWaiting =
     isNight && waitings.some((w) => w.boothId === Number(id))
 
   function toggleFavorite() {
     if (!id) return
-    toggleSave(boothType, id)
+    toggle(id)
     setToast(favorite ? 'unsaved' : 'saved')
     setTimeout(() => setToast(null), 2000)
   }
