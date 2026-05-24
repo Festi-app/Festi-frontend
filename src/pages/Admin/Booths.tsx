@@ -15,7 +15,6 @@ import { cn } from '../../lib/cn'
 import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import soongsilNightMap from '../../assets/soongsil-night-map.png'
 import soongsilTruckMap from '../../assets/soongsil-truck-map.png'
-import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
 import {
   TRUCK_ZONES,
   useTruckPlacementStore,
@@ -29,82 +28,21 @@ import {
   type BoothMapMode,
 } from '../../stores/useBoothSectionStore'
 import { BoothPermissionModal } from '../../components/Admin/Booth/BoothPermissionModal'
+import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
+import { useBoothApplications } from '../../features/BoothApplication/hooks/useBoothApplications'
+import { useLocations } from '../../features/Map/hooks/useLocations'
+import { useAssignBooth } from '../../features/Map/hooks/useAssignBooth'
+import { useCreateLocationSlots } from '../../features/Map/hooks/useCreateLocationSlots'
+import type { BoothType } from '../../types/common'
 
-// ── Org constants ─────────────────────────────────────────────────────────────
-
-const ORG_LIST: OrgAccount[] = [
-  {
-    id: 'org1',
-    name: '컴퓨터학부',
-    type: '동아리',
-    color: FESTIV_TOKENS.coral,
-    applications: [
-      { day: 1, time: '주간' },
-      { day: 2, time: '야간' },
-    ],
-  },
-  {
-    id: 'org2',
-    name: '경영대학생회',
-    type: '학생회',
-    color: FESTIV_TOKENS.mint,
-    applications: [
-      { day: 1, time: '주간' },
-      { day: 1, time: '야간' },
-      { day: 3, time: '주간' },
-    ],
-  },
-  {
-    id: 'org3',
-    name: '사범대학생회',
-    type: '학생회',
-    color: FESTIV_TOKENS.sun,
-    applications: [
-      { day: 2, time: '주간' },
-      { day: 3, time: '야간' },
-    ],
-  },
-  {
-    id: 'org4',
-    name: '의약학부',
-    type: '동아리',
-    color: FESTIV_TOKENS.grape,
-    applications: [
-      { day: 1, time: '야간' },
-      { day: 2, time: '주간' },
-    ],
-  },
-  {
-    id: 'org5',
-    name: '법과대학생회',
-    type: '학생회',
-    color: FESTIV_TOKENS.rose,
-    applications: [
-      { day: 2, time: '주간' },
-      { day: 2, time: '야간' },
-      { day: 3, time: '주간' },
-    ],
-  },
-  {
-    id: 'org6',
-    name: '글로벌통상학과',
-    type: '동아리',
-    color: FESTIV_TOKENS.leaf,
-    applications: [
-      { day: 3, time: '주간' },
-      { day: 3, time: '야간' },
-    ],
-  },
-  {
-    id: 'org7',
-    name: '미디어학부',
-    type: '동아리',
-    color: FESTIV_TOKENS.pop,
-    applications: [
-      { day: 1, time: '주간' },
-      { day: 3, time: '야간' },
-    ],
-  },
+const ORG_COLORS = [
+  FESTIV_TOKENS.coral,
+  FESTIV_TOKENS.mint,
+  FESTIV_TOKENS.sun,
+  FESTIV_TOKENS.grape,
+  FESTIV_TOKENS.pop,
+  FESTIV_TOKENS.rose,
+  FESTIV_TOKENS.leaf,
 ]
 
 function selectionShadow(
@@ -131,26 +69,24 @@ function selectionShadow(
 // ── AdminBooths ───────────────────────────────────────────────────────────────
 
 export function AdminBooths() {
-  const storeAccounts = useBoothAdminStore((s) => s.accounts)
-  const setBoothLocation = useBoothAdminStore((s) => s.setBoothLocation)
+  const { data: festivalDays = [] } = useFestivalDays()
+  const { data: applications = [] } = useBoothApplications()
+  const createLocationSlots = useCreateLocationSlots()
+  const assignBooth = useAssignBooth()
 
-  const allOrgs: OrgAccount[] = [
-    ...ORG_LIST,
-    ...storeAccounts
-      .filter((a) => a.status !== 'rejected')
-      .map((a) => ({
-        id: a.id,
-        name: a.orgName,
-        type: (a.orgType === '동아리/소모임'
-          ? '동아리'
-          : '학생회') as OrgAccount['type'],
-        color: FESTIV_TOKENS.mint,
-        applications: ([1, 2, 3] as PermDay[]).flatMap((d) =>
-          a.operatingTimes.map((t) => ({ day: d, time: t as PermTime }))
-        ),
-        dayCategory: (a.dayCategory as BoothCategory) || undefined,
-      })),
-  ]
+  const allOrgs: OrgAccount[] = applications
+    .filter((a) => a.status === 'APPROVED')
+    .map((a, idx) => ({
+      id: a.boothId ?? a.id,
+      name: a.boothName,
+      type: '동아리' as const,
+      color: ORG_COLORS[idx % ORG_COLORS.length],
+      applications: ([1, 2, 3] as PermDay[]).flatMap((d) =>
+        a.boothType === 'FOOD_TRUCK'
+          ? []
+          : [{ day: d, time: (a.boothType === 'NIGHT' ? '야간' : '주간') as PermTime }]
+      ),
+    }))
 
   const [searchParams] = useSearchParams()
   const [step, setStep] = useState<'configure' | 'assign'>(
@@ -182,6 +118,17 @@ export function AdminBooths() {
   } | null>(null)
   const [selectedDay, setSelectedDay] = useState<PermDay>(1)
   const selectedTime: PermTime = mapMode === '야간' ? '야간' : '주간'
+
+  const modeToType: Record<BoothMapMode, BoothType> = {
+    '주간': 'DAY',
+    '야간': 'NIGHT',
+    '푸드트럭': 'FOOD_TRUCK',
+  }
+  const currentFestivalDay = festivalDays[selectedDay - 1]
+  const { data: locations = [] } = useLocations({
+    day: currentFestivalDay?.day ?? '',
+    type: modeToType[mapMode],
+  })
   const [truckDay, setTruckDay] = useState(1)
   const [truckTime, setTruckTime] = useState<TruckTime>('야간')
   const [selectedTruckZone, setSelectedTruckZone] = useState<string | null>(
@@ -191,8 +138,31 @@ export function AdminBooths() {
     null
   )
   const [notice, setNotice] = useState('구역별 섹션 개수를 설정하고 저장하세요')
+  const [draftDivisions, setDraftDivisions] = useState<Record<string, number>>({})
+  const [draftTruckSlots, setDraftTruckSlots] = useState<Record<string, number>>({})
 
   function handleConfigureSave() {
+    const { zoneDivisions } = useBoothSectionStore.getState()
+    const { slotCounts: truckCounts } = useTruckPlacementStore.getState()
+
+    festivalDays.forEach((fd) => {
+      createLocationSlots.mutate({
+        festivalDayId: fd.id,
+        type: 'DAY',
+        zones: ZONES.map((z) => ({ zoneLabel: z.id, count: zoneDivisions[z.id] ?? z.defaultCount })),
+      })
+      createLocationSlots.mutate({
+        festivalDayId: fd.id,
+        type: 'NIGHT',
+        zones: NIGHT_ZONES.map((z) => ({ zoneLabel: z.id, count: zoneDivisions[z.id] ?? z.defaultCount })),
+      })
+      createLocationSlots.mutate({
+        festivalDayId: fd.id,
+        type: 'FOOD_TRUCK',
+        zones: TRUCK_ZONES.map((z) => ({ zoneLabel: z.id, count: truckCounts[z.id] ?? z.slotCount })),
+      })
+    })
+
     markModeConfigured('주간')
     markModeConfigured('야간')
     markModeConfigured('푸드트럭')
@@ -249,12 +219,7 @@ export function AdminBooths() {
   function handlePermissionAssign(orgId: string, category: BoothCategory) {
     if (!assignModal) return
     const org = allOrgs.find((o) => o.id === orgId)!
-    const zone = [...ZONES, ...NIGHT_ZONES].find(
-      (z) => z.id === assignModal.zoneId
-    )
-    const zoneLabel = zone
-      ? `${zone.id} (${assignModal.sections.map((s) => s + 1).join(', ')}번)`
-      : assignModal.zoneId
+
     addPermission({
       id: String(Date.now()),
       zoneId: assignModal.zoneId,
@@ -266,9 +231,19 @@ export function AdminBooths() {
       day: selectedDay,
       time: selectedTime,
     })
-    if (storeAccounts.some((a) => a.id === orgId)) {
-      setBoothLocation(orgId, selectedTime as '주간' | '야간', zoneLabel)
-    }
+
+    assignModal.sections.forEach((sectionIdx) => {
+      const loc = locations.find(
+        (l) => l.zoneLabel === assignModal.zoneId && l.index === sectionIdx
+      )
+      if (loc) {
+        assignBooth.mutate({
+          locationId: String(loc.id),
+          body: { boothId: orgId },
+        })
+      }
+    })
+
     setAssignModal(null)
     setNotice(`${org.name}에 권한을 부여했어요`)
   }
@@ -305,7 +280,10 @@ export function AdminBooths() {
       <div className="flex min-h-0 flex-1">
         {/* ── Sidebar ── */}
         {step === 'configure' ? (
-          <BoothConfigureSidebar onSave={handleConfigureSave} />
+          <BoothConfigureSidebar
+          onSave={handleConfigureSave}
+          onDraftChange={(d, t) => { setDraftDivisions(d); setDraftTruckSlots(t) }}
+        />
         ) : (
           <BoothAssignSidebar
             orgs={allOrgs}
@@ -376,7 +354,9 @@ export function AdminBooths() {
                 draggable={false}
               />
               {TRUCK_ZONES.map((zone) => {
-                const count = truckSlotCounts[zone.id] ?? zone.slotCount
+                const count = step === 'configure'
+                ? (draftTruckSlots[zone.id] ?? truckSlotCounts[zone.id] ?? zone.slotCount)
+                : (truckSlotCounts[zone.id] ?? zone.slotCount)
                 const rotate = truckZoneRotations[zone.id] ?? zone.rotate
                 return (
                   <div
@@ -466,7 +446,9 @@ export function AdminBooths() {
 
               {/* ── Zone overlays ── */}
               {activeZones.map((zone) => {
-                const divisions = zoneDivisions[zone.id]
+                const divisions = step === 'configure'
+                  ? (draftDivisions[zone.id] ?? zoneDivisions[zone.id])
+                  : zoneDivisions[zone.id]
                 return (
                   <div
                     key={zone.id}

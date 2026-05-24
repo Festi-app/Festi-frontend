@@ -56,7 +56,7 @@ function ApplicationCard({
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-extrabold text-ink">
-              {app.name}
+              {app.boothName}
             </span>
             <span
               className={cn(
