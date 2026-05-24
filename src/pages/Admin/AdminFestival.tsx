@@ -397,7 +397,9 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                     <div className="text-[13px] font-bold text-ink">
                       {user.name}
                     </div>
-                    <div className="text-[11px] text-ink-60">{formatPhone(user.phone)}</div>
+                    <div className="text-[11px] text-ink-60">
+                      {formatPhone(user.phone)}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -425,7 +427,9 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                     <div className="text-[13px] font-bold text-ink">
                       {user.name}
                     </div>
-                    <div className="text-[11px] text-ink-60">{formatPhone(user.phone)}</div>
+                    <div className="text-[11px] text-ink-60">
+                      {formatPhone(user.phone)}
+                    </div>
                   </div>
                 </div>
               ))}

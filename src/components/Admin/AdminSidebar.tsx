@@ -16,8 +16,10 @@ export function AdminSidebar({ active }: { active: string }) {
   const { data: festival } = useFestival()
   const { data: festivalDays = [] } = useFestivalDays()
   const { data: me } = useMe()
-  const { data: booths = [] } = useBooths({ type: 'BOOTH' })
+  const { data: dayBooths = [] } = useBooths({ type: 'DAY' })
+  const { data: nightBooths = [] } = useBooths({ type: 'NIGHT' })
   const { data: trucks = [] } = useBooths({ type: 'FOOD_TRUCK' })
+  const boothCount = dayBooths.length + nightBooths.length + trucks.length
   const { dark, setDark } = useUI()
   const [now, setNow] = useState(new Date())
 
@@ -34,7 +36,9 @@ export function AdminSidebar({ active }: { active: string }) {
     const e = festival?.endDate
     if (!s || !e || todayStr < s || todayStr > e) return null
     const diff = Math.round(
-      (new Date(todayStr + 'T00:00:00').getTime() - new Date(s + 'T00:00:00').getTime()) / 86400000
+      (new Date(todayStr + 'T00:00:00').getTime() -
+        new Date(s + 'T00:00:00').getTime()) /
+        86400000
     )
     return `축제 진행 중 · ${diff + 1}일차`
   })()
@@ -90,7 +94,7 @@ export function AdminSidebar({ active }: { active: string }) {
       id: 'booths',
       label: '부스 배치',
       icon: I.map,
-      badge: booths.length || null,
+      badge: boothCount || null,
       to: ROUTES.ADMIN.BOOTHS,
     },
     {
@@ -287,7 +291,8 @@ export function AdminSidebar({ active }: { active: string }) {
         </div>
         <div className="mt-1.5 text-[13px] font-bold tracking-[-0.2px]">
           {festivalStatus === 'live'
-            ? [dayLabel, modeLabel].filter(Boolean).join(' · ') || (festival?.name ?? '')
+            ? [dayLabel, modeLabel].filter(Boolean).join(' · ') ||
+              (festival?.name ?? '')
             : festivalStatus === 'upcoming'
               ? `${festival?.startDate} 시작`
               : festivalStatus === 'ended'
@@ -295,7 +300,7 @@ export function AdminSidebar({ active }: { active: string }) {
                 : (festival?.name ?? '축제 준비 중')}
         </div>
         <div className="mt-0.5 text-[11px] opacity-60">
-          {festivalStatus === 'live' ? todayStr : festival?.name ?? ''}
+          {festivalStatus === 'live' ? todayStr : (festival?.name ?? '')}
         </div>
       </div>
 

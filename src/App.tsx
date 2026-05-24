@@ -27,7 +27,6 @@ import { UserMy } from './pages/User/My'
 import { BoothAdminLogin } from './pages/BoothAdmin/Login'
 import { BoothAdminRegister } from './pages/BoothAdmin/Register'
 import { BoothAdminDashboard } from './pages/BoothAdmin/Dashboard'
-import { useDayNightStore } from './stores/useDayNightStore'
 import { UserWaitingRegister } from './pages/User/UserWaitingRegister'
 
 import { UserOffSeason } from './pages/User/Auth/OffSeason'
@@ -98,12 +97,12 @@ function DarkSync(): null {
   return null
 }
 
-function AdminOnly({ children }: { children: ReactNode }) {
-  const { pathname } = useLocation()
-  if (!pathname.startsWith('/admin') && !pathname.startsWith('/booth-admin'))
-    return null
-  return <>{children}</>
-}
+// function AdminOnly({ children }: { children: ReactNode }) {
+//   const { pathname } = useLocation()
+//   if (!pathname.startsWith('/admin') && !pathname.startsWith('/booth-admin'))
+//     return null
+//   return <>{children}</>
+// }
 
 function FestivLogo({ large }: { large?: boolean }) {
   return (
