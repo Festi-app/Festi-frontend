@@ -42,7 +42,7 @@ function StatusScreen({
           {isPending ? '승인 대기 중' : '신청 반려됨'}
         </div>
         <div className="mb-1 text-[14px] text-ink-60">
-          <span className="font-bold text-ink">{application.name}</span>
+          <span className="font-bold text-ink">{application.boothName}</span>
           {isPending
             ? '의 부스 신청이 검토 중이에요'
             : '의 부스 신청이 반려됐어요'}
@@ -52,9 +52,9 @@ function StatusScreen({
             관리자 승인 후 부스 정보를 등록할 수 있어요
           </div>
         ) : (
-          application.rejectionReason && (
+          application.reviewMemo && (
             <div className="mb-8 rounded-xl bg-alert/10 px-4 py-3 text-[13px] text-alert">
-              사유: {application.rejectionReason}
+              사유: {application.reviewMemo}
             </div>
           )
         )}
@@ -65,7 +65,7 @@ function StatusScreen({
           </div>
           <div className="flex flex-col gap-2.5">
             {[
-              { label: '부스명', value: application.name },
+              { label: '부스명', value: application.boothName },
               {
                 label: '유형',
                 value:
@@ -116,7 +116,7 @@ function InfoTab({
 }) {
   const { mutate: updateBooth, isPending: isSaving } = useUpdateBooth()
 
-  const [name, setName] = useState(application.name)
+  const [name, setName] = useState(application.boothName)
   const [description, setDescription] = useState(application.description ?? '')
   const [operatingHours, setOperatingHours] = useState(
     application.operatingHours ?? ''
@@ -562,7 +562,7 @@ export function BoothAdminDashboard() {
       <header className="sticky top-14 z-40 flex items-center gap-4 border-b border-border bg-surface px-5 py-3.5 md:top-0">
         <div className="min-w-0 flex-1">
           <div className="text-[15px] font-extrabold text-ink">
-            {application.name}
+            {application.boothName}
           </div>
           <div className="text-[11px] text-ink-60">
             {BOOTH_TYPE_LABEL[application.boothType] ?? application.boothType}{' '}
@@ -623,7 +623,7 @@ export function BoothAdminDashboard() {
           {tab === 'waiting' && application.boothId && (
             <WaitingTab
               boothId={application.boothId}
-              boothName={application.name}
+              boothName={application.boothName}
             />
           )}
         </main>
