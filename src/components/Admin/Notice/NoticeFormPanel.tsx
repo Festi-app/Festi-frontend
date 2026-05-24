@@ -17,8 +17,13 @@ export function NoticeFormPanel({
   onSave: () => void
   onCancel: () => void
 }) {
+  const TITLE_MAX = 50
+  const CONTENT_MAX = 200
   const isValid =
-    draft.title.trim().length > 0 && draft.content.trim().length > 0
+    draft.title.trim().length > 0 &&
+    draft.title.length <= TITLE_MAX &&
+    draft.content.trim().length > 0 &&
+    draft.content.length <= CONTENT_MAX
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -44,8 +49,12 @@ export function NoticeFormPanel({
             value={draft.title}
             onChange={(e) => onChange({ title: e.target.value })}
             placeholder="공지 제목을 입력하세요"
+            maxLength={TITLE_MAX}
             className="w-full rounded-xl border border-border bg-bg px-4 py-3 text-[14px] font-semibold text-ink placeholder-ink-40 focus:border-cta focus:outline-none"
           />
+          <div className={`mt-1 text-right text-[11px] ${draft.title.length >= TITLE_MAX ? 'text-alert' : 'text-ink-40'}`}>
+            {draft.title.length}/{TITLE_MAX}자
+          </div>
         </div>
 
         {/* Content */}
@@ -58,10 +67,11 @@ export function NoticeFormPanel({
             onChange={(e) => onChange({ content: e.target.value })}
             placeholder="공지 내용을 입력하세요"
             rows={6}
+            maxLength={CONTENT_MAX}
             className="w-full resize-none rounded-xl border border-border bg-bg px-4 py-3 text-[14px] leading-relaxed text-ink placeholder-ink-40 focus:border-cta focus:outline-none"
           />
-          <div className="mt-1 text-right text-[11px] text-ink-40">
-            {draft.content.length}자
+          <div className={`mt-1 text-right text-[11px] ${draft.content.length >= CONTENT_MAX ? 'text-alert' : 'text-ink-40'}`}>
+            {draft.content.length}/{CONTENT_MAX}자
           </div>
         </div>
 

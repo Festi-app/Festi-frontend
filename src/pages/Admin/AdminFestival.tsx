@@ -3,8 +3,9 @@ import { FESTIV_TOKENS, I } from '../../tokens'
 import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
 import { useFestival } from '../../features/Festival/hooks/useFestival'
 import { useUpdateFestival } from '../../features/Festival/hooks/useUpdateFestival'
-import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
-import { useUpdateFestivalDay } from '../../features/Festival/hooks/useUpdateFestivalDay'
+// TODO: GET /api/festival/days 엔드포인트 추가되면 아래 주석 해제
+// import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
+// import { useUpdateFestivalDay } from '../../features/Festival/hooks/useUpdateFestivalDay'
 import type { FestivalDayResponseDto } from '../../features/Festival/types/FestivalDayResponseDto'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
@@ -62,11 +63,14 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   const approvedBooths = accounts.filter((a) => a.status === 'approved')
 
   const { data: festival } = useFestival()
-  const { data: festivalDays = [] } = useFestivalDays()
+  // TODO: GET /api/festival/days 엔드포인트 추가되면 아래 주석 해제
+  const festivalDays: FestivalDayResponseDto[] = []
+  // const { data: festivalDays = [] } = useFestivalDays()
   const updateFestival = useUpdateFestival()
-  const updateFestivalDay = useUpdateFestivalDay()
+  // const updateFestivalDay = useUpdateFestivalDay()
 
   // override = null이면 API 값 그대로 사용, 유저가 수정하면 override에 저장
+  const [nameOverride, setNameOverride] = useState<string | null>(null)
   const [startDateOverride, setStartDateOverride] = useState<string | null>(
     null
   )
@@ -75,6 +79,7 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   const [notice, setNotice] = useState('기본 정보와 일정, 운영 시간을 관리해요')
   const [selectedDay, setSelectedDay] = useState('1일차')
 
+  const festivalName = nameOverride ?? festival?.name ?? ''
   const startDate = startDateOverride ?? festival?.startDate ?? ''
   const endDate = endDateOverride ?? festival?.endDate ?? ''
   const days: DayConfig[] = dayOverrides ?? festivalDays.map(apiDayToConfig)
@@ -96,27 +101,34 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
 
   function handleSave() {
     updateFestival.mutate(
-      { startDate, endDate },
+      {
+        name: festivalName,
+        startDate,
+        endDate,
+        description: festival?.description ?? undefined,
+      },
       {
         onSuccess: () => setNotice('저장 완료 · 사용자 화면에 반영됐어요'),
         onError: () => setNotice('저장에 실패했어요. 다시 시도해주세요'),
       }
     )
-    days.forEach((day) => {
-      updateFestivalDay.mutate({
-        festivalDayId: day.id,
-        body: {
-          day: festivalDays.find((fd) => fd.id === day.id)?.day ?? day.date,
-          dayStart: day.dayStart,
-          dayEnd: day.dayEnd,
-          nightStart: day.nightStart,
-          nightEnd: day.nightEnd,
-        },
-      })
-    })
+    // TODO: GET /api/festival/days 엔드포인트 추가되면 아래 주석 해제
+    // days.forEach((day) => {
+    //   updateFestivalDay.mutate({
+    //     festivalDayId: day.id,
+    //     body: {
+    //       day: festivalDays.find((fd) => fd.id === day.id)?.day ?? day.date,
+    //       dayStart: day.dayStart,
+    //       dayEnd: day.dayEnd,
+    //       nightStart: day.nightStart,
+    //       nightEnd: day.nightEnd,
+    //     },
+    //   })
+    // })
   }
 
   function handleCancel() {
+    setNameOverride(null)
     setStartDateOverride(null)
     setEndDateOverride(null)
     setDayOverrides(null)
@@ -143,7 +155,17 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
       <div className="grid grid-cols-[1.4fr_1fr] gap-5 overflow-auto p-6">
         {/* Left column */}
         <div className="flex flex-col gap-4">
-          {/* 기본 정보 + 일자별 운영 시간 */}
+          {/* 축제 이름 */}
+          <Card dark={dark} title="축제 이름">
+            <input
+              type="text"
+              value={festivalName}
+              onChange={(e) => setNameOverride(e.target.value)}
+              className="w-full rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] font-semibold text-ink focus:border-cta focus:outline-none"
+            />
+          </Card>
+
+          {/* 일정 + 일자별 운영 시간 */}
           <Card dark={dark} title="일정 · 운영 시간">
             {/* Dates */}
             <div className="mb-4 grid grid-cols-2 gap-3">

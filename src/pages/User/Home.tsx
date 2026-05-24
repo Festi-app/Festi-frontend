@@ -1,11 +1,10 @@
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
 import { I } from '../../tokens'
 import { DAY_BOOTHS, NIGHT_BOOTHS, TRUCK_BOOTHS } from '../../data/booths'
 import { getZoneName } from '../../data/zones'
 import { useFestival } from '../../features/Festival/hooks/useFestival'
-import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 import { useFestivalTimelines } from '../../features/Festival/hooks/useFestivalTimelines'
 import { SectionHeader } from '../../components/User/Home/SectionHeader'
 import { WaitingCarousel } from '../../components/User/WaitingCarousel'
@@ -19,43 +18,85 @@ import { boothListUrl, boothUrl } from '../../constants/routes'
 export function UserHome({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { data: festival } = useFestival()
-  const { data: festivalDays = [] } = useFestivalDays()
   const { data: timelines = [] } = useFestivalTimelines()
+
+  // TODO: GET /api/festival/days 엔드포인트 추가되면 해당 API로 교체
+  // 현재는 timelines의 festivalDay에서 id 추출
+  const festivalDays = useMemo(() => {
+    const seen = new Map<string, { id: string; day: string }>()
+    timelines.forEach((t) => {
+      if (!seen.has(t.festivalDay.id)) seen.set(t.festivalDay.id, t.festivalDay)
+    })
+    return Array.from(seen.values()).sort((a, b) => a.day.localeCompare(b.day))
+  }, [timelines])
 
   const festivalName = festival?.name ?? '축제'
   const startDate = festival?.startDate ?? ''
   const endDate = festival?.endDate ?? ''
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
-  const currentDay = 1
+  const currentDay = startDate
+    ? Math.floor((Date.now() - new Date(startDate + 'T00:00:00').getTime()) / 86400000) + 1
+    : 1
 
-  const days = festivalDays.reduce<
-    Record<
+  // TODO: GET /api/festival/days 엔드포인트 추가되면 fetchedDays.length로 총 일수 바로 사용 가능
+  // 현재는 festival.startDate~endDate로 직접 계산
+  const totalDays = useMemo(() => {
+    if (startDate && endDate) {
+      const s = new Date(startDate + 'T00:00:00')
+      const e = new Date(endDate + 'T00:00:00')
+      return Math.round((e.getTime() - s.getTime()) / 86400000) + 1
+    }
+    return Math.max(festivalDays.length, 1)
+  }, [startDate, endDate, festivalDays.length])
+
+  const days = useMemo(() => {
+    const result: Record<
       number,
       { time: string; end: string; name: string; artist: string }[]
-    >
-  >((acc, day, idx) => {
-    acc[idx + 1] = timelines
-      .filter((t) => t.festivalDay.id === day.id)
-      .map((t) => ({
-        time: t.startTime,
-        end: t.endTime,
-        name: t.title,
-        artist: t.artist,
-      }))
-      .sort((a, b) => a.time.localeCompare(b.time))
-    return acc
-  }, {})
+    > = {}
+    for (let i = 1; i <= totalDays; i++) {
+      const dateStr = startDate
+        ? (() => {
+            const d = new Date(startDate + 'T00:00:00')
+            d.setDate(d.getDate() + i - 1)
+            return d.toISOString().slice(0, 10)
+          })()
+        : null
+      const festivalDay = dateStr
+        ? festivalDays.find((fd) => fd.day === dateStr)
+        : festivalDays[i - 1]
+      result[i] = festivalDay
+        ? timelines
+            .filter((t) => t.festivalDay.id === festivalDay.id)
+            .map((t) => ({
+              time: t.startTime.slice(0, 5),
+              end: t.endTime.slice(0, 5),
+              name: t.title,
+              artist: t.artist,
+            }))
+            .sort((a, b) => a.time.localeCompare(b.time))
+        : []
+    }
+    return result
+  }, [totalDays, startDate, festivalDays, timelines])
 
   const [timetableDay, setTimetableDay] = useState(currentDay)
+  // festival 데이터 로딩 후 오늘 날짜 기준 일차로 동기화
+  useEffect(() => {
+    if (festival?.startDate) setTimetableDay(currentDay)
+  }, [festival?.startDate])
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const start = new Date(startDate + 'T00:00:00')
-  const end = new Date(endDate + 'T00:00:00')
-  const diffDays = Math.round((start.getTime() - today.getTime()) / 86400000)
-  const isUpcoming = diffDays > 0
-  const isEnded = today > end
-  const dDayLabel = isUpcoming ? `D-${diffDays}` : `DAY ${1 - diffDays}`
+  const start = startDate ? new Date(startDate + 'T00:00:00') : null
+  const end = endDate ? new Date(endDate + 'T00:00:00') : null
+  const diffDays = start
+    ? Math.round((start.getTime() - today.getTime()) / 86400000)
+    : null
+  const isUpcoming = diffDays != null && diffDays > 0
+  const isEnded = end != null && today > end
+  const dDayLabel =
+    diffDays == null ? '' : isUpcoming ? `D-${diffDays}` : `DAY ${1 - diffDays}`
   const [noticeOpen, setNoticeOpen] = useState(false)
   const [timetableTip, setTimetableTip] = useState(false)
 
@@ -198,7 +239,7 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
               value={timetableDay}
               onChange={setTimetableDay}
               currentDay={currentDay}
-              totalDays={festivalDays.length || 3}
+              totalDays={totalDays}
             />
           </div>
 

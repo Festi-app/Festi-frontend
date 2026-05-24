@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { FESTIV_TOKENS, I } from '../../tokens'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { cn } from '../../lib/cn'
 import { toMin } from '../../lib/time'
-import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
+import { useFestival } from '../../features/Festival/hooks/useFestival'
 import { useFestivalTimelines } from '../../features/Festival/hooks/useFestivalTimelines'
 import { useCreateFestivalTimeline } from '../../features/Festival/hooks/useCreateFestivalTimeline'
 import { useUpdateFestivalTimeline } from '../../features/Festival/hooks/useUpdateFestivalTimeline'
@@ -149,7 +149,7 @@ function SlotRow({
           isNow ? 'text-pop' : 'text-ink-60'
         )}
       >
-        {slot.startTime}
+        {slot.startTime.slice(0, 5)}
       </div>
 
       <button
@@ -184,7 +184,7 @@ function SlotRow({
         <div className="mt-0.5 text-[11px] text-ink-60">
           {slot.artist}
           <span className="ml-1.5 text-ink-40">
-            {slot.startTime} — {slot.endTime}
+            {slot.startTime.slice(0, 5)} — {slot.endTime.slice(0, 5)}
           </span>
         </div>
       </button>
@@ -322,24 +322,62 @@ function AddSlotForm({
 // ── Screen: Admin Timetable ───────────────────────────────────────────────────
 
 export function AdminTimetable() {
-  const { data: festivalDays = [] } = useFestivalDays()
+  const { data: festival } = useFestival()
   const { data: timelines = [] } = useFestivalTimelines()
 
+  // TODO: GET /api/festival/days 엔드포인트 추가되면 해당 API로 교체
+  // 현재는 timelines의 festivalDay에서 id 추출
+  const festivalDays = useMemo(() => {
+    const seen = new Map<string, { id: string; day: string }>()
+    timelines.forEach((t) => {
+      if (!seen.has(t.festivalDay.id)) seen.set(t.festivalDay.id, t.festivalDay)
+    })
+    return Array.from(seen.values()).sort((a, b) => a.day.localeCompare(b.day))
+  }, [timelines])
+
   const [selectedDay, setSelectedDay] = useState<number>(1)
+  const [activeCurrentDay, setActiveCurrentDay] = useState<number | null>(null)
+  // festival 데이터 로딩 후 오늘 날짜 기준 일차로 동기화
+  useEffect(() => {
+    if (festival?.startDate) setSelectedDay(currentDay)
+  }, [festival?.startDate])
   const [adding, setAdding] = useState(false)
   const [venue, setVenue] = useState('베어드홀 대공연장')
   const [venueDraft, setVenueDraft] = useState(venue)
   const [venueEditing, setVenueEditing] = useState(false)
 
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
-  const currentDay = 1
+  const startDate = festival?.startDate ?? ''
+  const endDate = festival?.endDate ?? ''
+  const currentDay = startDate
+    ? Math.floor((Date.now() - new Date(startDate + 'T00:00:00').getTime()) / 86400000) + 1
+    : 1
 
-  const selectedDayData = festivalDays[selectedDay - 1]
+  // TODO: GET /api/festival/days 엔드포인트 추가되면 fetchedDays.length로 총 일수 바로 사용 가능
+  // 현재는 festival.startDate~endDate로 직접 계산
+  const totalDays = useMemo(() => {
+    if (startDate && endDate) {
+      const s = new Date(startDate + 'T00:00:00')
+      const e = new Date(endDate + 'T00:00:00')
+      return Math.round((e.getTime() - s.getTime()) / 86400000) + 1
+    }
+    return Math.max(festivalDays.length, 1)
+  }, [startDate, endDate, festivalDays.length])
+
+  const DAYS = Array.from({ length: totalDays }, (_, i) => i + 1)
+
+  // 선택된 일차에 해당하는 날짜 문자열로 festivalDay 매핑
+  const selectedDayDate = useMemo(() => {
+    if (!startDate) return null
+    const d = new Date(startDate + 'T00:00:00')
+    d.setDate(d.getDate() + selectedDay - 1)
+    return d.toISOString().slice(0, 10)
+  }, [startDate, selectedDay])
+
+  const selectedDayData = festivalDays.find((fd) => fd.day === selectedDayDate)
   const slots = timelines
     .filter((t) => t.festivalDay.id === selectedDayData?.id)
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
-
-  const DAYS = festivalDays.map((_, i) => i + 1)
 
   return (
     <AdminShell active="timetable">
@@ -543,7 +581,7 @@ export function AdminTimetable() {
                           isNow ? 'text-pop' : 'text-ink-60'
                         )}
                       >
-                        {slot.startTime}
+                        {slot.startTime.slice(0, 5)}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1">
@@ -570,6 +608,39 @@ export function AdminTimetable() {
                   )
                 })
               )}
+            </div>
+
+            {/* 현재 일차 설정 */}
+            <div className="mt-4 rounded-[14px] border border-border bg-bg p-3.5">
+              <div className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
+                현재 진행 일차
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {DAYS.map((d) => {
+                  const active = d === (activeCurrentDay ?? currentDay)
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => {
+                        setActiveCurrentDay(d)
+                        setSelectedDay(d)
+                      }}
+                      className={cn(
+                        'rounded-lg py-2 text-[12px] font-bold transition-colors',
+                        active
+                          ? 'bg-cta text-cta-ink'
+                          : 'border border-border bg-surface text-ink-60'
+                      )}
+                    >
+                      {d}일차
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="mt-2 text-[10px] text-ink-40">
+                홈 화면에서 기본으로 보여줄 일차를 선택하세요
+              </div>
             </div>
           </div>
         </div>
