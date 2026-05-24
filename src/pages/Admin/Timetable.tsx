@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 import { FESTIV_TOKENS, I } from '../../tokens'
 import { AdminShell } from '../../components/Admin/AdminShell'
@@ -9,6 +9,7 @@ import { useFestival } from '../../features/Festival/hooks/useFestival'
 import { useFestivalTimelines } from '../../features/Festival/hooks/useFestivalTimelines'
 import { SlotRow } from '../../components/Admin/TimeTable/SlotRow'
 import { AddSlotForm } from '../../components/Admin/TimeTable/AddSlotForm'
+import { AdminToast } from '../../components/Admin/AdminToast'
 
 export function AdminTimetable() {
   const { data: festival } = useFestival()
@@ -17,6 +18,11 @@ export function AdminTimetable() {
 
   const [selectedDay, setSelectedDay] = useState<number>(1)
   const [adding, setAdding] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+  const showToast = useCallback((msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }, [])
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
   const startDate = festival?.startDate ?? ''
   const endDate = festival?.endDate ?? ''
@@ -118,20 +124,16 @@ export function AdminTimetable() {
                 slot={slot}
                 festivalDayId={selectedDayData?.id ?? ''}
                 isNow={isNow}
+                onToast={showToast}
               />
             )
           })}
-
-          {slots.length === 0 && !adding && (
-            <div className="py-16 text-center text-sm text-ink-40">
-              공연 일정이 없어요
-            </div>
-          )}
 
           {adding ? (
             <AddSlotForm
               festivalDayId={selectedDayData?.id ?? ''}
               onDone={() => setAdding(false)}
+              onToast={showToast}
             />
           ) : (
             <div className="px-5 py-4">
@@ -147,6 +149,7 @@ export function AdminTimetable() {
           )}
         </div>
       </div>
+      {toast && <AdminToast message={toast} />}
     </AdminShell>
   )
 }

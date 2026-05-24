@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { FESTIV_TOKENS, I } from '../../tokens'
-import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
+import { I } from '../../tokens'
+import { AdminToast } from '../../components/Admin/AdminToast'
 import { useFestival } from '../../features/Festival/hooks/useFestival'
+import { useAdminUsers } from '../../features/User/hooks/useAdminUsers'
 import { useUpdateFestival } from '../../features/Festival/hooks/useUpdateFestival'
 import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 import { useUpdateFestivalDay } from '../../features/Festival/hooks/useUpdateFestivalDay'
@@ -51,16 +52,8 @@ function apiDayToConfig(
 }
 
 export function AdminFestival({ dark = false }: { dark?: boolean }) {
-  const accounts = useBoothAdminStore((s) => s.accounts)
-  const setBoothLocation = useBoothAdminStore((s) => s.setBoothLocation)
-  const rejectAccount = useBoothAdminStore((s) => s.rejectAccount)
-
-  const [dotMenuId, setDotMenuId] = useState<string | null>(null)
-  const [editingLocationId, setEditingLocationId] = useState<string | null>(
-    null
-  )
-  const [locationDraft, setLocationDraft] = useState('')
-  const approvedBooths = accounts.filter((a) => a.status === 'approved')
+  const { data: festivalAdmins = [] } = useAdminUsers('FESTIVAL_ADMIN')
+  const { data: boothManagers = [] } = useAdminUsers('BOOTH_MANAGER')
 
   const { data: festival } = useFestival()
   const { data: festivalDays = [] } = useFestivalDays()
@@ -75,7 +68,12 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   )
   const [endDateOverride, setEndDateOverride] = useState<string | null>(null)
   const [dayOverrides, setDayOverrides] = useState<DayConfig[] | null>(null)
-  const [notice, setNotice] = useState('기본 정보와 일정, 운영 시간을 관리해요')
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
+
+  function showToast(msg: string, ok = true) {
+    setToast({ msg, ok })
+    setTimeout(() => setToast(null), 3000)
+  }
   const [selectedDay, setSelectedDay] = useState('1일차')
 
   const festivalName = nameOverride ?? festival?.name ?? ''
@@ -138,9 +136,9 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
           setStartDateOverride(null)
           setEndDateOverride(null)
           setDayOverrides(null)
-          setNotice('저장 완료 · 사용자 화면에 반영됐어요')
+          showToast('저장 완료 · 사용자 화면에 반영됐어요')
         },
-        onError: () => setNotice('저장에 실패했어요. 다시 시도해주세요'),
+        onError: () => showToast('저장에 실패했어요. 다시 시도해주세요', false),
       }
     )
     days.forEach((day, idx) => {
@@ -177,14 +175,14 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
     setStartDateOverride(null)
     setEndDateOverride(null)
     setDayOverrides(null)
-    setNotice('변경사항을 취소했어요')
+    showToast('변경사항을 취소했어요', false)
   }
 
   return (
     <AdminShell active="festival">
       <AdminTopBar
         title="축제 설정"
-        sub={notice}
+        sub="기본 정보와 일정, 운영 시간을 관리해요"
         right={
           <>
             <AdminBtn ghost onClick={handleCancel}>
@@ -369,34 +367,31 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
 
         {/* Right column */}
         <div className="flex flex-col gap-4">
-          {/* 권한 관리 */}
-          <Card dark={dark} title="권한 관리">
+          {/* 계정 관리 */}
+          <Card dark={dark} title="관리자 계정">
             {/* 총 관리자 */}
             <div className="mb-1 text-[10px] font-extrabold uppercase tracking-wide text-ink-40">
-              총 관리자
+              총 관리자 ({festivalAdmins.length})
             </div>
             <div className="mb-3 flex flex-col gap-1">
-              {[
-                { name: '김총학', role: '최고관리자', color: 'bg-[#141A1F]' },
-                { name: '박운영', role: '부관리자', color: 'bg-grape' },
-              ].map((p) => (
+              {festivalAdmins.length === 0 && (
+                <div className="py-4 text-center text-[12px] text-ink-40">
+                  총 관리자가 없어요
+                </div>
+              )}
+              {festivalAdmins.map((user) => (
                 <div
-                  key={p.name}
+                  key={user.id}
                   className="flex items-center gap-2.5 rounded-xl bg-surface-alt px-3 py-2.5"
                 >
-                  <div
-                    className={cn(
-                      'flex size-7.5 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold text-white',
-                      p.color
-                    )}
-                  >
-                    {p.name[0]}
+                  <div className="flex size-7.5 shrink-0 items-center justify-center rounded-full bg-[#141A1F] text-[11px] font-extrabold text-white">
+                    {user.name[0]}
                   </div>
-                  <div className="flex-1">
+                  <div className="min-w-0 flex-1">
                     <div className="text-[13px] font-bold text-ink">
-                      {p.name}
+                      {user.name}
                     </div>
-                    <div className="text-[11px] text-ink-60">{p.role}</div>
+                    <div className="text-[11px] text-ink-60">{user.phone}</div>
                   </div>
                 </div>
               ))}
@@ -404,122 +399,40 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
 
             {/* 부스 관리자 */}
             <div className="mb-1 text-[10px] font-extrabold uppercase tracking-wide text-ink-40">
-              부스 관리자 ({approvedBooths.length})
+              부스 관리자 ({boothManagers.length})
             </div>
             <div className="flex flex-col gap-1">
-              {approvedBooths.length === 0 && (
+              {boothManagers.length === 0 && (
                 <div className="py-4 text-center text-[12px] text-ink-40">
-                  승인된 부스 관리자가 없어요
+                  부스 관리자가 없어요
                 </div>
               )}
-              {approvedBooths.map((acc) => {
-                const loc = [acc.dayLocation, acc.nightLocation]
-                  .filter(Boolean)
-                  .join(' · ')
-                const isOpen = dotMenuId === acc.id
-                const isEditing = editingLocationId === acc.id
-                return (
-                  <div key={acc.id} className="relative">
-                    <div className="flex items-center gap-2.5 rounded-xl bg-surface-alt px-3 py-2.5">
-                      <div className="flex size-7.5 shrink-0 items-center justify-center rounded-full bg-cta/15 text-[11px] font-extrabold text-cta">
-                        {acc.orgName[0]}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[13px] font-bold text-ink">
-                          {acc.orgName}
-                        </div>
-                        <div className="text-[11px] text-ink-60">
-                          {acc.representativeName}
-                          {loc && ` · ${loc}`}
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setDotMenuId(isOpen ? null : acc.id)}
-                        className="size-6 text-ink-40"
-                      >
-                        {I.dots()}
-                      </button>
-                    </div>
-
-                    {/* Dot menu */}
-                    {isOpen && !isEditing && (
-                      <div className="absolute top-full right-0 z-20 mt-1 w-36 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditingLocationId(acc.id)
-                            setLocationDraft(loc)
-                          }}
-                          className="flex w-full items-center gap-2 px-3.5 py-2.5 text-[12px] font-bold text-ink hover:bg-surface-alt"
-                        >
-                          <span className="size-3.5">{I.map()}</span>
-                          위치 수정
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            rejectAccount(acc.id)
-                            setDotMenuId(null)
-                            setNotice(`${acc.orgName} 권한을 삭제했어요`)
-                          }}
-                          className="flex w-full items-center gap-2 px-3.5 py-2.5 text-[12px] font-bold text-alert hover:bg-alert/5"
-                        >
-                          <span className="size-3.5">
-                            {I.trash(FESTIV_TOKENS.alert)}
-                          </span>
-                          권한 삭제
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Inline location edit */}
-                    {isEditing && (
-                      <div className="mt-1 flex gap-1.5 rounded-xl border border-cta/40 bg-bg px-3 py-2">
-                        <input
-                          autoFocus
-                          value={locationDraft}
-                          onChange={(e) => setLocationDraft(e.target.value)}
-                          placeholder="예: A구역 3번 · N2구역 1번"
-                          className="min-w-0 flex-1 bg-transparent text-[12px] text-ink placeholder:text-ink-40 focus:outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const parts = locationDraft
-                              .split('·')
-                              .map((s) => s.trim())
-                            if (acc.operatingTimes.includes('주간') && parts[0])
-                              setBoothLocation(acc.id, '주간', parts[0])
-                            if (acc.operatingTimes.includes('야간') && parts[1])
-                              setBoothLocation(acc.id, '야간', parts[1])
-                            setEditingLocationId(null)
-                            setDotMenuId(null)
-                            setNotice(`${acc.orgName} 위치를 수정했어요`)
-                          }}
-                          className="shrink-0 rounded-lg bg-cta px-2.5 py-1 text-[11px] font-bold text-white"
-                        >
-                          저장
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditingLocationId(null)
-                            setDotMenuId(null)
-                          }}
-                          className="shrink-0 rounded-lg border border-border px-2 py-1 text-[11px] font-bold text-ink-60"
-                        >
-                          취소
-                        </button>
-                      </div>
-                    )}
+              {boothManagers.map((user) => (
+                <div
+                  key={user.id}
+                  className="flex items-center gap-2.5 rounded-xl bg-surface-alt px-3 py-2.5"
+                >
+                  <div className="flex size-7.5 shrink-0 items-center justify-center rounded-full bg-cta/15 text-[11px] font-extrabold text-cta">
+                    {user.name[0]}
                   </div>
-                )
-              })}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] font-bold text-ink">
+                      {user.name}
+                    </div>
+                    <div className="text-[11px] text-ink-60">{user.phone}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </Card>
         </div>
       </div>
+      {toast && (
+        <AdminToast
+          message={toast.msg}
+          variant={toast.ok ? 'success' : 'error'}
+        />
+      )}
     </AdminShell>
   )
 }

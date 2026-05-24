@@ -53,6 +53,10 @@ export const ENDPOINTS = {
     REJECT: (applicationId: string) =>
       `/api/admin/booth-applications/${applicationId}/reject`,
   },
+  ADMIN_USERS: {
+    LIST: '/api/admin/users',
+    ROLE: (userId: string) => `/api/admin/users/${userId}/role`,
+  },
   WAITINGS: {
     LIST: '/api/waitings',
     CANCEL: (waitingId: string) => `/api/waitings/${waitingId}`,
