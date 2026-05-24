@@ -11,5 +11,6 @@ export function useLocations(params: GetLocationsRequestDto) {
   return useQuery({
     queryKey: locationKeys.list(params),
     queryFn: () => getLocations(params),
+    enabled: !!params.day,
   })
 }

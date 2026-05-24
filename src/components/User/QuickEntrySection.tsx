@@ -46,45 +46,53 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
           </button>
         </div>
       )}
-      <div
-        className={`flex gap-3 overflow-x-auto px-5 pb-1 ${compact ? 'mb-0' : 'mb-6'}`}
-      >
-        {BOOTHS.map((b) => {
-          const badgeBg =
-            b.wait === 0
-              ? FESTIV_TOKENS.pop
-              : b.wait === 1
-                ? '#A3E635'
-                : FESTIV_TOKENS.sun
-          return (
-            <button
-              key={b.id}
-              type="button"
-              onClick={() => navigate(boothUrl('night', b.id))}
-              className="w-36 shrink-0 rounded-[20px] border border-border bg-surface p-2.5 text-left transition-transform duration-100 active:scale-[0.97]"
-            >
-              <div className="relative mb-2.5">
-                <PhotoSlot label="" tone={b.tone} ratio="1/1" radius={14} />
-                <div className="absolute top-2 left-2 rounded-full bg-[rgba(15,42,51,0.85)] px-2 py-0.75 text-[11px] font-bold text-white">
-                  #{(b.sections?.[0] ?? 0) + 1}
+      {BOOTHS.length === 0 ? (
+        <div
+          className={`mx-5 flex items-center justify-center rounded-[18px] border border-border bg-surface py-6 text-[13px] text-ink-40 ${compact ? '' : 'mb-6'}`}
+        >
+          지금 바로 입장 가능한 부스가 없어요
+        </div>
+      ) : (
+        <div
+          className={`flex gap-3 overflow-x-auto px-5 pb-1 ${compact ? 'mb-0' : 'mb-6'}`}
+        >
+          {BOOTHS.map((b) => {
+            const badgeBg =
+              b.wait === 0
+                ? FESTIV_TOKENS.pop
+                : b.wait === 1
+                  ? '#A3E635'
+                  : FESTIV_TOKENS.sun
+            return (
+              <button
+                key={b.id}
+                type="button"
+                onClick={() => navigate(boothUrl('night', b.id))}
+                className="w-36 shrink-0 rounded-[20px] border border-border bg-surface p-2.5 text-left transition-transform duration-100 active:scale-[0.97]"
+              >
+                <div className="relative mb-2.5">
+                  <PhotoSlot label="" tone={b.tone} ratio="1/1" radius={14} />
+                  <div className="absolute top-2 left-2 rounded-full bg-[rgba(15,42,51,0.85)] px-2 py-0.75 text-[11px] font-bold text-white">
+                    #{(b.sections?.[0] ?? 0) + 1}
+                  </div>
+                  <div
+                    className="absolute right-2 bottom-2 rounded-full px-2 py-0.75 text-[11px] font-bold text-[#141A1F]"
+                    style={{ background: badgeBg }}
+                  >
+                    {b.wait === 0 ? '바로 입장' : `${b.wait}팀`}
+                  </div>
                 </div>
-                <div
-                  className="absolute right-2 bottom-2 rounded-full px-2 py-0.75 text-[11px] font-bold text-[#141A1F]"
-                  style={{ background: badgeBg }}
-                >
-                  {b.wait === 0 ? '바로 입장' : `${b.wait}팀`}
+                <div className="text-sm font-bold leading-[1.2] tracking-[-0.3px] text-ink">
+                  {b.name}
                 </div>
-              </div>
-              <div className="text-sm font-bold leading-[1.2] tracking-[-0.3px] text-ink">
-                {b.name}
-              </div>
-              <div className="mt-1 text-[11px] text-ink-60">
-                {getBoothZoneName(b)}
-              </div>
-            </button>
-          )
-        })}
-      </div>
+                <div className="mt-1 text-[11px] text-ink-60">
+                  {getBoothZoneName(b)}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      )}
     </>
   )
 }

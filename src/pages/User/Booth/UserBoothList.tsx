@@ -1,10 +1,17 @@
+import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useToggleFavorite } from '../../../features/Favorite/hooks/useToggleFavorite'
 import { ScreenHeader } from '../../../components/User/ScreenHeader'
 import { FESTIV_TOKENS, I } from '../../../tokens'
 import { tabBarPb } from '../../../lib/safeArea'
-import { useBooths } from '../../../features/Booth/hooks/useBooths'
+import { useLocations } from '../../../features/Map/hooks/useLocations'
+import { useFestivalDays } from '../../../features/Festival/hooks/useFestivalDays'
+import { Toast } from '../../../components/shared/Toast'
+import { formatSections, getZoneName } from '../../../lib/format'
 import type { BoothType } from '../../../features/Booth/types/BoothSummaryDto'
+
+const _d = new Date()
+const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`
 
 const TYPE_MAP: Record<'night' | 'day' | 'truck', BoothType> = {
   night: 'NIGHT',
@@ -31,11 +38,28 @@ export function UserBoothList() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { isSaved, toggle } = useToggleFavorite()
+  const [toast, setToast] = useState<'saved' | 'unsaved' | null>(null)
+
+  function handleToggle(id: string, currentlySaved: boolean) {
+    toggle(id)
+    setToast(currentlySaved ? 'unsaved' : 'saved')
+    setTimeout(() => setToast(null), 2000)
+  }
   const type = (searchParams.get('type') ?? 'night') as
     | 'day'
     | 'night'
     | 'truck'
-  const { data: booths = [], isLoading } = useBooths({ type: TYPE_MAP[type] })
+  const { data: festivalDaysList = [] } = useFestivalDays()
+  const todayFestivalDay =
+    festivalDaysList.find((d) => d.day === todayStr)?.day ?? ''
+  const { data: locations = [], isLoading } = useLocations({
+    day: todayFestivalDay,
+    type: TYPE_MAP[type],
+  })
+  const booths = useMemo(
+    () => locations.filter((l) => l.boothSummary !== null),
+    [locations]
+  )
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
@@ -49,9 +73,14 @@ export function UserBoothList() {
           <div className="flex h-40 items-center justify-center text-sm text-ink-40">
             불러오는 중...
           </div>
+        ) : booths.length === 0 ? (
+          <div className="flex h-[70vh] items-center justify-center rounded-[18px] border border-border bg-surface text-[13px] text-ink-40">
+            등록된 부스가 없어요
+          </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {booths.map((b) => {
+            {booths.map((loc) => {
+              const b = loc.boothSummary!
               const saved = isSaved(b.id)
               return (
                 <div
@@ -68,14 +97,24 @@ export function UserBoothList() {
                             {b.name}
                           </div>
                           <div className="mt-0.5 text-start text-xs text-ink-60">
-                            {CATEGORY_LABEL[b.category] ?? b.category}
+                            {getZoneName(loc.zoneLabel) ??
+                              CATEGORY_LABEL[b.category] ??
+                              b.category}
+                            {loc.index != null && (
+                              <> #{formatSections([loc.index])}</>
+                            )}
                           </div>
+                          {b.description && (
+                            <div className="mt-1 text-[13px] leading-snug text-ink-60">
+                              {b.description}
+                            </div>
+                          )}
                         </div>
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation()
-                            toggle(b.id)
+                            handleToggle(b.id, saved)
                           }}
                           className="mt-0.5 size-4.5 shrink-0"
                         >
@@ -93,6 +132,32 @@ export function UserBoothList() {
           </div>
         )}
       </div>
+      {toast && (
+        <Toast
+          bottomStyle="calc(6rem + env(safe-area-inset-bottom) + 0.75rem)"
+          message={
+            toast === 'saved' ? '저장되었습니다' : '저장이 취소되었습니다'
+          }
+          icon={
+            toast === 'saved' ? (
+              <div className="flex size-8 items-center justify-center rounded-full bg-alert">
+                {I.star('#fff', '#fff')}
+              </div>
+            ) : (
+              <div className="flex size-8 items-center justify-center rounded-full bg-alert/20">
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                  <path
+                    d="M3 3l10 10M13 3L3 13"
+                    stroke="#FF6B6B"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+            )
+          }
+        />
+      )}
     </div>
   )
 }

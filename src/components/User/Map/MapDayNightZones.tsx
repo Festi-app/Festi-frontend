@@ -74,7 +74,7 @@ export function MapDayNightZones({
                         : { borderBottom: '1.5px solid rgba(20,26,31,0.22)' }),
                   }}
                 >
-                  {loc.index + 1}
+                  {loc.index}
                 </button>
               )
             })}

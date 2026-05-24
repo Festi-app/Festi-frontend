@@ -7,4 +7,10 @@ export interface FestivalDayResponseDto {
   nightEnd: string
 }
 
-export type GetFestivalDaysResponseDto = FestivalDayResponseDto[]
+// GET /api/festival/days 리스트 응답
+export interface FestivalDaySummaryResponseDto {
+  festivalDayId: string
+  day: string
+}
+
+export type GetFestivalDaysResponseDto = FestivalDaySummaryResponseDto[]

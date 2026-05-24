@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { I } from '../../tokens'
 import { useFestival } from '../../features/Festival/hooks/useFestival'
 import { useFestivalTimelines } from '../../features/Festival/hooks/useFestivalTimelines'
-import { useBooths } from '../../features/Booth/hooks/useBooths'
-// import { getZoneName } from '../../data/zones' // TODO: location API 연결 후 활성화
+import { useLocations } from '../../features/Map/hooks/useLocations'
+import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 import { SectionHeader } from '../../components/User/Home/SectionHeader'
 import { WaitingCarousel } from '../../components/User/WaitingCarousel'
 import { NoticeSheet } from '../../components/User/Home/NoticeSheet'
@@ -14,24 +14,43 @@ import { TimetableCard } from '../../components/User/Home/TimetableCard'
 import { QuickEntrySection } from '../../components/User/QuickEntrySection'
 import { UserBoothListCard } from '../../components/User/Home/UserBoothListCard'
 import { boothListUrl, boothUrl } from '../../constants/routes'
+import { getZoneName } from '../../lib/format'
+
+const _d = new Date()
+const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`
 
 export function UserHome({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { data: festival } = useFestival()
   const { data: timelines = [] } = useFestivalTimelines()
-  const { data: dayBooths = [] } = useBooths({ type: 'DAY' })
-  const { data: nightBooths = [] } = useBooths({ type: 'NIGHT' })
-  const { data: truckBooths = [] } = useBooths({ type: 'FOOD_TRUCK' })
+  const { data: festivalDaysList = [] } = useFestivalDays()
+  const todayFestivalDay =
+    festivalDaysList.find((d) => d.day === todayStr)?.day ?? ''
+  const { data: dayLocations = [] } = useLocations({
+    day: todayFestivalDay,
+    type: 'DAY',
+  })
+  const { data: nightLocations = [] } = useLocations({
+    day: todayFestivalDay,
+    type: 'NIGHT',
+  })
+  const { data: truckLocations = [] } = useLocations({
+    day: todayFestivalDay,
+    type: 'FOOD_TRUCK',
+  })
 
-  // TODO: GET /api/festival/days 엔드포인트 추가되면 해당 API로 교체
-  // 현재는 timelines의 festivalDay에서 id 추출
-  const festivalDays = useMemo(() => {
-    const seen = new Map<string, { id: string; day: string }>()
-    timelines.forEach((t) => {
-      if (!seen.has(t.festivalDay.id)) seen.set(t.festivalDay.id, t.festivalDay)
-    })
-    return Array.from(seen.values()).sort((a, b) => a.day.localeCompare(b.day))
-  }, [timelines])
+  const dayBooths = useMemo(
+    () => dayLocations.filter((l) => l.boothSummary !== null),
+    [dayLocations]
+  )
+  const nightBooths = useMemo(
+    () => nightLocations.filter((l) => l.boothSummary !== null),
+    [nightLocations]
+  )
+  const truckBooths = useMemo(
+    () => truckLocations.filter((l) => l.boothSummary !== null),
+    [truckLocations]
+  )
 
   const festivalName = festival?.name ?? '축제'
   const startDate = festival?.startDate ?? ''
@@ -46,16 +65,14 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
       )
     : 1
 
-  // TODO: GET /api/festival/days 엔드포인트 추가되면 fetchedDays.length로 총 일수 바로 사용 가능
-  // 현재는 festival.startDate~endDate로 직접 계산
   const totalDays = useMemo(() => {
     if (startDate && endDate) {
       const s = new Date(startDate + 'T00:00:00')
       const e = new Date(endDate + 'T00:00:00')
       return Math.round((e.getTime() - s.getTime()) / 86400000) + 1
     }
-    return Math.max(festivalDays.length, 1)
-  }, [startDate, endDate, festivalDays.length])
+    return Math.max(festivalDaysList.length, 1)
+  }, [startDate, endDate, festivalDaysList.length])
 
   const days = useMemo(() => {
     const result: Record<
@@ -63,19 +80,18 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
       { time: string; end: string; name: string; artist: string }[]
     > = {}
     for (let i = 1; i <= totalDays; i++) {
-      const dateStr = startDate
-        ? (() => {
-            const d = new Date(startDate + 'T00:00:00')
-            d.setDate(d.getDate() + i - 1)
-            return d.toISOString().slice(0, 10)
-          })()
-        : null
-      const festivalDay = dateStr
-        ? festivalDays.find((fd) => fd.day === dateStr)
-        : festivalDays[i - 1]
-      result[i] = festivalDay
+      if (!startDate) {
+        result[i] = []
+        continue
+      }
+      const d = new Date(startDate + 'T00:00:00')
+      d.setDate(d.getDate() + i - 1)
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      // festivalDay DB에 해당 날짜 없으면 빈 상태
+      const hasFestivalDay = festivalDaysList.some((fd) => fd.day === dateStr)
+      result[i] = hasFestivalDay
         ? timelines
-            .filter((t) => t.festivalDay.id === festivalDay.id)
+            .filter((t) => t.festivalDay.day === dateStr)
             .map((t) => ({
               time: t.startTime.slice(0, 5),
               end: t.endTime.slice(0, 5),
@@ -86,7 +102,7 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
         : []
     }
     return result
-  }, [totalDays, startDate, festivalDays, timelines])
+  }, [totalDays, startDate, festivalDaysList, timelines])
 
   const [timetableDay, setTimetableDay] = useState(currentDay)
   // festival 데이터 로딩 후 오늘 날짜 기준 일차로 동기화
@@ -105,6 +121,8 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
     : null
   const isUpcoming = diffDays != null && diffDays > 0
   const isEnded = end != null && today > end
+  // 라이브 중일 때만 dot 표시 — 미리보기/종료 시 0 (어떤 일차에도 매칭 안 됨)
+  const liveDayNumber = isUpcoming || isEnded ? 0 : currentDay
   const dDayLabel =
     diffDays == null ? '' : isUpcoming ? `D-${diffDays}` : `DAY ${1 - diffDays}`
   const [noticeOpen, setNoticeOpen] = useState(false)
@@ -126,7 +144,7 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
           <div className="mb-3.5 flex items-center justify-between">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-ink py-1 pr-2.5 pl-1 text-xs font-bold tracking-[-0.2px] text-bg">
               <span
-                className="rounded-full px-2 py-0.75 text-[10px] font-extrabold tracking-[0.3px] text-ink"
+                className="rounded-full px-2 py-0.75 text-[10px] font-extrabold tracking-[0.3px] text-ink dark:text-[#141a1f]"
                 style={{
                   background: isUpcoming
                     ? '#A9E5E7'
@@ -180,7 +198,7 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
             title="주간 부스"
             sub="오늘 운영 중인 부스"
             dark={dark}
-            more
+            more={dayBooths.length > 0}
             onMore={() => navigate(boothListUrl('day'))}
             className="mt-5"
           />
@@ -190,17 +208,21 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
                 등록된 부스가 없어요
               </div>
             ) : (
-              dayBooths.slice(0, 3).map((b) => (
-                <UserBoothListCard
-                  key={b.id}
-                  name={b.name}
-                  tone={undefined}
-                  zoneName={undefined} // TODO: API에 zoneId 추가되면 getZoneName(b.zoneId, b.type) 연결
-                  sections={undefined}
-                  description={undefined}
-                  onClick={() => navigate(boothUrl('day', b.id))}
-                />
-              ))
+              dayBooths
+                .slice(0, 3)
+                .map((loc) => (
+                  <UserBoothListCard
+                    key={loc.boothSummary!.id}
+                    name={loc.boothSummary!.name}
+                    tone={undefined}
+                    zoneName={getZoneName(loc.zoneLabel)}
+                    sections={loc.index != null ? [loc.index] : undefined}
+                    description={loc.boothSummary!.description ?? undefined}
+                    onClick={() =>
+                      navigate(boothUrl('day', loc.boothSummary!.id))
+                    }
+                  />
+                ))
             )}
           </div>
 
@@ -209,7 +231,7 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
             title="야간 부스"
             sub="오늘 밤 운영 중인 부스"
             dark={dark}
-            more
+            more={nightBooths.length > 0}
             onMore={() => navigate(boothListUrl('night'))}
           />
           <div className="mb-6 flex flex-col gap-2.5 px-5">
@@ -218,17 +240,21 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
                 등록된 부스가 없어요
               </div>
             ) : (
-              nightBooths.slice(0, 3).map((b) => (
-                <UserBoothListCard
-                  key={b.id}
-                  name={b.name}
-                  tone={undefined}
-                  zoneName={undefined} // TODO: API에 zoneId 추가되면 getZoneName(b.zoneId, b.type) 연결
-                  sections={undefined}
-                  description={undefined}
-                  onClick={() => navigate(boothUrl('night', b.id))}
-                />
-              ))
+              nightBooths
+                .slice(0, 3)
+                .map((loc) => (
+                  <UserBoothListCard
+                    key={loc.boothSummary!.id}
+                    name={loc.boothSummary!.name}
+                    tone={undefined}
+                    zoneName={getZoneName(loc.zoneLabel)}
+                    sections={loc.index != null ? [loc.index] : undefined}
+                    description={loc.boothSummary!.description ?? undefined}
+                    onClick={() =>
+                      navigate(boothUrl('night', loc.boothSummary!.id))
+                    }
+                  />
+                ))
             )}
           </div>
 
@@ -260,7 +286,7 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
             <DayDropdown
               value={timetableDay}
               onChange={setTimetableDay}
-              currentDay={currentDay}
+              currentDay={liveDayNumber}
               totalDays={totalDays}
             />
           </div>
@@ -270,7 +296,7 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
               key={timetableDay}
               slots={days[timetableDay] ?? []}
               timetableDay={timetableDay}
-              currentDay={currentDay}
+              currentDay={liveDayNumber}
               nowMin={nowMin}
             />
           </div>
@@ -278,9 +304,9 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
           {/* 푸드트럭 */}
           <SectionHeader
             title="푸드트럭"
-            sub="한경직 기념관 앞 · 총 6대"
+            sub="오늘 운영 중인 푸드트럭"
             dark={dark}
-            more
+            more={truckBooths.length > 0}
             onMore={() => navigate(boothListUrl('truck'))}
           />
           <div className="flex flex-col gap-2.5 px-5">
@@ -289,17 +315,21 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
                 등록된 부스가 없어요
               </div>
             ) : (
-              truckBooths.slice(0, 3).map((b) => (
-                <UserBoothListCard
-                  key={b.id}
-                  name={b.name}
-                  tone={undefined}
-                  zoneName={undefined} // TODO: API에 zoneId 추가되면 getZoneName(b.zoneId, b.type) 연결
-                  sections={undefined}
-                  description={undefined}
-                  onClick={() => navigate(boothUrl('truck', b.id))}
-                />
-              ))
+              truckBooths
+                .slice(0, 3)
+                .map((loc) => (
+                  <UserBoothListCard
+                    key={loc.boothSummary!.id}
+                    name={loc.boothSummary!.name}
+                    tone={undefined}
+                    zoneName={getZoneName(loc.zoneLabel)}
+                    sections={loc.index != null ? [loc.index] : undefined}
+                    description={loc.boothSummary!.description ?? undefined}
+                    onClick={() =>
+                      navigate(boothUrl('truck', loc.boothSummary!.id))
+                    }
+                  />
+                ))
             )}
           </div>
         </div>{' '}
