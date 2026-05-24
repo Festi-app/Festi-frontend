@@ -5,6 +5,7 @@ import { useSubmitBoothApplication } from '../../features/BoothApplication/hooks
 import type { BoothType } from '../../types/common'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
 import { FESTIV_TOKENS } from '../../tokens'
+import { useUI } from '../../stores/useUIStore'
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
@@ -56,6 +57,7 @@ const BOOTH_TYPE_OPTIONS: { value: BoothType; label: string; desc: string }[] =
 const STEPS = ['부스 정보', '상세 내용', '계정 정보']
 
 export function BoothAdminRegister() {
+  const { dark } = useUI()
   const navigate = useNavigate()
   const { mutate: submitApplication, isPending: isSubmitting } =
     useSubmitBoothApplication()
@@ -127,7 +129,10 @@ export function BoothAdminRegister() {
             >
               <FestivMark color="#fff" size={18} />
             </div>
-            <FestivWordmark size={18} color={FESTIV_TOKENS.ink} />
+            <FestivWordmark
+              size={18}
+              color={dark ? '#F2F5F7' : FESTIV_TOKENS.ink}
+            />
             <span className="text-[12px] text-ink-40">·</span>
             <span className="text-[12px] font-medium text-ink-40">
               축제를 더 즐겁게
