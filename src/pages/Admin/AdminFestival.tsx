@@ -43,10 +43,10 @@ function apiDayToConfig(
     id: apiDay.id,
     d: `${idx + 1}일차`,
     date: formatDayDate(apiDay.day),
-    dayStart: apiDay.dayStart,
-    dayEnd: apiDay.dayEnd,
-    nightStart: apiDay.nightStart,
-    nightEnd: apiDay.nightEnd,
+    dayStart: apiDay.dayStart || '10:00',
+    dayEnd: apiDay.dayEnd || '18:00',
+    nightStart: apiDay.nightStart || '18:00',
+    nightEnd: apiDay.nightEnd || '22:00',
   }
 }
 
