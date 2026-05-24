@@ -24,7 +24,16 @@ export function BoothAdminLogin() {
     login(
       { id: username.trim(), password },
       {
-        onSuccess: () => navigate(ROUTES.BOOTH_ADMIN.DASHBOARD),
+        onSuccess: ({ accessToken }) => {
+          try {
+            const payload = JSON.parse(atob(accessToken.split('.')[1]))
+            if (payload.role === 'FESTIVAL_ADMIN') {
+              navigate(ROUTES.ADMIN.FESTIVAL)
+              return
+            }
+          } catch {}
+          navigate(ROUTES.BOOTH_ADMIN.DASHBOARD)
+        },
         onError: () => setError(true),
       }
     )
