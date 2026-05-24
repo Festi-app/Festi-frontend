@@ -18,9 +18,9 @@ export function MapSheet({
   sheetDismissing: boolean
   expanded: boolean
   expandable?: boolean
-  onTouchStart: (e: React.TouchEvent<Element>) => void
-  onTouchMove: (e: React.TouchEvent<Element>) => void
-  onTouchEnd: (e: React.TouchEvent<Element>) => void
+  onTouchStart: (e: React.TouchEvent<HTMLDivElement>) => void
+  onTouchMove: (e: React.TouchEvent<HTMLDivElement>) => void
+  onTouchEnd: (e: React.TouchEvent<HTMLDivElement>) => void
   onDismiss: () => void
   onToggleExpand: () => void
 }) {
