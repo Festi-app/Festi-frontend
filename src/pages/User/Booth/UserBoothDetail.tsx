@@ -11,6 +11,19 @@ import { useWaitingCancel } from '../../../hooks/useWaitingCancel'
 import { BoothDetailContent } from '../../../components/User/BoothDetailContent'
 import { useBooth } from '../../../features/Booth/hooks/useBooth'
 import { useBoothMenus } from '../../../features/Booth/hooks/useBoothMenus'
+import { useLocations } from '../../../features/Map/hooks/useLocations'
+import { useFestivalDays } from '../../../features/Festival/hooks/useFestivalDays'
+import { getZoneName } from '../../../lib/format'
+import type { BoothType } from '../../../features/Booth/types/BoothSummaryDto'
+
+const _d = new Date()
+const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`
+
+const TYPE_MAP: Record<string, BoothType> = {
+  day: 'DAY',
+  night: 'NIGHT',
+  truck: 'FOOD_TRUCK',
+}
 
 const CATEGORY_LABEL: Record<string, string> = {
   ACTIVITY: '활동',
@@ -41,6 +54,18 @@ export function UserBoothDetail({
 
   const { data: booth, isLoading } = useBooth(id ?? '')
   const { data: menus = [] } = useBoothMenus(id ?? '')
+
+  const { data: festivalDaysList = [] } = useFestivalDays()
+  const todayFestivalDay =
+    festivalDaysList.find((d) => d.day === todayStr)?.day ?? ''
+  const { data: locations = [] } = useLocations({
+    day: todayFestivalDay,
+    type: TYPE_MAP[type] ?? 'DAY',
+  })
+  const locationEntry = locations.find((l) => l.boothSummary?.id === id) ?? null
+  const locationIndex = locationEntry?.index ?? null
+  const sections = locationIndex !== null ? [locationIndex] : undefined
+  const zoneLabel = locationEntry?.zoneLabel ?? undefined
 
   const favorite = id ? isSaved(id) : false
   const alreadyWaiting =
@@ -85,10 +110,11 @@ export function UserBoothDetail({
           dark={dark}
           name={booth.name}
           category={CATEGORY_LABEL[booth.category] ?? booth.category}
-          id={booth.id}
           type={type}
+          area={getZoneName(zoneLabel) ?? booth.location ?? undefined}
           operatingHours={booth.operatingHours ?? undefined}
           description={booth.description ?? undefined}
+          sections={sections}
           menus={menus}
         />
       </div>
@@ -170,6 +196,7 @@ export function UserBoothDetail({
 
       {toast && (
         <Toast
+          bottom="bottom-6"
           message={
             toast === 'saved' ? '저장되었습니다' : '저장이 취소되었습니다'
           }

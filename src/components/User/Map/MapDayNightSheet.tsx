@@ -79,7 +79,6 @@ export function MapDayNightSheet({
               dark={dark}
               type={isNight ? 'night' : 'day'}
               name={linkedBooth.name}
-              id={String(linkedBooth.id)}
               description={boothDetail?.description ?? undefined}
               operatingHours={boothDetail?.operatingHours ?? undefined}
               sections={
@@ -116,7 +115,6 @@ export function MapDayNightSheet({
               dark={dark}
               type={isNight ? 'night' : 'day'}
               name={linkedBooth.name}
-              id={String(linkedBooth.id)}
               description={boothDetail?.description ?? undefined}
               operatingHours={boothDetail?.operatingHours ?? undefined}
               sections={

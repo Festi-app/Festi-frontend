@@ -8,7 +8,6 @@ export function BoothDetailContent({
   dark = false,
   name,
   category = '',
-  id,
   sections,
   type,
   catPill,
@@ -22,7 +21,6 @@ export function BoothDetailContent({
   dark?: boolean
   name: string
   category?: string
-  id?: string
   sections?: number[]
   type: string
   catPill?: { color: string; ink: string }
@@ -38,7 +36,7 @@ export function BoothDetailContent({
   const isTruck = type === 'truck'
   const isNight = type === 'night'
   const resolvedMenus = menus ?? []
-  const defaultHours = isNight ? '17시 ~ 22시' : isTruck ? '' : '10시 ~ 18시'
+  const defaultHours = '-'
 
   const CAT_SOFT: Record<string, string> = {
     정보: FESTIV_TOKENS.mintSoft ?? '#D4F7F8',
@@ -59,10 +57,9 @@ export function BoothDetailContent({
     활동: FESTIV_TOKENS.pop,
   }
   const circleColor =
-    circleColorProp ??
-    (isTruck || isNight
-      ? FESTIV_TOKENS.alert
-      : (CAT_COLOR[category] ?? FESTIV_TOKENS.pop))
+    isTruck || isNight
+      ? (circleColorProp ?? FESTIV_TOKENS.alert)
+      : (CAT_COLOR[category] ?? FESTIV_TOKENS.pop)
 
   const pillBg = isTruck
     ? FESTIV_TOKENS.sunSoft
@@ -87,7 +84,7 @@ export function BoothDetailContent({
           }}
         >
           <span className="text-[13px] font-extrabold text-white">
-            #{sections && sections.length > 0 ? sections[0] + 1 : id}
+            #{sections && sections.length > 0 ? sections[0] : ''}
           </span>
         </div>
         <div className="min-w-0 flex-1">
@@ -107,7 +104,7 @@ export function BoothDetailContent({
             )}
             {sections && sections.length > 0 && (
               <Pill color={surfaceAlt} ink={ink80}>
-                {'#' + sections.map((s) => s + 1).join('·')}
+                {'#' + sections.join('·')}
               </Pill>
             )}
           </div>
@@ -130,24 +127,44 @@ export function BoothDetailContent({
         ]}
       />
 
-      {resolvedMenus.length > 0 && (
-        <>
-          <SubHeader title="메뉴" right={`총 ${resolvedMenus.length}종`} />
-          <div className="flex flex-col gap-2.5">
-            {resolvedMenus.map((m) => (
-              <MenuItemCard
-                key={m.id}
-                name={m.name}
-                description={m.description ?? ''}
-                price={m.price}
-                tone="leaf"
-                isSoldOut={m.isSoldOut}
-                showImage
-              />
-            ))}
-          </div>
-        </>
-      )}
+      {(() => {
+        const sectionLabel =
+          !isNight && !isTruck && category ? category : '메뉴'
+        const iGa = (w: string) =>
+          (w.charCodeAt(w.length - 1) - 0xac00) % 28 === 0 ? '가' : '이'
+        return (
+          <>
+            <SubHeader
+              title={sectionLabel}
+              right={
+                resolvedMenus.length > 0
+                  ? `총 ${resolvedMenus.length}종`
+                  : undefined
+              }
+            />
+            {resolvedMenus.length === 0 ? (
+              <div className="flex items-center justify-center rounded-[18px] bg-surface-alt py-6 text-[13px] text-ink-40">
+                등록된 {sectionLabel}
+                {iGa(sectionLabel)} 없어요
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2.5">
+                {resolvedMenus.map((m) => (
+                  <MenuItemCard
+                    key={m.id}
+                    name={m.name}
+                    description={m.description ?? ''}
+                    price={m.price}
+                    tone="leaf"
+                    isSoldOut={m.isSoldOut}
+                    showImage
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )
+      })()}
     </>
   )
 }

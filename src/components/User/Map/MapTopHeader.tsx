@@ -2,12 +2,11 @@ import { DAY_GRADIENT, FESTIV_TOKENS, I, NIGHT_GRADIENT } from '../../../tokens'
 
 export type MapView = 'day' | 'night' | 'truck'
 
-const DAYS = ['1일차', '2일차', '3일차']
-
 export function MapTopHeader({
   mapView,
   selectedFestivalDay,
   currentDayLabel,
+  dayLabels,
   dayDropdownOpen,
   onSearchOpen,
   onOpenList,
@@ -18,6 +17,7 @@ export function MapTopHeader({
   mapView: MapView
   selectedFestivalDay: string
   currentDayLabel: string
+  dayLabels: string[]
   dayDropdownOpen: boolean
   onSearchOpen: () => void
   onOpenList: () => void
@@ -116,7 +116,7 @@ export function MapTopHeader({
           </button>
           {dayDropdownOpen && (
             <div className="absolute left-0 top-full z-50 mt-1.5 min-w-24 overflow-hidden rounded-[14px] border border-border bg-white shadow-[0_4px_20px_rgba(20,26,31,0.15)] dark:bg-[#13262D]">
-              {DAYS.map((d) => (
+              {dayLabels.map((d) => (
                 <button
                   type="button"
                   key={d}

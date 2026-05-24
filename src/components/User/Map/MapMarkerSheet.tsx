@@ -79,7 +79,6 @@ export function MapMarkerSheet({
           <BoothDetailContent
             dark={dark}
             type={selectedMarker.type}
-            id={String(selectedMarker.id)}
             description={boothDetail?.description ?? undefined}
             operatingHours={boothDetail?.operatingHours ?? undefined}
             name={selectedMarker.name}
@@ -109,7 +108,6 @@ export function MapMarkerSheet({
             <BoothDetailContent
               dark={dark}
               type={selectedMarker.type}
-              id={String(selectedMarker.id)}
               description={boothDetail?.description ?? undefined}
               operatingHours={boothDetail?.operatingHours ?? undefined}
               name={selectedMarker.name}

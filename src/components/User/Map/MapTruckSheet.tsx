@@ -105,7 +105,6 @@ export function MapTruckSheet({
               <BoothDetailContent
                 type="truck"
                 name={selectedUserTruck.name}
-                id={String(selectedUserTruck.id)}
                 description={boothDetail?.description ?? undefined}
                 operatingHours={boothDetail?.operatingHours ?? undefined}
                 area={truckArea}
@@ -138,7 +137,6 @@ export function MapTruckSheet({
                   dark={dark}
                   type="truck"
                   name={linkedTruckBooth.name}
-                  id={String(linkedTruckBooth.id)}
                   description={boothDetail?.description ?? undefined}
                   operatingHours={boothDetail?.operatingHours ?? undefined}
                   sections={
@@ -164,7 +162,6 @@ export function MapTruckSheet({
                   dark={dark}
                   type="truck"
                   name={linkedTruckBooth.name}
-                  id={String(linkedTruckBooth.id)}
                   description={boothDetail?.description ?? undefined}
                   operatingHours={boothDetail?.operatingHours ?? undefined}
                   sections={

@@ -14,4 +14,5 @@ export interface BoothSummaryDto {
   type: BoothType
   imageUrl: string | null
   isWaitingOpen: boolean
+  location: string | null
 }

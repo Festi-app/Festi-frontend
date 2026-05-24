@@ -16,6 +16,7 @@ export interface BoothSummary {
   type: BoothType
   imageUrl: string
   isWaitingOpen: boolean
+  description?: string | null
 }
 
 export interface FestivalDaySummary {
