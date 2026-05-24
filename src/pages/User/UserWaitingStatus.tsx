@@ -11,6 +11,10 @@ import { useWaitingCancel } from '../../hooks/useWaitingCancel'
 import { useWaitingStore } from '../../stores/useWaitingStore'
 import { WaitingBoothCard } from '../../components/User/Waiting/WaitingBoothCard'
 import { waitingDetailUrl } from '../../constants/routes'
+import {
+  useRegisterPushSubscription,
+  getStoredSubscriptionId,
+} from '../../features/PushSubscription/hooks/usePushSubscription'
 
 export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
@@ -22,6 +26,22 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
 
   const main = waitings[0] ?? null
   const others = waitings.slice(1)
+
+  const pushSupported =
+    typeof window !== 'undefined' &&
+    'serviceWorker' in navigator &&
+    'PushManager' in window
+  const [isSubscribed, setIsSubscribed] = useState(
+    () => !!getStoredSubscriptionId()
+  )
+  const { mutate: registerPush, isPending: isRegistering } =
+    useRegisterPushSubscription()
+
+  function handleEnableNotification() {
+    registerPush(undefined, {
+      onSuccess: () => setIsSubscribed(true),
+    })
+  }
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
@@ -60,6 +80,32 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
               </div>
             </div>
           )}
+
+          {pushSupported &&
+            !isSubscribed &&
+            Notification.permission !== 'denied' && (
+              <button
+                type="button"
+                onClick={handleEnableNotification}
+                disabled={isRegistering}
+                className="mt-3.5 flex w-full items-center gap-3 rounded-[18px] border border-border bg-surface p-3.5 text-left transition-colors active:bg-surface-alt disabled:opacity-50"
+              >
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface-alt text-ink-60">
+                  {I.bell()}
+                </div>
+                <div className="flex-1">
+                  <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">
+                    호출 알림 받기
+                  </div>
+                  <div className="mt-0.5 text-xs text-ink-60">
+                    호출 시 브라우저 알림으로 바로 알려드려요
+                  </div>
+                </div>
+                <div className="shrink-0 text-[11px] font-bold text-cta">
+                  {isRegistering ? '설정 중...' : '켜기'}
+                </div>
+              </button>
+            )}
 
           <div className="flex items-center justify-between px-0.5 pb-2 pt-5">
             <div className="flex items-center gap-1.5">

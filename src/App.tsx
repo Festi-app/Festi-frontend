@@ -598,6 +598,10 @@ export default function App() {
           }
         />
         <Route
+          path="/waitings"
+          element={<Navigate to={ROUTES.WAITING} replace />}
+        />
+        <Route
           path={ROUTES.WAITING}
           element={
             <RequireRole roles={['USER']} redirectTo={ROUTES.LOGIN}>

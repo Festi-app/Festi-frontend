@@ -4,9 +4,11 @@ import { ROUTES } from '../../constants/routes'
 import { FESTIV_TOKENS, I } from '../../tokens'
 import { useMyBoothApplication } from '../../features/BoothApplication/hooks/useMyBoothApplication'
 import { useUpdateBooth } from '../../features/Booth/hooks/useUpdateBooth'
+import { useBooth } from '../../features/Booth/hooks/useBooth'
 import { useBoothWaitings } from '../../features/Waiting/hooks/useBoothWaitings'
 import { useCallWaiting } from '../../features/Waiting/hooks/useCallWaiting'
 import { useUpdateWaitingStatus } from '../../features/Waiting/hooks/useUpdateWaitingStatus'
+import { useToggleBoothWaiting } from '../../features/Waiting/hooks/useToggleBoothWaiting'
 import type { BoothApplicationResponseDto } from '../../features/BoothApplication/types/BoothApplicationResponseDto'
 import type { WaitingResponseDto } from '../../features/Waiting/types/WaitingResponseDto'
 
@@ -52,9 +54,9 @@ function StatusScreen({
             관리자 승인 후 부스 정보를 등록할 수 있어요
           </div>
         ) : (
-          application.rejectionReason && (
+          application.reviewMemo && (
             <div className="mb-8 rounded-xl bg-alert/10 px-4 py-3 text-[13px] text-alert">
-              사유: {application.rejectionReason}
+              사유: {application.reviewMemo}
             </div>
           )
         )}
@@ -125,6 +127,7 @@ function InfoTab({
   const [saved, setSaved] = useState(false)
 
   const boothId = application.boothId
+  const isApproved = application.status === 'APPROVED'
 
   function handleSave() {
     if (!boothId) return
@@ -170,9 +173,15 @@ function InfoTab({
         </button>
       </div>
 
-      {!boothId && (
+      {!isApproved && (
         <div className="mb-4 rounded-xl bg-sun/10 px-4 py-3 text-[13px] text-[#B8860B]">
           승인 완료 후 부스 정보를 수정할 수 있어요
+        </div>
+      )}
+
+      {isApproved && !boothId && (
+        <div className="mb-4 rounded-xl bg-surface-alt px-4 py-3 text-[13px] text-ink-60">
+          부스 정보를 연동 중이에요. 잠시 후 새로고침해주세요
         </div>
       )}
 
@@ -182,7 +191,7 @@ function InfoTab({
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            disabled={!boothId}
+            disabled={!isApproved || !boothId}
             className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none disabled:opacity-60"
           />
         </div>
@@ -193,7 +202,7 @@ function InfoTab({
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            disabled={!boothId}
+            disabled={!isApproved || !boothId}
             rows={3}
             className="w-full resize-none rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none disabled:opacity-60"
           />
@@ -205,7 +214,7 @@ function InfoTab({
           <input
             value={operatingHours}
             onChange={(e) => setOperatingHours(e.target.value)}
-            disabled={!boothId}
+            disabled={!isApproved || !boothId}
             placeholder="예: 10:00 ~ 18:00"
             className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none disabled:opacity-60"
           />
@@ -217,7 +226,7 @@ function InfoTab({
           <input
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
-            disabled={!boothId}
+            disabled={!isApproved || !boothId}
             placeholder="https://..."
             className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none disabled:opacity-60"
           />
@@ -236,9 +245,14 @@ function WaitingTab({
   boothId: string
   boothName: string
 }) {
+  const { data: booth } = useBooth(boothId)
   const { data: waitingList = [] } = useBoothWaitings(boothId)
   const { mutate: callWaiting } = useCallWaiting(boothId)
   const { mutate: updateStatus } = useUpdateWaitingStatus(boothId)
+  const { mutate: toggleOpen, isPending: isToggling } =
+    useToggleBoothWaiting(boothId)
+
+  const isWaitingOpen = booth?.isWaitingOpen ?? false
 
   const notifiedRef = useRef<Set<string>>(new Set())
   const [toast, setToast] = useState<string | null>(null)
@@ -296,11 +310,24 @@ function WaitingTab({
         </div>
       )}
 
-      <div className="mb-6">
-        <div className="text-[18px] font-extrabold text-ink">웨이팅 관리</div>
-        <div className="text-[12px] text-ink-60">
-          {boothName} · 3팀·1팀 전 자동 알림
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <div className="text-[18px] font-extrabold text-ink">웨이팅 관리</div>
+          <div className="text-[12px] text-ink-60">
+            {boothName} · 3팀·1팀 전 자동 알림
+          </div>
         </div>
+        <button
+          type="button"
+          disabled={isToggling}
+          onClick={() => toggleOpen({ open: !isWaitingOpen })}
+          className={cn(
+            'rounded-xl px-3.5 py-2 text-[12px] font-extrabold transition-colors disabled:opacity-50',
+            isWaitingOpen ? 'bg-cta/10 text-cta' : 'bg-surface-alt text-ink-60'
+          )}
+        >
+          {isWaitingOpen ? '웨이팅 오픈 중' : '웨이팅 마감'}
+        </button>
       </div>
 
       <div className="mb-5 grid grid-cols-4 gap-2.5">

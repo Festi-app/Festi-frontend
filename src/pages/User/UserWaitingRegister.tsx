@@ -7,20 +7,69 @@ import { Toast } from '../../components/shared/Toast'
 import { NotificationSettings } from '../../components/User/Waiting/NotificationSettings'
 import { useUserStore } from '../../stores/useUserStore'
 import { useRegisterWaiting } from '../../features/Waiting/hooks/useRegisterWaiting'
+import {
+  useRegisterPushSubscription,
+  useRemovePushSubscription,
+  getStoredSubscriptionId,
+} from '../../features/PushSubscription/hooks/usePushSubscription'
 
 const NOTIFICATION_ROWS = [
-  { label: '내 차례 3팀 전 알림', sub: '푸시 알림' },
-  { label: '내 차례 호출 알림', sub: '진동 + 사운드' },
+  { label: '내 차례 호출 알림', sub: '푸시 알림' },
+  { label: '도착 알림 진동', sub: '진동 + 사운드' },
 ]
+
+const pushSupported =
+  typeof window !== 'undefined' &&
+  'serviceWorker' in navigator &&
+  'PushManager' in window
 
 export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
   const navigate = useNavigate()
   const { phone } = useUserStore()
   const [people, setPeople] = useState(4)
-  const [notifications, setNotifications] = useState([true, true])
+  const [notifications, setNotifications] = useState([
+    pushSupported ? !!getStoredSubscriptionId() : false,
+    true,
+  ])
   const [showToast, setShowToast] = useState(false)
 
   const { mutate: registerWaiting } = useRegisterWaiting(id ?? '')
+  const { mutate: registerPush } = useRegisterPushSubscription()
+  const { mutate: removePush } = useRemovePushSubscription()
+
+  function handleNotificationChange(i: number) {
+    if (i === 0 && pushSupported) {
+      const next = !notifications[0]
+      if (next) {
+        registerPush(undefined, {
+          onSuccess: () =>
+            setNotifications((cur) =>
+              cur.map((v, idx) => (idx === 0 ? true : v))
+            ),
+          onError: () =>
+            setNotifications((cur) =>
+              cur.map((v, idx) => (idx === 0 ? false : v))
+            ),
+        })
+      } else {
+        const subId = getStoredSubscriptionId()
+        if (subId) {
+          removePush(subId, {
+            onSuccess: () =>
+              setNotifications((cur) =>
+                cur.map((v, idx) => (idx === 0 ? false : v))
+              ),
+          })
+        } else {
+          setNotifications((cur) =>
+            cur.map((v, idx) => (idx === 0 ? false : v))
+          )
+        }
+      }
+    } else {
+      setNotifications((cur) => cur.map((v, idx) => (idx === i ? !v : v)))
+    }
+  }
 
   function handleRegister() {
     registerWaiting(
@@ -118,11 +167,7 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
           <NotificationSettings
             rows={NOTIFICATION_ROWS}
             values={notifications}
-            onChange={(i) =>
-              setNotifications((current) =>
-                current.map((value, index) => (index === i ? !value : value))
-              )
-            }
+            onChange={handleNotificationChange}
           />
         </div>
 
