@@ -197,15 +197,11 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
                       <Pill color={pillColor} ink={pillInk}>
                         {TYPE_LABEL[boothSummary.type]}
                       </Pill>
-                      {/* TODO: 위치 정보 API 추가되면 연결
-                      <Pill color="transparent" ink={muted} className="p-0!">
-                        {getZoneName(boothSummary.zoneId, boothSummary.type)}
-                      </Pill>
-                      {boothSummary.sections && boothSummary.sections.length > 0 && (
+                      {boothSummary.location && (
                         <Pill color="transparent" ink={muted} className="p-0!">
-                          #{formatSections(boothSummary.sections)}
+                          {boothSummary.location}
                         </Pill>
-                      )} */}
+                      )}
                     </div>
 
                     <div className="mt-1.5 flex items-start gap-2">

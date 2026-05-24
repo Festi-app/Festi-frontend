@@ -338,10 +338,6 @@ export function AdminTimetable() {
   const [selectedDay, setSelectedDay] = useState<number>(1)
   const [activeCurrentDay, setActiveCurrentDay] = useState<number | null>(null)
   const [adding, setAdding] = useState(false)
-  const [venue, setVenue] = useState('베어드홀 대공연장')
-  const [venueDraft, setVenueDraft] = useState(venue)
-  const [venueEditing, setVenueEditing] = useState(false)
-
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
   const startDate = festival?.startDate ?? ''
   const endDate = festival?.endDate ?? ''
@@ -398,57 +394,6 @@ export function AdminTimetable() {
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* ── 왼쪽: 슬롯 편집 ── */}
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          {/* 공연장명 */}
-          <div className="flex items-center gap-3 border-b border-border bg-surface px-6 py-3.5">
-            <div className="size-4 shrink-0 text-ink-40">{I.map()}</div>
-            {venueEditing ? (
-              <>
-                <input
-                  autoFocus
-                  value={venueDraft}
-                  onChange={(e) => setVenueDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      setVenue(venueDraft)
-                      setVenueEditing(false)
-                    }
-                    if (e.key === 'Escape') {
-                      setVenueDraft(venue)
-                      setVenueEditing(false)
-                    }
-                  }}
-                  className="flex-1 bg-transparent text-[13px] font-semibold text-ink outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setVenue(venueDraft)
-                    setVenueEditing(false)
-                  }}
-                  className="text-[12px] font-bold text-cta"
-                >
-                  완료
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="flex-1 text-[13px] font-semibold text-ink">
-                  {venue}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setVenueDraft(venue)
-                    setVenueEditing(true)
-                  }}
-                  className="text-[12px] font-bold text-ink-40 hover:text-ink"
-                >
-                  수정
-                </button>
-              </>
-            )}
-          </div>
-
           {/* 일차 탭 */}
           <div className="flex gap-1 border-b border-border bg-surface px-5 pt-3.5 pb-0">
             {DAYS.map((d) => {
@@ -490,7 +435,7 @@ export function AdminTimetable() {
           <div className="min-h-0 flex-1 overflow-y-auto bg-bg">
             {slots.length === 0 ? (
               <div className="py-16 text-center text-sm text-ink-40">
-                공연 일정이 없어요
+                등록된 공연 일정이 없어요
               </div>
             ) : (
               slots.map((slot) => {
@@ -547,7 +492,6 @@ export function AdminTimetable() {
                 <div className="text-[15px] font-extrabold tracking-[-0.4px] text-ink">
                   공연 타임테이블
                 </div>
-                <div className="mt-0.5 text-[11px] text-ink-60">{venue}</div>
               </div>
               <div className="flex items-center gap-1 rounded-full border border-border bg-white/80 px-2.5 py-1.5 text-[12px] font-bold text-ink shadow-sm">
                 {selectedDay}일차

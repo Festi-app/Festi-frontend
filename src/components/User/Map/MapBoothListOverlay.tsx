@@ -1,6 +1,6 @@
 import { tabBarPb } from '../../../lib/safeArea'
 import { FESTIV_TOKENS } from '../../../tokens'
-import { TRUCK_BOOTHS } from '../../../data/booths'
+import { useBooths } from '../../../features/Booth/hooks/useBooths'
 import { ZONES, NIGHT_ZONES } from '../../../data/zones'
 import { TRUCK_ZONES } from '../../../stores/useTruckPlacementStore'
 import {
@@ -40,6 +40,8 @@ export function MapBoothListOverlay({
     type: 'day' | 'night' | 'truck'
   ) => void
 }) {
+  const { data: truckBooths = [] } = useBooths({ type: 'FOOD_TRUCK' })
+
   return (
     <>
       <div
@@ -133,43 +135,46 @@ export function MapBoothListOverlay({
             style={{ paddingBottom: tabBarPb }}
           >
             {listTab === 'truck' ? (
-              <div className="flex flex-col divide-y divide-border">
-                {TRUCK_BOOTHS.map((truck) => {
-                  const truckZone = TRUCK_ZONES.find(
-                    (z) => z.id === truck.zoneId
-                  )
-                  const pinColor = truckZone?.color ?? FESTIV_TOKENS.sun
-                  return (
-                    <button
-                      key={truck.id}
-                      type="button"
-                      onClick={() => onSelectBooth(truck, 'truck')}
-                      className="flex w-full items-center gap-3 py-3.5 text-left"
-                    >
-                      <div
-                        className="flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
-                        style={{ background: pinColor }}
+              truckBooths.length === 0 ? (
+                <div className="py-10 text-center text-sm text-ink-40">
+                  등록된 부스가 없어요
+                </div>
+              ) : (
+                <div className="flex flex-col divide-y divide-border">
+                  {truckBooths.map((truck) => {
+                    return (
+                      <button
+                        key={truck.id}
+                        type="button"
+                        onClick={() =>
+                          onSelectBooth({ id: Number(truck.id) }, 'truck')
+                        }
+                        className="flex w-full items-center gap-3 py-3.5 text-left"
                       >
-                        #
-                        {truck.sections && truck.sections.length > 0
-                          ? truck.sections[0] + 1
-                          : truck.id}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
-                          {truck.name}
+                        <div
+                          className="flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
+                          style={{ background: FESTIV_TOKENS.sun }}
+                        >
+                          #
                         </div>
-                        <div className="mt-0.5 text-[11px] text-ink-60">
-                          {truckZone?.name}
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
+                            {truck.name}
+                          </div>
+                          {truck.location && (
+                            <div className="mt-0.5 text-[11px] text-ink-60">
+                              {truck.location}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )
             ) : listMarkers.length === 0 ? (
               <div className="py-10 text-center text-sm text-ink-40">
-                부스가 없습니다
+                등록된 부스가 없어요
               </div>
             ) : (
               <div className="flex flex-col divide-y divide-border">
@@ -190,10 +195,7 @@ export function MapBoothListOverlay({
                         className="flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
                         style={{ background: pinColor }}
                       >
-                        #
-                        {m.sections && m.sections.length > 0
-                          ? m.sections[0] + 1
-                          : m.id}
+                        #{m.sections?.[0] ?? ''}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
