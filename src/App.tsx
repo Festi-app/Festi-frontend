@@ -378,9 +378,9 @@ function HomeRoute() {
     </UserTabLayout>
   )
 }
-function getIdParam(params: URLSearchParams): number | undefined {
+function getIdParam(params: URLSearchParams): string | undefined {
   const v = params.get('id')
-  return v ? Number(v) : undefined
+  return v ?? undefined
 }
 
 function MapRoute() {

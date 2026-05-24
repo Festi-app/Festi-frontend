@@ -72,6 +72,7 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
   }
 
   function handleRegister() {
+    if (!id) return
     registerWaiting(
       { partySize: people },
       {

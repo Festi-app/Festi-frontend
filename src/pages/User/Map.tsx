@@ -40,7 +40,10 @@ import {
   TRUCK_ZONES,
   useTruckPlacementStore,
 } from '../../stores/useTruckPlacementStore'
-import { useWaitingStore } from '../../stores/useWaitingStore'
+import { useMyWaitings } from '../../features/Waiting/hooks/useMyWaitings'
+import { deleteWaiting } from '../../features/Waiting/apis/deleteWaiting'
+import { waitingKeys } from '../../features/Waiting/hooks/useMyWaitings'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 import { useFestival } from '../../features/Festival/hooks/useFestival'
 
@@ -69,7 +72,14 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
   const location = useLocation()
   const { isDay, setIsDay } = useDayNightStore()
   const { zoneRotations } = useTruckPlacementStore()
-  const { waitings, cancelWaiting } = useWaitingStore()
+  const queryClient = useQueryClient()
+  const { data: waitings = [] } = useMyWaitings()
+  const { mutate: cancelWaitingMutate } = useMutation({
+    mutationFn: deleteWaiting,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: waitingKeys.all })
+    },
+  })
 
   const { data: festival } = useFestival()
   const { data: festivalDaysList = [] } = useFestivalDays()
@@ -431,11 +441,14 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
   }
 
   const waitingProps = {
-    onWaiting: (id: string | number) =>
-      navigate(waitingRegisterUrl(id as unknown as number)),
+    onWaiting: (id: string | number) => navigate(waitingRegisterUrl(id)),
     onAlreadyWaiting: (id: string) => setCancelBoothId(id),
     isAlreadyWaiting: (id: string) =>
-      waitings.some((w) => String(w.boothId) === id),
+      waitings.some(
+        (w) =>
+          w.boothSummary?.id === id &&
+          (w.status === 'WAITING' || w.status === 'CALLED')
+      ),
   }
 
   return (
@@ -613,7 +626,11 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
       {(() => {
         const cancelTarget =
           cancelBoothId != null
-            ? waitings.find((w) => String(w.boothId) === cancelBoothId)
+            ? waitings.find(
+                (w) =>
+                  w.boothSummary?.id === cancelBoothId &&
+                  (w.status === 'WAITING' || w.status === 'CALLED')
+              )
             : null
         return (
           <ConfirmModal
@@ -622,7 +639,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
             body={
               cancelTarget ? (
                 <>
-                  {cancelTarget.boothName} · {cancelTarget.waitNo}번
+                  {cancelTarget.boothSummary?.name ?? '—'}
                   <br />
                   취소 후에는 다시 등록해야 합니다.
                 </>
@@ -632,7 +649,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
             }
             confirmLabel="취소하기"
             onConfirm={() => {
-              if (cancelBoothId != null) cancelWaiting(Number(cancelBoothId))
+              if (cancelTarget) cancelWaitingMutate(cancelTarget.id)
               setCancelBoothId(null)
               setShowCancelToast(true)
               setTimeout(() => setShowCancelToast(false), 2000)

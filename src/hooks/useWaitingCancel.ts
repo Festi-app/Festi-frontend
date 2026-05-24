@@ -1,8 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import { useWaitingStore } from '../stores/useWaitingStore'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { deleteWaiting } from '../features/Waiting/apis/deleteWaiting'
+import { waitingKeys } from '../features/Waiting/hooks/useMyWaitings'
 
 export function useWaitingCancel(onAfterCancel?: () => void) {
-  const { cancelWaiting } = useWaitingStore()
+  const queryClient = useQueryClient()
+  const { mutate: cancelMutate } = useMutation({
+    mutationFn: deleteWaiting,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: waitingKeys.all })
+    },
+  })
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [showCancelToast, setShowCancelToast] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -14,8 +22,8 @@ export function useWaitingCancel(onAfterCancel?: () => void) {
     []
   )
 
-  function handleCancel(boothId: number) {
-    cancelWaiting(boothId)
+  function handleCancel(waitingId: string) {
+    cancelMutate(waitingId)
     setConfirmCancel(false)
     setShowCancelToast(true)
     timerRef.current = setTimeout(

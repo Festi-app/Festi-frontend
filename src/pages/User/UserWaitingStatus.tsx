@@ -8,24 +8,34 @@ import { CancelToast } from '../../components/User/CancelToast'
 import { EmptyState } from '../../components/User/EmptyState'
 import { QuickEntrySection } from '../../components/User/QuickEntrySection'
 import { useWaitingCancel } from '../../hooks/useWaitingCancel'
-import { useWaitingStore } from '../../stores/useWaitingStore'
 import { WaitingBoothCard } from '../../components/User/Waiting/WaitingBoothCard'
 import { waitingDetailUrl } from '../../constants/routes'
+import { useMyWaitings } from '../../features/Waiting/hooks/useMyWaitings'
 import {
   useRegisterPushSubscription,
   getStoredSubscriptionId,
 } from '../../features/PushSubscription/hooks/usePushSubscription'
 
+function formatRegistered(partySize: number, registeredAt: string): string {
+  const date = new Date(registeredAt)
+  const h = date.getHours().toString().padStart(2, '0')
+  const m = date.getMinutes().toString().padStart(2, '0')
+  return `${partySize}인 · ${h}:${m} 등록`
+}
+
 export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
-  const { waitings } = useWaitingStore()
+  const { data: waitings = [], isLoading } = useMyWaitings()
+  const activeWaitings = waitings.filter(
+    (w) => w.status === 'WAITING' || w.status === 'CALLED'
+  )
   const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
     useWaitingCancel()
   const [infoTip, setInfoTip] = useState(false)
   const ink60 = dark ? '#8B939B' : '#5E676D'
 
-  const main = waitings[0] ?? null
-  const others = waitings.slice(1)
+  const main = activeWaitings[0] ?? null
+  const others = activeWaitings.slice(1)
 
   const pushSupported =
     typeof window !== 'undefined' &&
@@ -43,6 +53,14 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
     })
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-bg font-festi">
+        <div className="text-[13px] text-ink-40">불러오는 중…</div>
+      </div>
+    )
+  }
+
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
       {main ? (
@@ -52,27 +70,23 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
         >
           <WaitingTicketCard
             dark={dark}
-            boothName={main.boothName}
-            boothTone={main.boothTone}
-            boothArea={main.boothArea}
-            boothSections={main.boothSections}
-            registered={main.registered}
-            waitNo={main.waitNo}
-            callNo={main.callNo}
-            progressPct={main.progressPct}
-            aheadTeams={main.aheadTeams}
+            boothName={main.boothSummary?.name ?? '—'}
+            registered={formatRegistered(main.partySize, main.registeredAt)}
             onCancel={() => setConfirmCancel(true)}
-            onClick={() => navigate(waitingDetailUrl(main.boothId))}
+            onClick={() =>
+              main.boothSummary?.id &&
+              navigate(waitingDetailUrl(main.boothSummary.id))
+            }
           />
 
-          {main.aheadTeams <= 3 && (
+          {main.status === 'CALLED' && (
             <div className="mt-3.5 flex items-center gap-3 rounded-[18px] bg-pop-soft p-3.5">
               <div className="size-9 shrink-0 rounded-xl bg-pop p-2 text-white">
                 {I.bell()}
               </div>
               <div className="flex-1">
                 <div className="text-[13px] font-bold tracking-[-0.2px] text-[#141A1F]">
-                  곧 호출돼요!
+                  호출됐어요!
                 </div>
                 <div className="mt-0.5 text-xs text-[#2E363C]">
                   부스 근처에서 대기해 주세요. 호출 후 5분 안에 도착!
@@ -138,10 +152,13 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
             <div className="flex flex-col gap-2.5">
               {others.map((w) => (
                 <WaitingBoothCard
-                  key={w.boothId}
+                  key={w.id}
                   waiting={w}
                   ink60={ink60}
-                  onClick={() => navigate(waitingDetailUrl(w.boothId))}
+                  onClick={() =>
+                    w.boothSummary?.id &&
+                    navigate(waitingDetailUrl(w.boothSummary.id))
+                  }
                 />
               ))}
             </div>
@@ -175,13 +192,13 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
           title="웨이팅을 취소할까요?"
           body={
             <>
-              {main.boothName} · {main.waitNo}번
+              {main.boothSummary?.name ?? '—'}
               <br />
               취소 후에는 다시 등록해야 합니다.
             </>
           }
           confirmLabel="취소하기"
-          onConfirm={() => main && handleCancel(main.boothId)}
+          onConfirm={() => main && handleCancel(main.id)}
           onClose={() => setConfirmCancel(false)}
         />
       )}

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useWaitingStore } from '../../stores/useWaitingStore'
+import { useMyWaitings } from '../../features/Waiting/hooks/useMyWaitings'
 import { waitingDetailUrl } from '../../constants/routes'
 
 const COLORS = [
@@ -11,7 +11,10 @@ const COLORS = [
 
 export function WaitingCarousel() {
   const navigate = useNavigate()
-  const { waitings } = useWaitingStore()
+  const { data: allWaitings = [] } = useMyWaitings()
+  const waitings = allWaitings.filter(
+    (w) => w.status === 'WAITING' || w.status === 'CALLED'
+  )
   const [activeIdx, setActiveIdx] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -39,9 +42,12 @@ export function WaitingCarousel() {
       >
         {waitings.map((w, i) => {
           const c = COLORS[i % COLORS.length]
+          const boothId = w.boothSummary?.id
+          const boothName = w.boothSummary?.name ?? '—'
+          const isCalled = w.status === 'CALLED'
           return (
             <div
-              key={w.boothId}
+              key={w.id}
               style={{
                 flex: '0 0 100%',
                 scrollSnapAlign: 'start',
@@ -51,7 +57,7 @@ export function WaitingCarousel() {
             >
               <button
                 type="button"
-                onClick={() => navigate(waitingDetailUrl(w.boothId))}
+                onClick={() => boothId && navigate(waitingDetailUrl(boothId))}
                 className="relative flex w-full items-center gap-3.5 overflow-hidden rounded-[20px] p-4 text-left transition-transform duration-100 active:scale-[0.98]"
                 style={{
                   background: c.bg,
@@ -61,14 +67,14 @@ export function WaitingCarousel() {
               >
                 <div className="absolute -top-7.5 -right-7.5 size-30 rounded-full bg-white/10" />
                 <div className="flex size-12 shrink-0 items-center justify-center rounded-[14px] bg-white/20 font-festi text-lg font-extrabold text-white">
-                  {w.waitNo}
+                  {isCalled ? '!' : w.partySize}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="mb-0.5 text-[11px] font-semibold opacity-75">
-                    #{w.boothId} 웨이팅 진행 중
+                    {isCalled ? '호출됨' : '웨이팅 진행 중'}
                   </div>
                   <div className="flex items-center gap-1.5 text-[15px] font-bold tracking-[-0.3px]">
-                    {w.aheadTeams <= 3 && (
+                    {isCalled && (
                       <span
                         className="inline-block size-1.5 shrink-0 rounded-full bg-white"
                         style={{
@@ -76,7 +82,8 @@ export function WaitingCarousel() {
                         }}
                       />
                     )}
-                    {w.boothName} · 앞에 {w.aheadTeams}팀
+                    {boothName}
+                    {isCalled ? ' · 지금 호출됨!' : ` · ${w.partySize}명`}
                   </div>
                 </div>
                 <div
@@ -95,7 +102,7 @@ export function WaitingCarousel() {
         <div className="mt-2.5 flex justify-center gap-1.5">
           {waitings.map((w, i) => (
             <div
-              key={w.boothId}
+              key={w.id}
               className="rounded-full transition-all duration-200"
               style={{
                 width: i === activeIdx ? 16 : 6,
