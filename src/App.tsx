@@ -41,6 +41,35 @@ import { UserBoothDetail } from './pages/User/Booth/UserBoothDetail'
 import { UserBoothList } from './pages/User/Booth/UserBoothList'
 import { ROUTES, boothUrl, boothListUrl } from './constants/routes'
 
+// ── Auth helpers ─────────────────────────────────────────────────────────
+
+function getTokenRole(): string | null {
+  const token = localStorage.getItem('token')
+  if (!token) return null
+  try {
+    return (
+      (JSON.parse(atob(token.split('.')[1])) as { role?: string }).role ?? null
+    )
+  } catch {
+    return null
+  }
+}
+
+function RequireRole({
+  roles,
+  redirectTo,
+  children,
+}: {
+  roles: string[]
+  redirectTo: string
+  children: ReactNode
+}) {
+  const role = getTokenRole()
+  if (!role || !roles.includes(role))
+    return <Navigate to={redirectTo} replace />
+  return <>{children}</>
+}
+
 // ── Standalone (PWA home screen) detection ────────────────────────────────
 
 function isStandalone(): boolean {
@@ -533,36 +562,149 @@ export default function App() {
         />
         <Route path={ROUTES.SPLASH} element={<SplashRoute />} />
         <Route path={ROUTES.OFF_SEASON} element={<OffSeasonRoute />} />
-        <Route path={ROUTES.HOME} element={<HomeRoute />} />
-        <Route path={ROUTES.MAP} element={<MapRoute />} />
-        <Route path={ROUTES.BOOTH} element={<BoothRoute />} />
-        <Route path={ROUTES.BOOTHS} element={<BoothListRoute />} />
-
-        <Route path={ROUTES.WAITING} element={<WaitingStatusRoute />} />
+        {/* ── 일반 사용자 (USER) ── */}
+        <Route
+          path={ROUTES.HOME}
+          element={
+            <RequireRole roles={['USER']} redirectTo={ROUTES.LOGIN}>
+              <HomeRoute />
+            </RequireRole>
+          }
+        />
+        <Route
+          path={ROUTES.MAP}
+          element={
+            <RequireRole roles={['USER']} redirectTo={ROUTES.LOGIN}>
+              <MapRoute />
+            </RequireRole>
+          }
+        />
+        <Route
+          path={ROUTES.BOOTH}
+          element={
+            <RequireRole roles={['USER']} redirectTo={ROUTES.LOGIN}>
+              <BoothRoute />
+            </RequireRole>
+          }
+        />
+        <Route
+          path={ROUTES.BOOTHS}
+          element={
+            <RequireRole roles={['USER']} redirectTo={ROUTES.LOGIN}>
+              <BoothListRoute />
+            </RequireRole>
+          }
+        />
+        <Route
+          path={ROUTES.WAITING}
+          element={
+            <RequireRole roles={['USER']} redirectTo={ROUTES.LOGIN}>
+              <WaitingStatusRoute />
+            </RequireRole>
+          }
+        />
         <Route
           path={ROUTES.WAITING_REGISTER}
-          element={<WaitingRegisterRoute />}
+          element={
+            <RequireRole roles={['USER']} redirectTo={ROUTES.LOGIN}>
+              <WaitingRegisterRoute />
+            </RequireRole>
+          }
         />
-        <Route path={ROUTES.WAITING_DETAIL} element={<WaitingDetailRoute />} />
+        <Route
+          path={ROUTES.WAITING_DETAIL}
+          element={
+            <RequireRole roles={['USER']} redirectTo={ROUTES.LOGIN}>
+              <WaitingDetailRoute />
+            </RequireRole>
+          }
+        />
         <Route
           path={ROUTES.TRUCK}
           element={<Navigate to={boothUrl('truck')} replace />}
         />
-        <Route path={ROUTES.MY} element={<MyRoute />} />
+        <Route
+          path={ROUTES.MY}
+          element={
+            <RequireRole roles={['USER']} redirectTo={ROUTES.LOGIN}>
+              <MyRoute />
+            </RequireRole>
+          }
+        />
+
+        {/* ── Public ── */}
         <Route path={ROUTES.LOGIN} element={<LoginRoute />} />
         <Route path={ROUTES.ONBOARDING} element={<OnboardingRoute />} />
-        <Route path={ROUTES.ADMIN.FESTIVAL} element={<AdminFestivalRoute />} />
-        <Route path={ROUTES.ADMIN.BOOTHS} element={<AdminBoothsRoute />} />
-        <Route path={ROUTES.ADMIN.TRUCKS} element={<AdminFoodTrucksRoute />} />
+
+        {/* ── 총 관리자 (FESTIVAL_ADMIN) ── */}
+        <Route
+          path={ROUTES.ADMIN.FESTIVAL}
+          element={
+            <RequireRole
+              roles={['FESTIVAL_ADMIN']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
+              <AdminFestivalRoute />
+            </RequireRole>
+          }
+        />
+        <Route
+          path={ROUTES.ADMIN.BOOTHS}
+          element={
+            <RequireRole
+              roles={['FESTIVAL_ADMIN']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
+              <AdminBoothsRoute />
+            </RequireRole>
+          }
+        />
+        <Route
+          path={ROUTES.ADMIN.TRUCKS}
+          element={
+            <RequireRole
+              roles={['FESTIVAL_ADMIN']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
+              <AdminFoodTrucksRoute />
+            </RequireRole>
+          }
+        />
         <Route
           path={ROUTES.ADMIN.BOOTH_REQUESTS}
-          element={<AdminBoothRequestsRoute />}
+          element={
+            <RequireRole
+              roles={['FESTIVAL_ADMIN']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
+              <AdminBoothRequestsRoute />
+            </RequireRole>
+          }
         />
         <Route
           path={ROUTES.ADMIN.TIMETABLE}
-          element={<AdminTimetableRoute />}
+          element={
+            <RequireRole
+              roles={['FESTIVAL_ADMIN']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
+              <AdminTimetableRoute />
+            </RequireRole>
+          }
         />
-        <Route path={ROUTES.ADMIN.NOTICES} element={<AdminNoticesRoute />} />
+        <Route
+          path={ROUTES.ADMIN.NOTICES}
+          element={
+            <RequireRole
+              roles={['FESTIVAL_ADMIN']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
+              <AdminNoticesRoute />
+            </RequireRole>
+          }
+        />
+
+        {/* ── 부스 관리자 (BOOTH_MANAGER) ── */}
         <Route
           path={ROUTES.BOOTH_ADMIN.LOGIN}
           element={<BoothAdminLoginRoute />}
@@ -573,7 +715,14 @@ export default function App() {
         />
         <Route
           path={ROUTES.BOOTH_ADMIN.DASHBOARD}
-          element={<BoothAdminDashboardRoute />}
+          element={
+            <RequireRole
+              roles={['BOOTH_MANAGER']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
+              <BoothAdminDashboardRoute />
+            </RequireRole>
+          }
         />
       </Routes>
     </>
