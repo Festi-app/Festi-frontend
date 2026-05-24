@@ -3,33 +3,34 @@ import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I } from '../../../tokens'
 import { FestivMark, FestivWordmark } from '../../../components/Logo'
 import { Toast } from '../../../components/shared/Toast'
-import { useUserStore } from '../../../stores/useUserStore'
 import { ROUTES } from '../../../constants/routes'
+import { useLogin } from '../../../features/Auth/hooks/useLogin'
 
 export function UserLogin({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
-  const { userId: storedUserId, setUserId: storeSetUserId } = useUserStore()
   const [userId, setUserId] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
   const [loginFailed, setLoginFailed] = useState(false)
+
+  const { mutate: login, isPending } = useLogin()
 
   const wordmarkColor = dark ? '#F2F5F7' : FESTIV_TOKENS.ink
   const isValid = userId.trim().length > 0 && password.length >= 1
 
   function handleLogin() {
     if (!isValid) return
-    setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      if (userId === storedUserId) {
-        storeSetUserId(userId)
-        navigate(ROUTES.HOME, { replace: true })
-      } else {
-        setLoginFailed(true)
-        setTimeout(() => setLoginFailed(false), 2000)
+    login(
+      { id: userId, password },
+      {
+        onSuccess: () => {
+          navigate(ROUTES.HOME, { replace: true })
+        },
+        onError: () => {
+          setLoginFailed(true)
+          setTimeout(() => setLoginFailed(false), 2000)
+        },
       }
-    }, 600)
+    )
   }
 
   return (
@@ -80,14 +81,11 @@ export function UserLogin({ dark = false }: { dark?: boolean }) {
           <button
             type="button"
             onClick={handleLogin}
-            disabled={!isValid || loading}
+            disabled={!isValid || isPending}
             className="mt-1 w-full rounded-[14px] bg-coral py-4 text-[15px] font-extrabold tracking-[-0.3px] text-white transition-opacity disabled:opacity-40"
           >
-            {loading ? '로그인 중…' : '로그인'}
+            {isPending ? '로그인 중…' : '로그인'}
           </button>
-          <div className="mt-3 text-center text-[11px] text-ink-60">
-            테스트 성공: test
-          </div>
         </div>
       </div>
 

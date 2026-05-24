@@ -1,68 +1,37 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { boothUrl, waitingDetailUrl } from '../../constants/routes'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
 import { ScreenHeader } from '../../components/User/ScreenHeader'
 import { FieldLabel } from '../../components/shared/FieldLabel'
 import { Toast } from '../../components/shared/Toast'
 import { NotificationSettings } from '../../components/User/Waiting/NotificationSettings'
-import { useWaitingStore } from '../../stores/useWaitingStore'
 import { useUserStore } from '../../stores/useUserStore'
-import { NIGHT_BOOTHS } from '../../data/booths'
-import { getBoothZoneName } from '../../data/zones'
+import { useRegisterWaiting } from '../../features/Waiting/hooks/useRegisterWaiting'
 
 const NOTIFICATION_ROWS = [
   { label: '내 차례 3팀 전 알림', sub: '푸시 알림' },
   { label: '내 차례 호출 알림', sub: '진동 + 사운드' },
 ]
 
-export function UserWaitingRegister({
-  dark = false,
-  id,
-}: {
-  dark?: boolean
-  id?: number
-}) {
-  const booth = NIGHT_BOOTHS.find((b) => b.id === id) ?? NIGHT_BOOTHS[0]
+export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
   const navigate = useNavigate()
-  const { waitings, addWaiting } = useWaitingStore()
   const { phone } = useUserStore()
   const [people, setPeople] = useState(4)
   const [notifications, setNotifications] = useState([true, true])
   const [showToast, setShowToast] = useState(false)
-  const [showLimitToast, setShowLimitToast] = useState(false)
-  const surfaceAlt = dark ? '#252A30' : '#F1F7F8'
-  const ink80 = dark ? '#CDD5DA' : '#2E363C'
+
+  const { mutate: registerWaiting } = useRegisterWaiting(id ?? '')
 
   function handleRegister() {
-    if (waitings.length >= 3) {
-      setShowLimitToast(true)
-      setTimeout(() => setShowLimitToast(false), 2200)
-      return
-    }
-    const now = new Date()
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-    const aheadTeams = booth.wait ?? 0
-    const waitNo = aheadTeams + (waitings.length + 1)
-    addWaiting({
-      boothId: booth.id,
-      boothName: booth.name,
-      boothTone: booth.tone,
-      boothArea: getBoothZoneName(booth),
-      boothSections: booth.sections,
-      registered: `${people}인 · ${timeStr} 등록`,
-      waitNo,
-      callNo: waitNo - aheadTeams - 1,
-      progressPct:
-        aheadTeams === 0
-          ? 100
-          : Math.round(((waitNo - aheadTeams) / waitNo) * 100),
-      aheadTeams,
-    })
-    setShowToast(true)
-    setTimeout(() => {
-      navigate(waitingDetailUrl(booth.id), { replace: true })
-    }, 1800)
+    registerWaiting(
+      { partySize: people },
+      {
+        onSuccess: () => {
+          setShowToast(true)
+          setTimeout(() => navigate('/waiting', { replace: true }), 1800)
+        },
+      }
+    )
   }
 
   return (
@@ -73,26 +42,20 @@ export function UserWaitingRegister({
         {/* Booth card */}
         <button
           type="button"
-          onClick={() => navigate(boothUrl('night', booth.id))}
+          onClick={() => id && navigate(`/booth?type=night&id=${id}`)}
           className="flex w-full gap-3 rounded-[18px] border border-border bg-surface p-3 text-left"
         >
           <div className="size-14 shrink-0 overflow-hidden rounded-[14px]">
-            <PhotoSlot label="" tone={booth.tone} radius={14} ratio="1/1" />
+            <PhotoSlot label="" tone="mint" radius={14} ratio="1/1" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex gap-1">
               <Pill color={FESTIV_TOKENS.alert} ink="#fff">
-                #{booth.id}
-              </Pill>
-              <Pill color={surfaceAlt} ink={ink80}>
-                야간 {booth.category}
+                야간
               </Pill>
             </div>
             <div className="mt-1 text-[15px] font-extrabold tracking-[-0.3px] text-ink">
-              {booth.name}
-            </div>
-            <div className="mt-0.5 text-[11px] text-ink-60">
-              현재 {booth.wait}팀 대기
+              부스 정보 불러오는 중…
             </div>
           </div>
         </button>
@@ -194,7 +157,7 @@ export function UserWaitingRegister({
           />
           <Toast
             message="웨이팅 등록이 완료되었습니다"
-            sub={`${booth.name} · ${people}명`}
+            sub={`${people}명`}
             icon={
               <div className="flex size-8 items-center justify-center rounded-full bg-pop shadow-[0_0_0_3px_rgba(34,195,106,0.25)]">
                 <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
@@ -210,31 +173,6 @@ export function UserWaitingRegister({
             }
           />
         </>
-      )}
-
-      {showLimitToast && (
-        <Toast
-          message="웨이팅은 최대 3개까지 등록할 수 있어요"
-          icon={
-            <div className="flex size-8 items-center justify-center rounded-full bg-alert/20">
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
-                <path
-                  d="M8 5v4M8 11h.01"
-                  stroke={FESTIV_TOKENS.alert}
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-                <circle
-                  cx="8"
-                  cy="8"
-                  r="6"
-                  stroke={FESTIV_TOKENS.alert}
-                  strokeWidth="1.6"
-                />
-              </svg>
-            </div>
-          }
-        />
       )}
     </div>
   )

@@ -194,11 +194,15 @@ function NavLinks({ onClick, User }: { onClick?: () => void; User?: boolean }) {
   )
 }
 
+const NO_NAV_ROUTES = [ROUTES.SPLASH]
+
 function Nav() {
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
   const isAdmin =
     pathname.startsWith('/admin') || pathname.startsWith('/booth-admin')
+  if (NO_NAV_ROUTES.includes(pathname as (typeof NO_NAV_ROUTES)[number]))
+    return null
   if (IS_STANDALONE) {
     return (
       <div
@@ -381,7 +385,7 @@ function BoothListRoute() {
 function WaitingRegisterRoute() {
   const { dark } = useUI()
   const [searchParams] = useSearchParams()
-  const id = getIdParam(searchParams)
+  const id = searchParams.get('id') ?? undefined
   return (
     <UserLayout>
       <UserWaitingRegister dark={dark} id={id} />
@@ -433,9 +437,9 @@ function OnboardingRoute() {
 function SplashRoute() {
   const { dark } = useUI()
   return (
-    <UserLayout>
+    <div className="fixed inset-0">
       <UserSplash dark={dark} />
-    </UserLayout>
+    </div>
   )
 }
 function OffSeasonRoute() {
