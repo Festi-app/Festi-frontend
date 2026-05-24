@@ -35,7 +35,12 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
   const endDate = festival?.endDate ?? ''
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
   const currentDay = startDate
-    ? Math.floor((Date.now() - new Date(startDate + 'T00:00:00').getTime()) / 86400000) + 1
+    ? Math.max(
+        1,
+        Math.floor(
+          (Date.now() - new Date(startDate + 'T00:00:00').getTime()) / 86400000
+        ) + 1
+      )
     : 1
 
   // TODO: GET /api/festival/days 엔드포인트 추가되면 fetchedDays.length로 총 일수 바로 사용 가능
@@ -83,8 +88,10 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
   const [timetableDay, setTimetableDay] = useState(currentDay)
   // festival 데이터 로딩 후 오늘 날짜 기준 일차로 동기화
   useEffect(() => {
-    if (festival?.startDate) setTimetableDay(currentDay)
-  }, [festival?.startDate])
+    if (!festival?.startDate) return
+    const t = setTimeout(() => setTimetableDay(currentDay), 0)
+    return () => clearTimeout(t)
+  }, [festival?.startDate, currentDay])
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)

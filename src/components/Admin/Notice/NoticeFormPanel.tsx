@@ -52,7 +52,9 @@ export function NoticeFormPanel({
             maxLength={TITLE_MAX}
             className="w-full rounded-xl border border-border bg-bg px-4 py-3 text-[14px] font-semibold text-ink placeholder-ink-40 focus:border-cta focus:outline-none"
           />
-          <div className={`mt-1 text-right text-[11px] ${draft.title.length >= TITLE_MAX ? 'text-alert' : 'text-ink-40'}`}>
+          <div
+            className={`mt-1 text-right text-[11px] ${draft.title.length >= TITLE_MAX ? 'text-alert' : 'text-ink-40'}`}
+          >
             {draft.title.length}/{TITLE_MAX}자
           </div>
         </div>
@@ -70,7 +72,9 @@ export function NoticeFormPanel({
             maxLength={CONTENT_MAX}
             className="w-full resize-none rounded-xl border border-border bg-bg px-4 py-3 text-[14px] leading-relaxed text-ink placeholder-ink-40 focus:border-cta focus:outline-none"
           />
-          <div className={`mt-1 text-right text-[11px] ${draft.content.length >= CONTENT_MAX ? 'text-alert' : 'text-ink-40'}`}>
+          <div
+            className={`mt-1 text-right text-[11px] ${draft.content.length >= CONTENT_MAX ? 'text-alert' : 'text-ink-40'}`}
+          >
             {draft.content.length}/{CONTENT_MAX}자
           </div>
         </div>

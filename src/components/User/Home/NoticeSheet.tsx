@@ -56,6 +56,11 @@ export function NoticeSheet({ onClose }: { onClose: () => void }) {
           className="flex flex-col gap-2 overflow-y-auto px-5"
           style={{ paddingBottom: tabBarOuterPb }}
         >
+          {sorted.length === 0 && (
+            <div className="py-10 text-center text-[13px] text-ink-40">
+              등록된 공지가 없어요
+            </div>
+          )}
           {sorted.map((n) => (
             <div
               key={n.id}

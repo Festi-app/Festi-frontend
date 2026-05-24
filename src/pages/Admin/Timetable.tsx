@@ -337,10 +337,6 @@ export function AdminTimetable() {
 
   const [selectedDay, setSelectedDay] = useState<number>(1)
   const [activeCurrentDay, setActiveCurrentDay] = useState<number | null>(null)
-  // festival 데이터 로딩 후 오늘 날짜 기준 일차로 동기화
-  useEffect(() => {
-    if (festival?.startDate) setSelectedDay(currentDay)
-  }, [festival?.startDate])
   const [adding, setAdding] = useState(false)
   const [venue, setVenue] = useState('베어드홀 대공연장')
   const [venueDraft, setVenueDraft] = useState(venue)
@@ -350,8 +346,20 @@ export function AdminTimetable() {
   const startDate = festival?.startDate ?? ''
   const endDate = festival?.endDate ?? ''
   const currentDay = startDate
-    ? Math.floor((Date.now() - new Date(startDate + 'T00:00:00').getTime()) / 86400000) + 1
+    ? Math.max(
+        1,
+        Math.floor(
+          (Date.now() - new Date(startDate + 'T00:00:00').getTime()) / 86400000
+        ) + 1
+      )
     : 1
+
+  // festival 데이터 로딩 후 오늘 날짜 기준 일차로 동기화
+  useEffect(() => {
+    if (!festival?.startDate) return
+    const t = setTimeout(() => setSelectedDay(currentDay), 0)
+    return () => clearTimeout(t)
+  }, [festival?.startDate, currentDay])
 
   // TODO: GET /api/festival/days 엔드포인트 추가되면 fetchedDays.length로 총 일수 바로 사용 가능
   // 현재는 festival.startDate~endDate로 직접 계산

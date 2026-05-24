@@ -108,7 +108,13 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
         description: festival?.description ?? undefined,
       },
       {
-        onSuccess: () => setNotice('저장 완료 · 사용자 화면에 반영됐어요'),
+        onSuccess: () => {
+          setNameOverride(null)
+          setStartDateOverride(null)
+          setEndDateOverride(null)
+          setDayOverrides(null)
+          setNotice('저장 완료 · 사용자 화면에 반영됐어요')
+        },
         onError: () => setNotice('저장에 실패했어요. 다시 시도해주세요'),
       }
     )
