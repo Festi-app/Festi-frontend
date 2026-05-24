@@ -1,10 +1,8 @@
-import { apiClient } from '../../../lib/apiClient'
+import { apiClient } from '../../../lib/axios'
 import { ENDPOINTS } from '../../../constants/endpoints'
-import type { GetUsersMeResponseDto } from '../types/user'
+import type { UserResponseDto } from '../types/UserResponseDto'
 
-export async function getUsersMe(): Promise<GetUsersMeResponseDto> {
-  const { data } = await apiClient.get<GetUsersMeResponseDto>(
-    ENDPOINTS.USERS.ME
-  )
+export async function getUsersMe(): Promise<UserResponseDto> {
+  const { data } = await apiClient.get<UserResponseDto>(ENDPOINTS.USERS.ME)
   return data
 }

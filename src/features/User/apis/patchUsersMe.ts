@@ -1,14 +1,12 @@
-import { apiClient } from '../../../lib/apiClient'
+import { apiClient } from '../../../lib/axios'
 import { ENDPOINTS } from '../../../constants/endpoints'
-import type {
-  PatchUsersMeRequestDto,
-  PatchUsersMeResponseDto,
-} from '../types/user'
+import type { UserRequestDto } from '../types/UserRequestDto'
+import type { UserResponseDto } from '../types/UserResponseDto'
 
 export async function patchUsersMe(
-  body: PatchUsersMeRequestDto
-): Promise<PatchUsersMeResponseDto> {
-  const { data } = await apiClient.patch<PatchUsersMeResponseDto>(
+  body: UserRequestDto
+): Promise<UserResponseDto> {
+  const { data } = await apiClient.patch<UserResponseDto>(
     ENDPOINTS.USERS.ME,
     body
   )
