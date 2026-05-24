@@ -380,12 +380,17 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                 </div>
               )}
               {festivalAdmins.map((user) => (
-                <div key={user.id} className="flex items-center gap-2.5 rounded-xl bg-surface-alt px-3 py-2.5">
+                <div
+                  key={user.id}
+                  className="flex items-center gap-2.5 rounded-xl bg-surface-alt px-3 py-2.5"
+                >
                   <div className="flex size-7.5 shrink-0 items-center justify-center rounded-full bg-[#141A1F] text-[11px] font-extrabold text-white">
                     {user.name[0]}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[13px] font-bold text-ink">{user.name}</div>
+                    <div className="text-[13px] font-bold text-ink">
+                      {user.name}
+                    </div>
                     <div className="text-[11px] text-ink-60">{user.phone}</div>
                   </div>
                 </div>
@@ -403,12 +408,17 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                 </div>
               )}
               {boothManagers.map((user) => (
-                <div key={user.id} className="flex items-center gap-2.5 rounded-xl bg-surface-alt px-3 py-2.5">
+                <div
+                  key={user.id}
+                  className="flex items-center gap-2.5 rounded-xl bg-surface-alt px-3 py-2.5"
+                >
                   <div className="flex size-7.5 shrink-0 items-center justify-center rounded-full bg-cta/15 text-[11px] font-extrabold text-cta">
                     {user.name[0]}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[13px] font-bold text-ink">{user.name}</div>
+                    <div className="text-[13px] font-bold text-ink">
+                      {user.name}
+                    </div>
                     <div className="text-[11px] text-ink-60">{user.phone}</div>
                   </div>
                 </div>
