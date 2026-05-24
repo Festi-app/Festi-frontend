@@ -7,7 +7,7 @@ export function useCreateMenu(boothId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (body: MenusResponseDto) => postMenu(boothId, body),
+    mutationFn: (body: Omit<MenusResponseDto, 'id'>) => postMenu(boothId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: menuKeys.list(boothId) })
     },
