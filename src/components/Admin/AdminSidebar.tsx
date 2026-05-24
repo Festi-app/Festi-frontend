@@ -22,14 +22,22 @@ export function AdminSidebar({ active }: { active: string }) {
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000)
+    const id = setInterval(() => setNow(new Date()), 1_000)
     return () => clearInterval(id)
   }, [])
 
   const todayStr = now.toISOString().slice(0, 10)
   const currentDayIdx = festivalDays.findIndex((fd) => fd.day === todayStr)
   const currentDay = currentDayIdx >= 0 ? festivalDays[currentDayIdx] : null
-  const dayLabel = currentDayIdx >= 0 ? `${currentDayIdx + 1}일차` : null
+  const dayLabel = (() => {
+    const s = festival?.startDate
+    const e = festival?.endDate
+    if (!s || !e || todayStr < s || todayStr > e) return null
+    const diff = Math.round(
+      (new Date(todayStr + 'T00:00:00').getTime() - new Date(s + 'T00:00:00').getTime()) / 86400000
+    )
+    return `축제 진행 중 · ${diff + 1}일차`
+  })()
 
   const timeStr = now.toTimeString().slice(0, 5)
   let modeLabel: string | null = null
@@ -42,9 +50,19 @@ export function AdminSidebar({ active }: { active: string }) {
     else if (ns && ne && timeStr >= ns && timeStr < ne) modeLabel = '야간 모드'
   }
 
+  const festivalStatus: 'live' | 'upcoming' | 'ended' | 'unknown' = (() => {
+    const s = festival?.startDate
+    const e = festival?.endDate
+    if (!s || !e) return 'unknown'
+    if (todayStr < s) return 'upcoming'
+    if (todayStr > e) return 'ended'
+    return 'live'
+  })()
+
   const timeDisplay = now.toLocaleTimeString('ko-KR', {
     hour: '2-digit',
     minute: '2-digit',
+    second: '2-digit',
     hour12: false,
   })
   const items: Array<{
@@ -231,28 +249,53 @@ export function AdminSidebar({ active }: { active: string }) {
         </button>
       </div>
 
-      <div className="mb-2 rounded-[14px] bg-cta p-3 text-cta-ink">
+      <div
+        className={cn(
+          'mb-2 rounded-[14px] p-3',
+          festivalStatus === 'live'
+            ? 'bg-cta text-cta-ink'
+            : festivalStatus === 'upcoming'
+              ? 'bg-pop/90 text-white'
+              : festivalStatus === 'ended'
+                ? 'bg-ink/10 text-ink'
+                : 'bg-surface-alt text-ink-60'
+        )}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <span
               className={cn(
                 'size-1.75 rounded-full',
-                dayLabel
+                festivalStatus === 'live'
                   ? 'bg-mint shadow-[0_0_0_3px_rgba(169,229,231,0.2)]'
-                  : 'bg-white/40'
+                  : festivalStatus === 'upcoming'
+                    ? 'bg-white/70'
+                    : 'bg-current opacity-30'
               )}
             />
-            <span className="text-[11px] font-bold tracking-[0.3px]">LIVE</span>
+            <span className="text-[11px] font-bold tracking-[0.3px]">
+              {festivalStatus === 'live'
+                ? 'LIVE'
+                : festivalStatus === 'upcoming'
+                  ? 'UPCOMING'
+                  : festivalStatus === 'ended'
+                    ? 'ENDED'
+                    : 'UNKNOWN'}
+            </span>
           </div>
           <span className="text-[11px] opacity-70">{timeDisplay}</span>
         </div>
         <div className="mt-1.5 text-[13px] font-bold tracking-[-0.2px]">
-          {dayLabel
-            ? [dayLabel, modeLabel].filter(Boolean).join(' · ')
-            : (festival?.name ?? '축제 준비 중')}
+          {festivalStatus === 'live'
+            ? [dayLabel, modeLabel].filter(Boolean).join(' · ') || (festival?.name ?? '')
+            : festivalStatus === 'upcoming'
+              ? `${festival?.startDate} 시작`
+              : festivalStatus === 'ended'
+                ? `${festival?.endDate} 종료`
+                : (festival?.name ?? '축제 준비 중')}
         </div>
         <div className="mt-0.5 text-[11px] opacity-60">
-          {dayLabel ? todayStr : '운영 시간 외'}
+          {festivalStatus === 'live' ? todayStr : festival?.name ?? ''}
         </div>
       </div>
 
