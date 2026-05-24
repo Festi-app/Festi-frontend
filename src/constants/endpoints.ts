@@ -22,6 +22,9 @@ export const ENDPOINTS = {
   },
   BOOTHS: {
     LIST: '/api/booths',
+    FOOD_TRUCKS: '/api/booths/admin/food-trucks',
+    FOOD_TRUCK_DETAIL: (boothId: string) =>
+      `/api/booths/admin/food-trucks/${boothId}`,
     DETAIL: (boothId: string) => `/api/booths/${boothId}`,
     MENUS: (boothId: string) => `/api/booths/${boothId}/menus`,
     MENU_DETAIL: (boothId: string, menuId: string) =>
@@ -35,6 +38,20 @@ export const ENDPOINTS = {
   LOCATIONS: {
     LIST: '/api/locations',
     DETAIL: (locationId: string) => `/api/locations/${locationId}`,
+    SLOTS: '/api/locations/slots',
+    ASSIGNMENT: (locationId: string) =>
+      `/api/locations/${locationId}/assignment`,
+  },
+  BOOTH_APPLICATIONS: {
+    ROOT: '/api/booth-applications',
+    ME: '/api/booth-applications/me',
+    ADMIN_LIST: '/api/admin/booth-applications',
+    ADMIN_DETAIL: (applicationId: string) =>
+      `/api/admin/booth-applications/${applicationId}`,
+    APPROVE: (applicationId: string) =>
+      `/api/admin/booth-applications/${applicationId}/approve`,
+    REJECT: (applicationId: string) =>
+      `/api/admin/booth-applications/${applicationId}/reject`,
   },
   WAITINGS: {
     LIST: '/api/waitings',

@@ -1,24 +1,13 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
-import {
-  useBoothAdminStore,
-  type OrgType,
-  type OperatingTime,
-  type BoothCategoryType,
-} from '../../stores/useBoothAdminStore'
-import { FESTIV_TOKENS } from '../../tokens'
+import { useSubmitBoothApplication } from '../../features/BoothApplication/hooks/useSubmitBoothApplication'
+import type { BoothType } from '../../types/common'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
+import { FESTIV_TOKENS } from '../../tokens'
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
-}
-
-const CATEGORY_COLORS: Record<BoothCategoryType, string> = {
-  정보: FESTIV_TOKENS.coral,
-  체험: FESTIV_TOKENS.grape,
-  마켓: FESTIV_TOKENS.sun,
-  활동: FESTIV_TOKENS.pop,
 }
 
 function FieldLabel({
@@ -58,87 +47,72 @@ function TextInput({
   )
 }
 
-const STEPS = ['기본 정보', '부스 정보', '대표자 정보']
+const BOOTH_TYPE_OPTIONS: { value: BoothType; label: string; desc: string }[] =
+  [
+    { value: 'DAY', label: '주간 부스', desc: '낮 시간대 운영하는 일반 부스' },
+    { value: 'NIGHT', label: '야간 부스', desc: '야간 운영 주점 부스' },
+  ]
+
+const STEPS = ['부스 정보', '상세 내용', '계정 정보']
 
 export function BoothAdminRegister() {
   const navigate = useNavigate()
-  const register = useBoothAdminStore((s) => s.register)
-  const isUsernameTaken = useBoothAdminStore((s) => s.isUsernameTaken)
+  const { mutate: submitApplication, isPending: isSubmitting } =
+    useSubmitBoothApplication()
+
   const [step, setStep] = useState(1)
 
-  // Step 1
-  const [orgType, setOrgType] = useState<OrgType>('동아리/소모임')
-  const [orgName, setOrgName] = useState('')
-  const [times, setTimes] = useState<OperatingTime[]>([])
+  // Step 1 — 부스 기본 정보
+  const [boothType, setBoothType] = useState<BoothType>('DAY')
+  const [name, setName] = useState('')
 
-  // Step 2 – 주간
-  const [dayBoothName, setDayBoothName] = useState('')
-  const [dayBoothDesc, setDayBoothDesc] = useState('')
-  const [dayCategory, setDayCategory] = useState<BoothCategoryType | ''>('')
+  // Step 2 — 상세 내용
+  const [description, setDescription] = useState('')
 
-  // Step 2 – 야간
-  const [nightBoothName, setNightBoothName] = useState('')
-  const [nightBoothDesc, setNightBoothDesc] = useState('')
-
-  // Step 3
-  const [username, setUsername] = useState('')
-  const [usernameChecked, setUsernameChecked] = useState(false)
-  const [usernameTaken, setUsernameTaken] = useState(false)
+  // Step 3 — 계정 정보
+  const [userId, setUserId] = useState('')
   const [repName, setRepName] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  function handleUsernameBlur() {
-    if (!username.trim()) return
-    const taken = isUsernameTaken(username.trim())
-    setUsernameTaken(taken)
-    setUsernameChecked(true)
-  }
-
-  const hasDay = times.includes('주간')
-  const hasNight = times.includes('야간')
-
-  function toggleTime(t: OperatingTime) {
-    setTimes((prev) =>
-      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
-    )
-  }
+  const isLoading = isSubmitting
 
   function canAdvance() {
-    if (step === 1) return orgName.trim().length > 0
-    if (step === 2) {
-      if (times.length === 0) return false
-      if (hasDay && (!dayBoothName.trim() || !dayCategory)) return false
-      if (hasNight && !nightBoothName.trim()) return false
-      return true
-    }
+    if (step === 1) return name.trim().length > 0
+    if (step === 2) return true
     return false
   }
 
   function handleSubmit() {
     if (
-      !username.trim() ||
-      usernameTaken ||
-      !usernameChecked ||
+      !userId.trim() ||
       !repName.trim() ||
+      !phone.trim() ||
       !password ||
       password !== passwordConfirm
     )
       return
-    register({
-      username: username.trim(),
-      password,
-      representativeName: repName,
-      orgType,
-      orgName,
-      operatingTimes: times,
-      dayBoothName,
-      dayBoothDesc,
-      dayCategory,
-      nightBoothName,
-      nightBoothDesc,
-    })
-    navigate(`${ROUTES.BOOTH_ADMIN.LOGIN}?registered=1`)
+
+    setSubmitError(null)
+
+    submitApplication(
+      {
+        id: userId.trim(),
+        password,
+        name: repName.trim(),
+        phone: phone.trim(),
+        boothName: name.trim(),
+        boothType,
+        description: description.trim() || undefined,
+      },
+      {
+        onSuccess: () => navigate(`${ROUTES.BOOTH_ADMIN.LOGIN}?registered=1`),
+        onError: () =>
+          setSubmitError('신청 중 오류가 발생했어요. 다시 시도해주세요.'),
+      }
+    )
   }
 
   return (
@@ -160,10 +134,10 @@ export function BoothAdminRegister() {
             </span>
           </div>
           <div className="text-[26px] font-extrabold tracking-tight text-ink">
-            부스 관리자 회원가입
+            부스 신청
           </div>
           <div className="mt-1 text-[13px] text-ink-60">
-            축제 부스를 운영할 단체 정보를 입력해주세요
+            부스 정보를 입력해주세요
           </div>
         </div>
 
@@ -215,67 +189,43 @@ export function BoothAdminRegister() {
           {step === 1 && (
             <div className="flex flex-col gap-4">
               <div>
-                <FieldLabel required>단체 유형</FieldLabel>
-                <div className="grid grid-cols-2 gap-2">
-                  {(['동아리/소모임', '단과대/학과'] as OrgType[]).map((t) => (
+                <FieldLabel required>부스 유형</FieldLabel>
+                <div className="flex flex-col gap-2">
+                  {BOOTH_TYPE_OPTIONS.map((opt) => (
                     <button
-                      key={t}
+                      key={opt.value}
                       type="button"
-                      onClick={() => setOrgType(t)}
+                      onClick={() => setBoothType(opt.value)}
                       className={cn(
-                        'rounded-xl border py-3 text-[13px] font-bold transition-all',
-                        orgType === t
-                          ? 'border-cta bg-cta/10 text-cta'
-                          : 'border-border bg-bg text-ink-60'
+                        'rounded-xl border px-4 py-3 text-left transition-all',
+                        boothType === opt.value
+                          ? 'border-cta bg-cta/10'
+                          : 'border-border bg-bg'
                       )}
                     >
-                      {t}
+                      <div
+                        className={cn(
+                          'text-[13px] font-bold',
+                          boothType === opt.value ? 'text-cta' : 'text-ink'
+                        )}
+                      >
+                        {opt.label}
+                      </div>
+                      <div className="mt-0.5 text-[11px] text-ink-40">
+                        {opt.desc}
+                      </div>
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <FieldLabel required>
-                  {orgType === '동아리/소모임'
-                    ? '동아리 / 소모임명'
-                    : '학과 / 단과대명'}
-                </FieldLabel>
+                <FieldLabel required>부스명</FieldLabel>
                 <TextInput
-                  value={orgName}
-                  onChange={setOrgName}
-                  placeholder={
-                    orgType === '동아리/소모임'
-                      ? 'ex) 컴퓨터학부 코딩 동아리'
-                      : 'ex) 컴퓨터학과'
-                  }
+                  value={name}
+                  onChange={setName}
+                  placeholder="부스 이름을 입력하세요"
                 />
-              </div>
-
-              <div>
-                <FieldLabel required>운영 시간 (중복 선택 가능)</FieldLabel>
-                <div className="flex gap-2">
-                  {(['주간', '야간'] as OperatingTime[]).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => toggleTime(t)}
-                      className={cn(
-                        'flex-1 rounded-xl border py-2.5 text-[13px] font-bold transition-all',
-                        times.includes(t)
-                          ? 'border-cta bg-cta/10 text-cta'
-                          : 'border-border bg-bg text-ink-60'
-                      )}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-                {times.length === 0 && (
-                  <div className="mt-1.5 text-[11px] text-alert">
-                    운영 시간을 하나 이상 선택하세요
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -283,94 +233,16 @@ export function BoothAdminRegister() {
           {/* ── Step 2 ── */}
           {step === 2 && (
             <div className="flex flex-col gap-4">
-              {hasDay && (
-                <div className="rounded-xl border border-border bg-surface-alt p-4">
-                  <div className="mb-3 flex items-center gap-2">
-                    <div
-                      className="size-2 rounded-full"
-                      style={{ background: FESTIV_TOKENS.coral }}
-                    />
-                    <div className="text-[13px] font-extrabold text-ink">
-                      주간 부스 정보
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <div>
-                      <FieldLabel required>부스명</FieldLabel>
-                      <TextInput
-                        value={dayBoothName}
-                        onChange={setDayBoothName}
-                        placeholder="부스 이름을 입력하세요"
-                      />
-                    </div>
-                    <div>
-                      <FieldLabel>간단 소개</FieldLabel>
-                      <TextInput
-                        value={dayBoothDesc}
-                        onChange={setDayBoothDesc}
-                        placeholder="부스를 한 줄로 소개해주세요"
-                      />
-                    </div>
-                    <div>
-                      <FieldLabel required>부스 카테고리</FieldLabel>
-                      <div className="grid grid-cols-4 gap-1.5">
-                        {(
-                          Object.keys(CATEGORY_COLORS) as BoothCategoryType[]
-                        ).map((cat) => (
-                          <button
-                            key={cat}
-                            type="button"
-                            onClick={() => setDayCategory(cat)}
-                            className={cn(
-                              'rounded-xl py-2 text-[12px] font-bold transition-all',
-                              dayCategory === cat ? 'text-white' : 'text-ink-60'
-                            )}
-                            style={
-                              dayCategory === cat
-                                ? { background: CATEGORY_COLORS[cat] }
-                                : { background: `${CATEGORY_COLORS[cat]}33` }
-                            }
-                          >
-                            {cat}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {hasNight && (
-                <div className="rounded-xl border border-border bg-surface-alt p-4">
-                  <div className="mb-3 flex items-center gap-2">
-                    <div
-                      className="size-2 rounded-full"
-                      style={{ background: FESTIV_TOKENS.grape }}
-                    />
-                    <div className="text-[13px] font-extrabold text-ink">
-                      야간 부스 정보 (주점)
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <div>
-                      <FieldLabel required>부스명</FieldLabel>
-                      <TextInput
-                        value={nightBoothName}
-                        onChange={setNightBoothName}
-                        placeholder="주점 이름을 입력하세요"
-                      />
-                    </div>
-                    <div>
-                      <FieldLabel>간단 부스 소개</FieldLabel>
-                      <TextInput
-                        value={nightBoothDesc}
-                        onChange={setNightBoothDesc}
-                        placeholder="주점을 한 줄로 소개해주세요"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+              <div>
+                <FieldLabel>부스 소개</FieldLabel>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="부스를 간단히 소개해주세요"
+                  rows={3}
+                  className="w-full resize-none rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+                />
+              </div>
             </div>
           )}
 
@@ -379,30 +251,11 @@ export function BoothAdminRegister() {
             <div className="flex flex-col gap-4">
               <div>
                 <FieldLabel required>아이디</FieldLabel>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => {
-                    setUsername(e.target.value)
-                    setUsernameChecked(false)
-                    setUsernameTaken(false)
-                  }}
-                  onBlur={handleUsernameBlur}
+                <TextInput
+                  value={userId}
+                  onChange={setUserId}
                   placeholder="로그인에 사용할 아이디"
-                  className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
                 />
-                {usernameChecked && username.trim() && (
-                  <div
-                    className={cn(
-                      'mt-1.5 text-[11px] font-semibold',
-                      usernameTaken ? 'text-alert' : 'text-pop'
-                    )}
-                  >
-                    {usernameTaken
-                      ? '이미 사용중인 아이디예요'
-                      : '사용 가능한 아이디예요'}
-                  </div>
-                )}
               </div>
               <div>
                 <FieldLabel required>대표자 이름</FieldLabel>
@@ -410,6 +263,15 @@ export function BoothAdminRegister() {
                   value={repName}
                   onChange={setRepName}
                   placeholder="이름을 입력하세요"
+                />
+              </div>
+              <div>
+                <FieldLabel required>전화번호</FieldLabel>
+                <TextInput
+                  value={phone}
+                  onChange={setPhone}
+                  placeholder="010-0000-0000"
+                  type="tel"
                 />
               </div>
               <div>
@@ -435,6 +297,12 @@ export function BoothAdminRegister() {
                   </div>
                 )}
               </div>
+
+              {submitError && (
+                <div className="rounded-xl bg-alert/10 px-4 py-3 text-[12px] font-semibold text-alert">
+                  {submitError}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -445,7 +313,8 @@ export function BoothAdminRegister() {
             <button
               type="button"
               onClick={() => setStep((s) => s - 1)}
-              className="flex-1 rounded-xl border border-border bg-surface py-3 text-[14px] font-bold text-ink-60"
+              disabled={isLoading}
+              className="flex-1 rounded-xl border border-border bg-surface py-3 text-[14px] font-bold text-ink-60 disabled:opacity-40"
             >
               이전
             </button>
@@ -464,16 +333,16 @@ export function BoothAdminRegister() {
               type="button"
               onClick={handleSubmit}
               disabled={
-                !username.trim() ||
-                !usernameChecked ||
-                usernameTaken ||
+                !userId.trim() ||
                 !repName.trim() ||
+                !phone.trim() ||
                 !password ||
-                password !== passwordConfirm
+                password !== passwordConfirm ||
+                isLoading
               }
               className="flex-1 rounded-xl bg-cta py-3 text-[14px] font-extrabold text-white disabled:opacity-40"
             >
-              회원가입 신청
+              {isLoading ? '신청 중...' : '회원가입 신청'}
             </button>
           )}
         </div>
