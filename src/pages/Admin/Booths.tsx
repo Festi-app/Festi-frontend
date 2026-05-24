@@ -84,7 +84,12 @@ export function AdminBooths() {
       applications: ([1, 2, 3] as PermDay[]).flatMap((d) =>
         a.boothType === 'FOOD_TRUCK'
           ? []
-          : [{ day: d, time: (a.boothType === 'NIGHT' ? '야간' : '주간') as PermTime }]
+          : [
+              {
+                day: d,
+                time: (a.boothType === 'NIGHT' ? '야간' : '주간') as PermTime,
+              },
+            ]
       ),
     }))
 
@@ -120,9 +125,9 @@ export function AdminBooths() {
   const selectedTime: PermTime = mapMode === '야간' ? '야간' : '주간'
 
   const modeToType: Record<BoothMapMode, BoothType> = {
-    '주간': 'DAY',
-    '야간': 'NIGHT',
-    '푸드트럭': 'FOOD_TRUCK',
+    주간: 'DAY',
+    야간: 'NIGHT',
+    푸드트럭: 'FOOD_TRUCK',
   }
   const currentFestivalDay = festivalDays[selectedDay - 1]
   const { data: locations = [] } = useLocations({
@@ -138,8 +143,12 @@ export function AdminBooths() {
     null
   )
   const [notice, setNotice] = useState('구역별 섹션 개수를 설정하고 저장하세요')
-  const [draftDivisions, setDraftDivisions] = useState<Record<string, number>>({})
-  const [draftTruckSlots, setDraftTruckSlots] = useState<Record<string, number>>({})
+  const [draftDivisions, setDraftDivisions] = useState<Record<string, number>>(
+    {}
+  )
+  const [draftTruckSlots, setDraftTruckSlots] = useState<
+    Record<string, number>
+  >({})
 
   function handleConfigureSave() {
     const { zoneDivisions } = useBoothSectionStore.getState()
@@ -149,17 +158,26 @@ export function AdminBooths() {
       createLocationSlots.mutate({
         festivalDayId: fd.id,
         type: 'DAY',
-        zones: ZONES.map((z) => ({ zoneLabel: z.id, count: zoneDivisions[z.id] ?? z.defaultCount })),
+        zones: ZONES.map((z) => ({
+          zoneLabel: z.id,
+          count: zoneDivisions[z.id] ?? z.defaultCount,
+        })),
       })
       createLocationSlots.mutate({
         festivalDayId: fd.id,
         type: 'NIGHT',
-        zones: NIGHT_ZONES.map((z) => ({ zoneLabel: z.id, count: zoneDivisions[z.id] ?? z.defaultCount })),
+        zones: NIGHT_ZONES.map((z) => ({
+          zoneLabel: z.id,
+          count: zoneDivisions[z.id] ?? z.defaultCount,
+        })),
       })
       createLocationSlots.mutate({
         festivalDayId: fd.id,
         type: 'FOOD_TRUCK',
-        zones: TRUCK_ZONES.map((z) => ({ zoneLabel: z.id, count: truckCounts[z.id] ?? z.slotCount })),
+        zones: TRUCK_ZONES.map((z) => ({
+          zoneLabel: z.id,
+          count: truckCounts[z.id] ?? z.slotCount,
+        })),
       })
     })
 
@@ -281,9 +299,12 @@ export function AdminBooths() {
         {/* ── Sidebar ── */}
         {step === 'configure' ? (
           <BoothConfigureSidebar
-          onSave={handleConfigureSave}
-          onDraftChange={(d, t) => { setDraftDivisions(d); setDraftTruckSlots(t) }}
-        />
+            onSave={handleConfigureSave}
+            onDraftChange={(d, t) => {
+              setDraftDivisions(d)
+              setDraftTruckSlots(t)
+            }}
+          />
         ) : (
           <BoothAssignSidebar
             orgs={allOrgs}
@@ -354,9 +375,12 @@ export function AdminBooths() {
                 draggable={false}
               />
               {TRUCK_ZONES.map((zone) => {
-                const count = step === 'configure'
-                ? (draftTruckSlots[zone.id] ?? truckSlotCounts[zone.id] ?? zone.slotCount)
-                : (truckSlotCounts[zone.id] ?? zone.slotCount)
+                const count =
+                  step === 'configure'
+                    ? (draftTruckSlots[zone.id] ??
+                      truckSlotCounts[zone.id] ??
+                      zone.slotCount)
+                    : (truckSlotCounts[zone.id] ?? zone.slotCount)
                 const rotate = truckZoneRotations[zone.id] ?? zone.rotate
                 return (
                   <div
@@ -446,9 +470,10 @@ export function AdminBooths() {
 
               {/* ── Zone overlays ── */}
               {activeZones.map((zone) => {
-                const divisions = step === 'configure'
-                  ? (draftDivisions[zone.id] ?? zoneDivisions[zone.id])
-                  : zoneDivisions[zone.id]
+                const divisions =
+                  step === 'configure'
+                    ? (draftDivisions[zone.id] ?? zoneDivisions[zone.id])
+                    : zoneDivisions[zone.id]
                 return (
                   <div
                     key={zone.id}

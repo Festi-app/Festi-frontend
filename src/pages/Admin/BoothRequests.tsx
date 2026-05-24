@@ -127,9 +127,9 @@ function ApplicationCard({
       {app.status === 'REJECTED' && (
         <div className="rounded-xl bg-alert/10 px-4 py-2.5 text-center text-[13px] font-bold text-alert">
           반려됨
-          {app.rejectionReason && (
+          {app.reviewMemo && (
             <div className="mt-1 text-[11px] font-normal text-ink-60">
-              사유: {app.rejectionReason}
+              사유: {app.reviewMemo}
             </div>
           )}
         </div>

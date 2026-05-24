@@ -14,7 +14,10 @@ export function BoothConfigureSidebar({
   onDraftChange,
 }: {
   onSave: () => void
-  onDraftChange?: (divisions: Record<string, number>, truckSlots: Record<string, number>) => void
+  onDraftChange?: (
+    divisions: Record<string, number>,
+    truckSlots: Record<string, number>
+  ) => void
 }) {
   const {
     zoneDivisions,
