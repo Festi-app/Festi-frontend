@@ -4,8 +4,10 @@ export type ApplicationStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
 export interface BoothApplicationResponseDto {
   id: string
+  festivalId?: string
   boothType: BoothType
-  name: string
+  boothName: string
+  boothCategory?: string
   description?: string
   operatingHours?: string
   imageUrl?: string
