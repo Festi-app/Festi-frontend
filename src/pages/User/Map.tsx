@@ -99,10 +99,11 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
     return diff >= 0 && diff < totalDays ? diff : -1
   }, [festival?.startDate, totalDays, festivalDaysList])
 
-  const CURRENT_DAY_LABEL =
-    todayIndex >= 0 ? `${todayIndex + 1}일차` : (dayLabels[0] ?? '1일차')
+  // 라이브 중일 때만 dot 표시 — 미리보기/종료 시 빈 문자열
+  const todayDayLabel = todayIndex >= 0 ? `${todayIndex + 1}일차` : ''
+  const defaultDayLabel = todayDayLabel || (dayLabels[0] ?? '1일차')
   const [userSelectedDay, setUserSelectedDay] = useState<string | null>(null)
-  const selectedFestivalDay = userSelectedDay ?? CURRENT_DAY_LABEL
+  const selectedFestivalDay = userSelectedDay ?? defaultDayLabel
   const setSelectedFestivalDay = setUserSelectedDay
   const [dayDropdownOpen, setDayDropdownOpen] = useState(false)
   const [mapView, setMapView] = useState<UserMapView>(isDay ? 'day' : 'night')
@@ -506,7 +507,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
       <MapTopHeader
         mapView={mapView}
         selectedFestivalDay={selectedFestivalDay}
-        currentDayLabel={CURRENT_DAY_LABEL}
+        currentDayLabel={todayDayLabel}
         dayLabels={dayLabels}
         dayDropdownOpen={dayDropdownOpen}
         onSearchOpen={() => setSearchOpen(true)}

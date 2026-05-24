@@ -121,6 +121,8 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
     : null
   const isUpcoming = diffDays != null && diffDays > 0
   const isEnded = end != null && today > end
+  // 라이브 중일 때만 dot 표시 — 미리보기/종료 시 0 (어떤 일차에도 매칭 안 됨)
+  const liveDayNumber = isUpcoming || isEnded ? 0 : currentDay
   const dDayLabel =
     diffDays == null ? '' : isUpcoming ? `D-${diffDays}` : `DAY ${1 - diffDays}`
   const [noticeOpen, setNoticeOpen] = useState(false)
@@ -284,7 +286,7 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
             <DayDropdown
               value={timetableDay}
               onChange={setTimetableDay}
-              currentDay={currentDay}
+              currentDay={liveDayNumber}
               totalDays={totalDays}
             />
           </div>
@@ -294,7 +296,7 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
               key={timetableDay}
               slots={days[timetableDay] ?? []}
               timetableDay={timetableDay}
-              currentDay={currentDay}
+              currentDay={liveDayNumber}
               nowMin={nowMin}
             />
           </div>
