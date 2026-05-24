@@ -13,6 +13,7 @@ import { useBooth } from '../../../features/Booth/hooks/useBooth'
 import { useBoothMenus } from '../../../features/Booth/hooks/useBoothMenus'
 import { useLocations } from '../../../features/Map/hooks/useLocations'
 import { useFestivalDays } from '../../../features/Festival/hooks/useFestivalDays'
+import { getZoneName } from '../../../lib/format'
 import type { BoothType } from '../../../features/Booth/types/BoothSummaryDto'
 
 const _d = new Date()
@@ -61,9 +62,10 @@ export function UserBoothDetail({
     day: todayFestivalDay,
     type: TYPE_MAP[type] ?? 'DAY',
   })
-  const locationIndex =
-    locations.find((l) => l.boothSummary?.id === id)?.index ?? null
+  const locationEntry = locations.find((l) => l.boothSummary?.id === id) ?? null
+  const locationIndex = locationEntry?.index ?? null
   const sections = locationIndex !== null ? [locationIndex] : undefined
+  const zoneLabel = locationEntry?.zoneLabel ?? undefined
 
   const favorite = id ? isSaved(id) : false
   const alreadyWaiting =
@@ -109,7 +111,7 @@ export function UserBoothDetail({
           name={booth.name}
           category={CATEGORY_LABEL[booth.category] ?? booth.category}
           type={type}
-          area={booth.location ?? undefined}
+          area={getZoneName(zoneLabel) ?? booth.location ?? undefined}
           operatingHours={booth.operatingHours ?? undefined}
           description={booth.description ?? undefined}
           sections={sections}

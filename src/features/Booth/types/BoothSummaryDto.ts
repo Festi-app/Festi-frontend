@@ -13,6 +13,7 @@ export interface BoothSummaryDto {
   name: string
   category: BoothCategory
   type: BoothType
+  description: string | null
   imageUrl: string | null
   isWaitingOpen: boolean
   location: string | null

@@ -7,7 +7,7 @@ import { tabBarPb } from '../../../lib/safeArea'
 import { useLocations } from '../../../features/Map/hooks/useLocations'
 import { useFestivalDays } from '../../../features/Festival/hooks/useFestivalDays'
 import { Toast } from '../../../components/shared/Toast'
-import { formatSections } from '../../../lib/format'
+import { formatSections, getZoneName } from '../../../lib/format'
 import type { BoothType } from '../../../features/Booth/types/BoothSummaryDto'
 
 const _d = new Date()
@@ -97,19 +97,18 @@ export function UserBoothList() {
                             {b.name}
                           </div>
                           <div className="mt-0.5 text-start text-xs text-ink-60">
-                            {loc.zoneLabel ??
+                            {getZoneName(loc.zoneLabel) ??
                               CATEGORY_LABEL[b.category] ??
                               b.category}
                             {loc.index != null && (
                               <> #{formatSections([loc.index])}</>
                             )}
                           </div>
-                          {/* TODO: boothSummary에 description 추가되면 연결
                           {b.description && (
-                            <div className="mt-1 truncate text-[11px] text-ink-40">
+                            <div className="mt-1 text-[13px] leading-snug text-ink-60">
                               {b.description}
                             </div>
-                          )} */}
+                          )}
                         </div>
                         <button
                           type="button"

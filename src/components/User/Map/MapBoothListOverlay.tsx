@@ -136,7 +136,7 @@ export function MapBoothListOverlay({
           >
             {listTab === 'truck' ? (
               truckBooths.length === 0 ? (
-                <div className="py-10 text-center text-sm text-ink-40">
+                <div className="flex h-full items-center justify-center text-sm text-ink-40">
                   등록된 부스가 없어요
                 </div>
               ) : (
@@ -173,7 +173,9 @@ export function MapBoothListOverlay({
                 </div>
               )
             ) : listMarkers.length === 0 ? (
-              <div className="py-10 text-center text-sm text-ink-40">
+              <div
+                className={`flex h-full items-center justify-center text-sm text-ink-40 ${listTab === 'day' ? 'pb-11' : ''}`}
+              >
                 등록된 부스가 없어요
               </div>
             ) : (

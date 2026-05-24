@@ -14,6 +14,7 @@ import { TimetableCard } from '../../components/User/Home/TimetableCard'
 import { QuickEntrySection } from '../../components/User/QuickEntrySection'
 import { UserBoothListCard } from '../../components/User/Home/UserBoothListCard'
 import { boothListUrl, boothUrl } from '../../constants/routes'
+import { getZoneName } from '../../lib/format'
 
 const _d = new Date()
 const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`
@@ -51,16 +52,6 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
     [truckLocations]
   )
 
-  // TODO: GET /api/festival/days 엔드포인트 추가되면 해당 API로 교체
-  // 현재는 timelines의 festivalDay에서 id 추출
-  const festivalDays = useMemo(() => {
-    const seen = new Map<string, { id: string; day: string }>()
-    timelines.forEach((t) => {
-      if (!seen.has(t.festivalDay.id)) seen.set(t.festivalDay.id, t.festivalDay)
-    })
-    return Array.from(seen.values()).sort((a, b) => a.day.localeCompare(b.day))
-  }, [timelines])
-
   const festivalName = festival?.name ?? '축제'
   const startDate = festival?.startDate ?? ''
   const endDate = festival?.endDate ?? ''
@@ -74,16 +65,14 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
       )
     : 1
 
-  // TODO: GET /api/festival/days 엔드포인트 추가되면 fetchedDays.length로 총 일수 바로 사용 가능
-  // 현재는 festival.startDate~endDate로 직접 계산
   const totalDays = useMemo(() => {
     if (startDate && endDate) {
       const s = new Date(startDate + 'T00:00:00')
       const e = new Date(endDate + 'T00:00:00')
       return Math.round((e.getTime() - s.getTime()) / 86400000) + 1
     }
-    return Math.max(festivalDays.length, 1)
-  }, [startDate, endDate, festivalDays.length])
+    return Math.max(festivalDaysList.length, 1)
+  }, [startDate, endDate, festivalDaysList.length])
 
   const days = useMemo(() => {
     const result: Record<
@@ -91,19 +80,18 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
       { time: string; end: string; name: string; artist: string }[]
     > = {}
     for (let i = 1; i <= totalDays; i++) {
-      const dateStr = startDate
-        ? (() => {
-            const d = new Date(startDate + 'T00:00:00')
-            d.setDate(d.getDate() + i - 1)
-            return d.toISOString().slice(0, 10)
-          })()
-        : null
-      const festivalDay = dateStr
-        ? festivalDays.find((fd) => fd.day === dateStr)
-        : festivalDays[i - 1]
-      result[i] = festivalDay
+      if (!startDate) {
+        result[i] = []
+        continue
+      }
+      const d = new Date(startDate + 'T00:00:00')
+      d.setDate(d.getDate() + i - 1)
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      // festivalDay DB에 해당 날짜 없으면 빈 상태
+      const hasFestivalDay = festivalDaysList.some((fd) => fd.day === dateStr)
+      result[i] = hasFestivalDay
         ? timelines
-            .filter((t) => t.festivalDay.id === festivalDay.id)
+            .filter((t) => t.festivalDay.day === dateStr)
             .map((t) => ({
               time: t.startTime.slice(0, 5),
               end: t.endTime.slice(0, 5),
@@ -114,7 +102,7 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
         : []
     }
     return result
-  }, [totalDays, startDate, festivalDays, timelines])
+  }, [totalDays, startDate, festivalDaysList, timelines])
 
   const [timetableDay, setTimetableDay] = useState(currentDay)
   // festival 데이터 로딩 후 오늘 날짜 기준 일차로 동기화
@@ -218,20 +206,21 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
                 등록된 부스가 없어요
               </div>
             ) : (
-              dayBooths.slice(0, 3).map((loc) => (
-                <UserBoothListCard
-                  key={loc.boothSummary!.id}
-                  name={loc.boothSummary!.name}
-                  tone={undefined}
-                  zoneName={loc.zoneLabel ?? undefined}
-                  sections={loc.index != null ? [loc.index] : undefined}
-                  // TODO: boothSummary에 description 추가되면 연결
-                  // description={loc.boothSummary!.description ?? undefined}
-                  onClick={() =>
-                    navigate(boothUrl('day', loc.boothSummary!.id))
-                  }
-                />
-              ))
+              dayBooths
+                .slice(0, 3)
+                .map((loc) => (
+                  <UserBoothListCard
+                    key={loc.boothSummary!.id}
+                    name={loc.boothSummary!.name}
+                    tone={undefined}
+                    zoneName={getZoneName(loc.zoneLabel)}
+                    sections={loc.index != null ? [loc.index] : undefined}
+                    description={loc.boothSummary!.description ?? undefined}
+                    onClick={() =>
+                      navigate(boothUrl('day', loc.boothSummary!.id))
+                    }
+                  />
+                ))
             )}
           </div>
 
@@ -249,20 +238,21 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
                 등록된 부스가 없어요
               </div>
             ) : (
-              nightBooths.slice(0, 3).map((loc) => (
-                <UserBoothListCard
-                  key={loc.boothSummary!.id}
-                  name={loc.boothSummary!.name}
-                  tone={undefined}
-                  zoneName={loc.zoneLabel ?? undefined}
-                  sections={loc.index != null ? [loc.index] : undefined}
-                  // TODO: boothSummary에 description 추가되면 연결
-                  // description={loc.boothSummary!.description ?? undefined}
-                  onClick={() =>
-                    navigate(boothUrl('night', loc.boothSummary!.id))
-                  }
-                />
-              ))
+              nightBooths
+                .slice(0, 3)
+                .map((loc) => (
+                  <UserBoothListCard
+                    key={loc.boothSummary!.id}
+                    name={loc.boothSummary!.name}
+                    tone={undefined}
+                    zoneName={getZoneName(loc.zoneLabel)}
+                    sections={loc.index != null ? [loc.index] : undefined}
+                    description={loc.boothSummary!.description ?? undefined}
+                    onClick={() =>
+                      navigate(boothUrl('night', loc.boothSummary!.id))
+                    }
+                  />
+                ))
             )}
           </div>
 
@@ -323,20 +313,21 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
                 등록된 부스가 없어요
               </div>
             ) : (
-              truckBooths.slice(0, 3).map((loc) => (
-                <UserBoothListCard
-                  key={loc.boothSummary!.id}
-                  name={loc.boothSummary!.name}
-                  tone={undefined}
-                  zoneName={loc.zoneLabel ?? undefined}
-                  sections={loc.index != null ? [loc.index] : undefined}
-                  // TODO: boothSummary에 description 추가되면 연결
-                  // description={loc.boothSummary!.description ?? undefined}
-                  onClick={() =>
-                    navigate(boothUrl('truck', loc.boothSummary!.id))
-                  }
-                />
-              ))
+              truckBooths
+                .slice(0, 3)
+                .map((loc) => (
+                  <UserBoothListCard
+                    key={loc.boothSummary!.id}
+                    name={loc.boothSummary!.name}
+                    tone={undefined}
+                    zoneName={getZoneName(loc.zoneLabel)}
+                    sections={loc.index != null ? [loc.index] : undefined}
+                    description={loc.boothSummary!.description ?? undefined}
+                    onClick={() =>
+                      navigate(boothUrl('truck', loc.boothSummary!.id))
+                    }
+                  />
+                ))
             )}
           </div>
         </div>{' '}

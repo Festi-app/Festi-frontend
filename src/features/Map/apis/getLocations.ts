@@ -6,9 +6,21 @@ import type { GetLocationsResponseDto } from '../types/LocationsResponseDto'
 export async function getLocations(
   params: GetLocationsRequestDto
 ): Promise<GetLocationsResponseDto[]> {
-  const { data } = await apiClient.get<GetLocationsResponseDto[]>(
-    ENDPOINTS.LOCATIONS.LIST,
-    { params }
-  )
-  return data
+  try {
+    const { data } = await apiClient.get<GetLocationsResponseDto[]>(
+      ENDPOINTS.LOCATIONS.LIST,
+      { params }
+    )
+    return data
+  } catch (e: unknown) {
+    if (
+      e &&
+      typeof e === 'object' &&
+      'response' in e &&
+      (e as { response?: { status?: number } }).response?.status === 404
+    ) {
+      return []
+    }
+    throw e
+  }
 }

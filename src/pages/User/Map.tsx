@@ -41,14 +41,13 @@ import {
   useTruckPlacementStore,
 } from '../../stores/useTruckPlacementStore'
 import { useWaitingStore } from '../../stores/useWaitingStore'
+import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
+import { useFestival } from '../../features/Festival/hooks/useFestival'
 
 type UserMapView = MapView
 
-const FESTIVAL_DAY_DATES: Record<string, string> = {
-  '1일차': '2026-05-22',
-  '2일차': '2026-05-23',
-  '3일차': '2026-05-24',
-}
+const _d = new Date()
+const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`
 
 const MAPVIEW_TO_API_TYPE: Record<string, ApiBoothType> = {
   day: 'DAY',
@@ -72,8 +71,39 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
   const { zoneRotations } = useTruckPlacementStore()
   const { waitings, cancelWaiting } = useWaitingStore()
 
-  const [selectedFestivalDay, setSelectedFestivalDay] = useState('2일차')
-  const CURRENT_DAY_LABEL = '2일차'
+  const { data: festival } = useFestival()
+  const { data: festivalDaysList = [] } = useFestivalDays()
+
+  // festival start/end로 전체 일차 라벨 생성
+  const totalDays = useMemo(() => {
+    if (festival?.startDate && festival?.endDate) {
+      const s = new Date(festival.startDate + 'T00:00:00')
+      const e = new Date(festival.endDate + 'T00:00:00')
+      return Math.round((e.getTime() - s.getTime()) / 86400000) + 1
+    }
+    return festivalDaysList.length || 1
+  }, [festival?.startDate, festival?.endDate, festivalDaysList.length])
+
+  const dayLabels = useMemo(
+    () => Array.from({ length: totalDays }, (_, i) => `${i + 1}일차`),
+    [totalDays]
+  )
+
+  // 오늘 날짜가 몇 일차인지 계산
+  const todayIndex = useMemo(() => {
+    if (!festival?.startDate)
+      return festivalDaysList.findIndex((d) => d.day === todayStr)
+    const s = new Date(festival.startDate + 'T00:00:00')
+    const t = new Date(todayStr + 'T00:00:00')
+    const diff = Math.round((t.getTime() - s.getTime()) / 86400000)
+    return diff >= 0 && diff < totalDays ? diff : -1
+  }, [festival?.startDate, totalDays, festivalDaysList])
+
+  const CURRENT_DAY_LABEL =
+    todayIndex >= 0 ? `${todayIndex + 1}일차` : (dayLabels[0] ?? '1일차')
+  const [userSelectedDay, setUserSelectedDay] = useState<string | null>(null)
+  const selectedFestivalDay = userSelectedDay ?? CURRENT_DAY_LABEL
+  const setSelectedFestivalDay = setUserSelectedDay
   const [dayDropdownOpen, setDayDropdownOpen] = useState(false)
   const [mapView, setMapView] = useState<UserMapView>(isDay ? 'day' : 'night')
   const [searchOpen, setSearchOpen] = useState(false)
@@ -101,17 +131,33 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
   const [cancelBoothId, setCancelBoothId] = useState<string | null>(null)
   const [showCancelToast, setShowCancelToast] = useState(false)
 
-  const currentApiDay =
-    FESTIVAL_DAY_DATES[selectedFestivalDay] ?? FESTIVAL_DAY_DATES['2일차']
+  const selectedDayIndex = dayLabels.indexOf(selectedFestivalDay)
+  // festivalDay DB에 해당 날짜 없으면 '' → useLocations disabled → 빈 상태
+  const currentApiDay = useMemo(() => {
+    if (!festival?.startDate)
+      return festivalDaysList[selectedDayIndex]?.day ?? ''
+    const s = new Date(festival.startDate + 'T00:00:00')
+    s.setDate(s.getDate() + selectedDayIndex)
+    const dayStr = s.toISOString().slice(0, 10)
+    return festivalDaysList.find((d) => d.day === dayStr)?.day ?? ''
+  }, [festival?.startDate, selectedDayIndex, festivalDaysList])
   const { data: locations = [] } = useLocations({
     day: currentApiDay,
     type: MAPVIEW_TO_API_TYPE[mapView],
+  })
+  const { data: dayListLocations = [] } = useLocations({
+    day: currentApiDay,
+    type: 'DAY',
+  })
+  const { data: nightListLocations = [] } = useLocations({
+    day: currentApiDay,
+    type: 'NIGHT',
   })
 
   const locationsByZone = useMemo(() => {
     const map: Record<string, GetLocationsResponseDto[]> = {}
     for (const loc of locations) {
-      const zoneChar = loc.zoneLabel.charAt(0)
+      const zoneChar = loc.zoneLabel
       if (!map[zoneChar]) map[zoneChar] = []
       map[zoneChar].push(loc)
     }
@@ -217,7 +263,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
         .map((l) => ({
           id: l.boothSummary!.id,
           name: l.boothSummary!.name,
-          zoneId: l.zoneLabel.charAt(0),
+          zoneId: l.zoneLabel,
           type: mapView,
           category:
             API_CAT_TO_KR[l.boothSummary!.category] ?? l.boothSummary!.category,
@@ -231,11 +277,25 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
       ? (allMarkers.find((m) => m.id === selectedId) ?? null)
       : null
 
-  const listMarkersBase = allMarkers.filter((m) => {
-    if (listTab === 'day') return m.type === 'day'
-    if (listTab === 'night') return m.type === 'night'
-    return m.type === 'truck'
-  })
+  const toMarkers = (locs: typeof dayListLocations, type: string) =>
+    locs
+      .filter((l) => l.boothSummary !== null)
+      .map((l) => ({
+        id: l.boothSummary!.id,
+        name: l.boothSummary!.name,
+        zoneId: l.zoneLabel,
+        type,
+        category:
+          API_CAT_TO_KR[l.boothSummary!.category] ?? l.boothSummary!.category,
+        sections: [l.index],
+      }))
+
+  const listMarkersBase =
+    listTab === 'day'
+      ? toMarkers(dayListLocations, 'day')
+      : listTab === 'night'
+        ? toMarkers(nightListLocations, 'night')
+        : []
   const listMarkers = listCatFilter
     ? listMarkersBase.filter((m) => m.category === listCatFilter)
     : listMarkersBase
@@ -447,6 +507,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
         mapView={mapView}
         selectedFestivalDay={selectedFestivalDay}
         currentDayLabel={CURRENT_DAY_LABEL}
+        dayLabels={dayLabels}
         dayDropdownOpen={dayDropdownOpen}
         onSearchOpen={() => setSearchOpen(true)}
         onOpenList={openList}

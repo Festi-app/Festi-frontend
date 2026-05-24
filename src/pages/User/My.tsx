@@ -7,13 +7,18 @@ import { ProfileInfoRow } from '../../components/User/My/ProfileInfoRow'
 import { EmptyState } from '../../components/User/EmptyState'
 import { Toast } from '../../components/shared/Toast'
 import { useUI } from '../../stores/useUIStore'
-import { formatPhone } from '../../lib/format'
+import { formatPhone, getZoneName } from '../../lib/format'
 import { boothUrl } from '../../constants/routes'
 import { useFavorites } from '../../features/Favorite/hooks/useFavorites'
 import { useToggleFavorite } from '../../features/Favorite/hooks/useToggleFavorite'
 import type { BoothType } from '../../features/Favorite/types/BoothSummaryDto'
 import { useMe } from '../../features/User/hooks/useMe'
 import { useUpdateMe } from '../../features/User/hooks/useUpdateMe'
+import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
+import { useLocations } from '../../features/Map/hooks/useLocations'
+
+const _d = new Date()
+const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`
 
 const TYPE_LABEL: Record<BoothType, string> = {
   DAY: '주간',
@@ -46,6 +51,33 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
   const [phoneInput, setPhoneInput] = useState('')
   const muted = dark ? '#8B939B' : '#5E676D'
   void muted
+
+  const { data: festivalDaysList = [] } = useFestivalDays()
+  const todayFestivalDay =
+    festivalDaysList.find((d) => d.day === todayStr)?.day ?? ''
+  const { data: dayLocations = [] } = useLocations({
+    day: todayFestivalDay,
+    type: 'DAY',
+  })
+  const { data: nightLocations = [] } = useLocations({
+    day: todayFestivalDay,
+    type: 'NIGHT',
+  })
+  const { data: truckLocations = [] } = useLocations({
+    day: todayFestivalDay,
+    type: 'FOOD_TRUCK',
+  })
+  const locationMap = useMemo(() => {
+    const map: Record<string, { zoneLabel: string; index: number }> = {}
+    for (const loc of [...dayLocations, ...nightLocations, ...truckLocations]) {
+      if (loc.boothSummary)
+        map[loc.boothSummary.id] = {
+          zoneLabel: loc.zoneLabel,
+          index: loc.index,
+        }
+    }
+    return map
+  }, [dayLocations, nightLocations, truckLocations])
   const { dark: isDark, setDark } = useUI()
 
   useEffect(
@@ -197,9 +229,12 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
                       <Pill color={pillColor} ink={pillInk}>
                         {TYPE_LABEL[boothSummary.type]}
                       </Pill>
-                      {boothSummary.location && (
+                      {(locationMap[boothSummary.id]?.zoneLabel ||
+                        locationMap[boothSummary.id]?.index != null) && (
                         <Pill color="transparent" ink={muted} className="p-0!">
-                          {boothSummary.location}
+                          {getZoneName(locationMap[boothSummary.id]?.zoneLabel)}
+                          {locationMap[boothSummary.id]?.index != null &&
+                            ` #${locationMap[boothSummary.id].index}`}
                         </Pill>
                       )}
                     </div>

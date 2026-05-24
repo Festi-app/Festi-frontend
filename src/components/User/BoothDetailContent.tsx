@@ -36,7 +36,7 @@ export function BoothDetailContent({
   const isTruck = type === 'truck'
   const isNight = type === 'night'
   const resolvedMenus = menus ?? []
-  const defaultHours = isNight ? '17시 ~ 22시' : isTruck ? '' : '10시 ~ 18시'
+  const defaultHours = '-'
 
   const CAT_SOFT: Record<string, string> = {
     정보: FESTIV_TOKENS.mintSoft ?? '#D4F7F8',
@@ -57,10 +57,9 @@ export function BoothDetailContent({
     활동: FESTIV_TOKENS.pop,
   }
   const circleColor =
-    circleColorProp ??
-    (isTruck || isNight
-      ? FESTIV_TOKENS.alert
-      : (CAT_COLOR[category] ?? FESTIV_TOKENS.pop))
+    isTruck || isNight
+      ? (circleColorProp ?? FESTIV_TOKENS.alert)
+      : (CAT_COLOR[category] ?? FESTIV_TOKENS.pop)
 
   const pillBg = isTruck
     ? FESTIV_TOKENS.sunSoft
@@ -85,7 +84,7 @@ export function BoothDetailContent({
           }}
         >
           <span className="text-[13px] font-extrabold text-white">
-            #{sections && sections.length > 0 ? sections[0] + 1 : ''}
+            #{sections && sections.length > 0 ? sections[0] : ''}
           </span>
         </div>
         <div className="min-w-0 flex-1">
@@ -105,7 +104,7 @@ export function BoothDetailContent({
             )}
             {sections && sections.length > 0 && (
               <Pill color={surfaceAlt} ink={ink80}>
-                {'#' + sections.map((s) => s + 1).join('·')}
+                {'#' + sections.join('·')}
               </Pill>
             )}
           </div>
