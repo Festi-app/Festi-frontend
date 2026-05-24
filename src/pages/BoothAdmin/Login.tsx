@@ -21,10 +21,7 @@ export function BoothAdminLogin() {
 
   function handleLogin() {
     if (!username.trim() || !password) return
-    login(
-      { id: username.trim(), password },
-      { onError: () => setError(true) }
-    )
+    login({ id: username.trim(), password }, { onError: () => setError(true) })
   }
 
   return (
