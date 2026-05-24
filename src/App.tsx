@@ -47,7 +47,9 @@ function getTokenRole(): string | null {
   const token = localStorage.getItem('token')
   if (!token) return null
   try {
-    return (JSON.parse(atob(token.split('.')[1])) as { role?: string }).role ?? null
+    return (
+      (JSON.parse(atob(token.split('.')[1])) as { role?: string }).role ?? null
+    )
   } catch {
     return null
   }
@@ -63,7 +65,8 @@ function RequireRole({
   children: ReactNode
 }) {
   const role = getTokenRole()
-  if (!role || !roles.includes(role)) return <Navigate to={redirectTo} replace />
+  if (!role || !roles.includes(role))
+    return <Navigate to={redirectTo} replace />
   return <>{children}</>
 }
 
@@ -637,7 +640,10 @@ export default function App() {
         <Route
           path={ROUTES.ADMIN.FESTIVAL}
           element={
-            <RequireRole roles={['FESTIVAL_ADMIN']} redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}>
+            <RequireRole
+              roles={['FESTIVAL_ADMIN']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
               <AdminFestivalRoute />
             </RequireRole>
           }
@@ -645,7 +651,10 @@ export default function App() {
         <Route
           path={ROUTES.ADMIN.BOOTHS}
           element={
-            <RequireRole roles={['FESTIVAL_ADMIN']} redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}>
+            <RequireRole
+              roles={['FESTIVAL_ADMIN']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
               <AdminBoothsRoute />
             </RequireRole>
           }
@@ -653,7 +662,10 @@ export default function App() {
         <Route
           path={ROUTES.ADMIN.TRUCKS}
           element={
-            <RequireRole roles={['FESTIVAL_ADMIN']} redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}>
+            <RequireRole
+              roles={['FESTIVAL_ADMIN']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
               <AdminFoodTrucksRoute />
             </RequireRole>
           }
@@ -661,7 +673,10 @@ export default function App() {
         <Route
           path={ROUTES.ADMIN.BOOTH_REQUESTS}
           element={
-            <RequireRole roles={['FESTIVAL_ADMIN']} redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}>
+            <RequireRole
+              roles={['FESTIVAL_ADMIN']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
               <AdminBoothRequestsRoute />
             </RequireRole>
           }
@@ -669,7 +684,10 @@ export default function App() {
         <Route
           path={ROUTES.ADMIN.TIMETABLE}
           element={
-            <RequireRole roles={['FESTIVAL_ADMIN']} redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}>
+            <RequireRole
+              roles={['FESTIVAL_ADMIN']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
               <AdminTimetableRoute />
             </RequireRole>
           }
@@ -677,19 +695,31 @@ export default function App() {
         <Route
           path={ROUTES.ADMIN.NOTICES}
           element={
-            <RequireRole roles={['FESTIVAL_ADMIN']} redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}>
+            <RequireRole
+              roles={['FESTIVAL_ADMIN']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
               <AdminNoticesRoute />
             </RequireRole>
           }
         />
 
         {/* ── 부스 관리자 (BOOTH_MANAGER) ── */}
-        <Route path={ROUTES.BOOTH_ADMIN.LOGIN} element={<BoothAdminLoginRoute />} />
-        <Route path={ROUTES.BOOTH_ADMIN.REGISTER} element={<BoothAdminRegisterRoute />} />
+        <Route
+          path={ROUTES.BOOTH_ADMIN.LOGIN}
+          element={<BoothAdminLoginRoute />}
+        />
+        <Route
+          path={ROUTES.BOOTH_ADMIN.REGISTER}
+          element={<BoothAdminRegisterRoute />}
+        />
         <Route
           path={ROUTES.BOOTH_ADMIN.DASHBOARD}
           element={
-            <RequireRole roles={['BOOTH_MANAGER']} redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}>
+            <RequireRole
+              roles={['BOOTH_MANAGER']}
+              redirectTo={ROUTES.BOOTH_ADMIN.LOGIN}
+            >
               <BoothAdminDashboardRoute />
             </RequireRole>
           }
