@@ -30,7 +30,7 @@ export const ROUTES = {
   },
 } as const
 
-export const boothUrl = (type: BoothTypeParam, id?: number) =>
+export const boothUrl = (type: BoothTypeParam, id?: string | number) =>
   id != null
     ? `${ROUTES.BOOTH}?type=${type}&id=${id}`
     : `${ROUTES.BOOTH}?type=${type}`

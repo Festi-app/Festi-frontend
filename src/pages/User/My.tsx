@@ -6,48 +6,46 @@ import { FilterChips } from '../../components/User/My/FilterChips'
 import { ProfileInfoRow } from '../../components/User/My/ProfileInfoRow'
 import { EmptyState } from '../../components/User/EmptyState'
 import { Toast } from '../../components/shared/Toast'
-import { useUserStore } from '../../stores/useUserStore'
-import {
-  useFavoritesStore,
-  type BoothType,
-} from '../../stores/useFavoritesStore'
-import { NIGHT_BOOTHS, DAY_BOOTHS, TRUCK_BOOTHS } from '../../data/booths'
-import { getZoneName } from '../../data/zones'
 import { useUI } from '../../stores/useUIStore'
-import { formatPhone, formatSections } from '../../lib/format'
+import { formatPhone } from '../../lib/format'
 import { boothUrl } from '../../constants/routes'
+import { useFavorites } from '../../features/Favorite/hooks/useFavorites'
+import { useToggleFavorite } from '../../features/Favorite/hooks/useToggleFavorite'
+import type { BoothType } from '../../features/Favorite/types/BoothSummaryDto'
+import { useMe } from '../../features/User/hooks/useMe'
+import { useUpdateMe } from '../../features/User/hooks/useUpdateMe'
 
-function resolveBooth(s: { boothId: number; boothType: BoothType }) {
-  const { boothId, boothType } = s
-  if (boothType === 'night') {
-    const booth = NIGHT_BOOTHS.find((b) => b.id === boothId)
-    if (booth) return { booth, category: '야간', type: 'night' as const }
-  }
-  if (boothType === 'day') {
-    const booth = DAY_BOOTHS.find((b) => b.id === boothId)
-    if (booth) return { booth, category: '주간', type: 'day' as const }
-  }
-  if (boothType === 'truck') {
-    const booth = TRUCK_BOOTHS.find((b) => b.id === boothId)
-    if (booth) return { booth, category: '푸드트럭', type: 'truck' as const }
-  }
-  return null
+const TYPE_LABEL: Record<BoothType, string> = {
+  DAY: '주간',
+  NIGHT: '야간',
+  FOOD_TRUCK: '푸드트럭',
+}
+const TYPE_PARAM: Record<BoothType, 'day' | 'night' | 'truck'> = {
+  DAY: 'day',
+  NIGHT: 'night',
+  FOOD_TRUCK: 'truck',
 }
 
 export function UserMy({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const [filter, setFilter] = useState('전체')
-  const { savedBooths, isSaved, toggleSave } = useFavoritesStore()
+  const { data: favorites = [] } = useFavorites()
+  const { isSaved, toggle } = useToggleFavorite()
   const [toast, setToast] = useState<'saved' | 'unsaved' | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [profileOpen, setProfileOpen] = useState(false)
-  const { name, phone, userId, setName, setPhone } = useUserStore()
+  const { data: me } = useMe()
+  const updateMe = useUpdateMe()
+  const name = me?.name ?? ''
+  const phone = me?.phone ?? ''
+  const userId = me?.id ?? ''
   const [editingName, setEditingName] = useState(false)
-  const [nameInput, setNameInput] = useState(name)
+  const [nameInput, setNameInput] = useState('')
   const [editingPhone, setEditingPhone] = useState(false)
-  const [phoneInput, setPhoneInput] = useState(phone)
+  const [phoneInput, setPhoneInput] = useState('')
   const muted = dark ? '#8B939B' : '#5E676D'
+  void muted
   const { dark: isDark, setDark } = useUI()
 
   useEffect(
@@ -67,13 +65,17 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
   }
 
   function saveName() {
-    setName(nameInput)
-    setEditingName(false)
+    updateMe.mutate(
+      { name: nameInput },
+      { onSuccess: () => setEditingName(false) }
+    )
   }
 
   function savePhone() {
-    setPhone(phoneInput)
-    setEditingPhone(false)
+    updateMe.mutate(
+      { phone: phoneInput },
+      { onSuccess: () => setEditingPhone(false) }
+    )
   }
 
   function closeProfile() {
@@ -82,31 +84,21 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
     setEditingPhone(false)
   }
 
-  function handleToggleSave(
-    boothType: 'night' | 'day' | 'truck',
-    boothId: number
-  ) {
-    const nowSaved = !isSaved(boothType, boothId)
-    toggleSave(boothType, boothId)
+  function handleToggleSave(boothId: string) {
+    const nowSaved = !isSaved(boothId)
+    toggle(boothId)
     if (toastTimer.current) clearTimeout(toastTimer.current)
     setToast(nowSaved ? 'saved' : 'unsaved')
     toastTimer.current = setTimeout(() => setToast(null), 2000)
   }
 
   const filteredFavorites = useMemo(() => {
-    return savedBooths
-      .map((s) => {
-        const resolved = resolveBooth(s)
-        if (!resolved) return null
-        return { ...resolved, createdAt: s.createdAt }
-      })
-      .filter((r): r is NonNullable<typeof r> => r !== null)
-      .filter((r) => {
-        if (filter === '운영중') return r.booth.wait != null
-        if (filter === '푸드트럭') return r.type === 'truck'
-        return true
-      })
-  }, [filter, savedBooths])
+    return favorites.filter((f) => {
+      if (filter === '운영중') return f.boothSummary.isWaitingOpen
+      if (filter === '푸드트럭') return f.boothSummary.type === 'FOOD_TRUCK'
+      return true
+    })
+  }, [filter, favorites])
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
@@ -173,56 +165,53 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
               className="pt-24 pb-16"
             />
           )}
-          {filteredFavorites.map(({ booth, category, type, createdAt }) => {
-            const saved = isSaved(type, booth.id)
-
+          {filteredFavorites.map((f) => {
+            const { boothSummary, createdAt } = f
+            const saved = isSaved(boothSummary.id)
+            const displayType = TYPE_PARAM[boothSummary.type]
             const pillColor =
-              type === 'night'
+              boothSummary.type === 'NIGHT'
                 ? FESTIV_TOKENS.alertSoft
-                : type === 'truck'
+                : boothSummary.type === 'FOOD_TRUCK'
                   ? FESTIV_TOKENS.sun
                   : FESTIV_TOKENS.popSoft
             const pillInk =
-              type === 'night'
+              boothSummary.type === 'NIGHT'
                 ? FESTIV_TOKENS.alert
-                : type === 'truck'
+                : boothSummary.type === 'FOOD_TRUCK'
                   ? '#fff'
                   : FESTIV_TOKENS.pop
             return (
               <div
-                key={`${type}-${booth.id}`}
-                onClick={() => navigate(boothUrl(type, booth.id))}
+                key={f.id}
+                onClick={() => navigate(boothUrl(displayType, boothSummary.id))}
                 className="w-full cursor-pointer overflow-hidden rounded-[20px] border border-border bg-surface text-left transition-transform duration-100 active:scale-[0.98]"
               >
                 <div className="flex gap-3 p-3">
                   <div className="size-20 shrink-0 overflow-hidden rounded-2xl">
-                    <PhotoSlot
-                      label=""
-                      tone={booth.tone}
-                      radius={16}
-                      ratio="1/1"
-                    />
+                    <PhotoSlot label="" radius={16} ratio="1/1" />
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <Pill color={pillColor} ink={pillInk}>
-                        {category}
+                        {TYPE_LABEL[boothSummary.type]}
                       </Pill>
+                      {/* TODO: 위치 정보 API 추가되면 연결
                       <Pill color="transparent" ink={muted} className="p-0!">
-                        {getZoneName(booth.zoneId, booth.type)}
+                        {getZoneName(boothSummary.zoneId, boothSummary.type)}
                       </Pill>
-                      {booth.sections && booth.sections.length > 0 && (
+                      {boothSummary.sections && boothSummary.sections.length > 0 && (
                         <Pill color="transparent" ink={muted} className="p-0!">
-                          #{formatSections(booth.sections)}
+                          #{formatSections(boothSummary.sections)}
                         </Pill>
-                      )}
+                      )} */}
                     </div>
 
                     <div className="mt-1.5 flex items-start gap-2">
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-[15px] font-extrabold tracking-[-0.3px] text-ink">
-                          {booth.name}
+                          {boothSummary.name}
                         </div>
                         <div className="mt-1 text-[11px] text-ink-40">
                           {formatDate(createdAt)}
@@ -232,7 +221,7 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleToggleSave(type, booth.id)
+                          handleToggleSave(boothSummary.id)
                         }}
                         className="size-4.5 shrink-0 text-alert"
                       >
