@@ -16,11 +16,13 @@ export function NoticeCard({
   onDelete: () => void
 }) {
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onSelect}
+      onKeyDown={(e) => e.key === 'Enter' && onSelect()}
       className={cn(
-        'w-full rounded-2xl border p-3.5 text-left transition-all',
+        'w-full cursor-pointer rounded-2xl border p-3.5 text-left transition-all',
         selected
           ? 'border-cta bg-cta/5'
           : 'border-border bg-surface hover:border-ink-20'
@@ -69,6 +71,6 @@ export function NoticeCard({
           </button>
         </div>
       </div>
-    </button>
+    </div>
   )
 }
