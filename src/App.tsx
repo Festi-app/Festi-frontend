@@ -105,31 +105,6 @@ function AdminOnly({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-// ── Dev toolbar ───────────────────────────────────────────────────────────
-
-function DevToolbar() {
-  const { dark, setDark } = useUI()
-  const { isDay, toggleDayNight } = useDayNightStore()
-  return (
-    <div className="fixed top-3 right-3 z-9999 flex items-center gap-1.5 rounded-xl border border-border bg-white/90 px-2.5 py-1.5 font-festi backdrop-blur-xl dark:bg-[#1A1E23]/90">
-      <button
-        onClick={() => setDark(!dark)}
-        className={`cursor-pointer rounded-lg border border-border px-2.5 py-1 text-xs font-semibold ${
-          dark ? 'bg-coral text-white' : 'bg-surface text-ink'
-        }`}
-      >
-        {dark ? '다크' : '라이트'}
-      </button>
-      <button
-        onClick={toggleDayNight}
-        className="cursor-pointer rounded-lg border border-border bg-surface px-2.5 py-1 text-xs font-semibold text-ink"
-      >
-        {isDay ? '주간' : '야간'}
-      </button>
-    </div>
-  )
-}
-
 function FestivLogo({ large }: { large?: boolean }) {
   return (
     <div className="flex items-center gap-1">
@@ -554,9 +529,6 @@ export default function App() {
     <>
       <DarkSync />
       <Nav />
-      <AdminOnly>
-        <DevToolbar />
-      </AdminOnly>
       <Routes>
         <Route
           path={ROUTES.ROOT}

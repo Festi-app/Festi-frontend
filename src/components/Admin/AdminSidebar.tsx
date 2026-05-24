@@ -9,12 +9,15 @@ import { useFestival } from '../../features/Festival/hooks/useFestival'
 import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 import { useMe } from '../../features/User/hooks/useMe'
 import { useUI } from '../../stores/useUIStore'
+import { useBooths } from '../../features/Booth/hooks/useBooths'
 
 export function AdminSidebar({ active }: { active: string }) {
   const navigate = useNavigate()
   const { data: festival } = useFestival()
   const { data: festivalDays = [] } = useFestivalDays()
   const { data: me } = useMe()
+  const { data: booths = [] } = useBooths({ type: 'BOOTH' })
+  const { data: trucks = [] } = useBooths({ type: 'FOOD_TRUCK' })
   const { dark, setDark } = useUI()
   const [now, setNow] = useState(new Date())
 
@@ -69,14 +72,14 @@ export function AdminSidebar({ active }: { active: string }) {
       id: 'booths',
       label: '부스 배치',
       icon: I.map,
-      badge: 77,
+      badge: booths.length || null,
       to: ROUTES.ADMIN.BOOTHS,
     },
     {
       id: 'trucks',
       label: '푸드트럭',
       icon: I.truck,
-      badge: 11,
+      badge: trucks.length || null,
       to: ROUTES.ADMIN.TRUCKS,
     },
     {

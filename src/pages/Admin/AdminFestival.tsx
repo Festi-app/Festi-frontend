@@ -29,6 +29,13 @@ interface DayConfig {
 
 const WD_KO = ['일', '월', '화', '수', '목', '금', '토']
 
+function formatPhone(phone: string) {
+  const d = phone.replace(/\D/g, '')
+  if (d.length === 11) return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`
+  if (d.length === 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`
+  return phone
+}
+
 function formatDayDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00')
   const mo = String(d.getMonth() + 1).padStart(2, '0')
@@ -132,6 +139,32 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
       },
       {
         onSuccess: () => {
+          days.forEach((day, idx) => {
+            if (day.id) {
+              const originalDay = festivalDays.find((fd) => fd.id === day.id)
+              if (!originalDay) return
+              updateFestivalDay.mutate({
+                festivalDayId: day.id,
+                body: {
+                  day: originalDay.day,
+                  dayStart: day.dayStart,
+                  dayEnd: day.dayEnd,
+                  nightStart: day.nightStart,
+                  nightEnd: day.nightEnd,
+                },
+              })
+            } else if (startDate) {
+              const d = new Date(startDate + 'T00:00:00')
+              d.setDate(d.getDate() + idx)
+              createFestivalDay.mutate({
+                day: d.toISOString().slice(0, 10),
+                dayStart: day.dayStart,
+                dayEnd: day.dayEnd,
+                nightStart: day.nightStart,
+                nightEnd: day.nightEnd,
+              })
+            }
+          })
           setNameOverride(null)
           setStartDateOverride(null)
           setEndDateOverride(null)
@@ -141,33 +174,6 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
         onError: () => showToast('저장에 실패했어요. 다시 시도해주세요', false),
       }
     )
-    days.forEach((day, idx) => {
-      if (day.id) {
-        const originalDay = festivalDays.find((fd) => fd.id === day.id)
-        if (!originalDay) return
-        updateFestivalDay.mutate({
-          festivalDayId: day.id,
-          body: {
-            day: originalDay.day,
-            dayStart: day.dayStart,
-            dayEnd: day.dayEnd,
-            nightStart: day.nightStart,
-            nightEnd: day.nightEnd,
-          },
-        })
-      } else if (startDate) {
-        const d = new Date(startDate + 'T00:00:00')
-        d.setDate(d.getDate() + idx)
-        const isoDate = d.toISOString().slice(0, 10)
-        createFestivalDay.mutate({
-          day: isoDate,
-          dayStart: day.dayStart,
-          dayEnd: day.dayEnd,
-          nightStart: day.nightStart,
-          nightEnd: day.nightEnd,
-        })
-      }
-    })
   }
 
   function handleCancel() {
@@ -391,7 +397,7 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                     <div className="text-[13px] font-bold text-ink">
                       {user.name}
                     </div>
-                    <div className="text-[11px] text-ink-60">{user.phone}</div>
+                    <div className="text-[11px] text-ink-60">{formatPhone(user.phone)}</div>
                   </div>
                 </div>
               ))}
@@ -419,7 +425,7 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                     <div className="text-[13px] font-bold text-ink">
                       {user.name}
                     </div>
-                    <div className="text-[11px] text-ink-60">{user.phone}</div>
+                    <div className="text-[11px] text-ink-60">{formatPhone(user.phone)}</div>
                   </div>
                 </div>
               ))}

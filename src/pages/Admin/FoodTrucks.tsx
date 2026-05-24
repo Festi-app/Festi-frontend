@@ -430,7 +430,7 @@ function MenuRow({
       />
       <input
         value={price}
-        onChange={(e) => setPrice(e.target.value)}
+        onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))}
         onBlur={handleBlur}
         className="w-28 rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
       />
