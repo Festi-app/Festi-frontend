@@ -129,7 +129,10 @@ export function BoothAdminRegister() {
             >
               <FestivMark color="#fff" size={18} />
             </div>
-            <FestivWordmark size={18} color={dark ? '#F2F5F7' : FESTIV_TOKENS.ink} />
+            <FestivWordmark
+              size={18}
+              color={dark ? '#F2F5F7' : FESTIV_TOKENS.ink}
+            />
             <span className="text-[12px] text-ink-40">·</span>
             <span className="text-[12px] font-medium text-ink-40">
               축제를 더 즐겁게
