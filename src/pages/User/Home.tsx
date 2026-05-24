@@ -110,7 +110,9 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
             className="mt-5"
           />
           <div className="mb-6 flex flex-col gap-2.5 px-5">
-            {dayBooths.slice(0, 3).map((b) => (
+            {dayBooths.length === 0 ? (
+              <div className="flex items-center justify-center rounded-[18px] border border-border bg-surface py-6 text-[13px] text-ink-40">등록된 부스가 없어요</div>
+            ) : dayBooths.slice(0, 3).map((b) => (
               <UserBoothListCard
                 key={b.id}
                 name={b.name}
@@ -132,7 +134,9 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
             onMore={() => navigate(boothListUrl('night'))}
           />
           <div className="mb-6 flex flex-col gap-2.5 px-5">
-            {nightBooths.slice(0, 3).map((b) => (
+            {nightBooths.length === 0 ? (
+              <div className="flex items-center justify-center rounded-[18px] border border-border bg-surface py-6 text-[13px] text-ink-40">등록된 부스가 없어요</div>
+            ) : nightBooths.slice(0, 3).map((b) => (
               <UserBoothListCard
                 key={b.id}
                 name={b.name}
@@ -194,7 +198,9 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
             onMore={() => navigate(boothListUrl('truck'))}
           />
           <div className="flex flex-col gap-2.5 px-5">
-            {truckBooths.slice(0, 3).map((b) => (
+            {truckBooths.length === 0 ? (
+              <div className="flex items-center justify-center rounded-[18px] border border-border bg-surface py-6 text-[13px] text-ink-40">등록된 부스가 없어요</div>
+            ) : truckBooths.slice(0, 3).map((b) => (
               <UserBoothListCard
                 key={b.id}
                 name={b.name}
