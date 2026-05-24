@@ -6,5 +6,6 @@ export function useMyBoothApplication() {
   return useQuery({
     queryKey: boothApplicationKeys.mine(),
     queryFn: getMyBoothApplication,
+    retry: false,
   })
 }

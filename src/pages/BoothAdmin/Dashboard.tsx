@@ -487,26 +487,58 @@ type TabKey = 'info' | 'waiting'
 
 export function BoothAdminDashboard() {
   const navigate = useNavigate()
-  const { data: application, isLoading, isError } = useMyBoothApplication()
+  const {
+    data: application,
+    isLoading,
+    isError,
+    error,
+  } = useMyBoothApplication()
   const [tab, setTab] = useState<TabKey>('info')
+
+  const is404 =
+    isError &&
+    (error as { response?: { status?: number } })?.response?.status === 404
 
   useEffect(() => {
     if (!localStorage.getItem('token')) navigate(ROUTES.BOOTH_ADMIN.LOGIN)
   }, [navigate])
 
   useEffect(() => {
-    if (isError) navigate(ROUTES.BOOTH_ADMIN.LOGIN)
-  }, [isError, navigate])
+    if (isError && !is404) navigate(ROUTES.BOOTH_ADMIN.LOGIN)
+  }, [isError, is404, navigate])
 
   function handleLogout() {
     localStorage.removeItem('token')
     navigate(ROUTES.BOOTH_ADMIN.LOGIN)
   }
 
-  if (isLoading || !application) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg font-festi text-ink-40">
         불러오는 중...
+      </div>
+    )
+  }
+
+  if (!application) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-bg px-4 font-festi">
+        <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-surface-alt text-4xl">
+          📋
+        </div>
+        <div className="mb-2 text-[22px] font-extrabold text-ink">
+          부스 신청 내역이 없어요
+        </div>
+        <div className="mb-8 text-[13px] text-ink-60">
+          부스 신청 후 관리자 승인을 기다려주세요
+        </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="rounded-xl border border-border px-5 py-2.5 text-[13px] font-bold text-ink-60"
+        >
+          로그아웃
+        </button>
       </div>
     )
   }
