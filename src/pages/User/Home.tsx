@@ -218,21 +218,20 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
                 등록된 부스가 없어요
               </div>
             ) : (
-              dayBooths
-                .slice(0, 3)
-                .map((loc) => (
-                  <UserBoothListCard
-                    key={loc.boothSummary!.id}
-                    name={loc.boothSummary!.name}
-                    tone={undefined}
-                    zoneName={loc.zoneLabel ?? undefined}
-                    sections={undefined}
-                    description={undefined}
-                    onClick={() =>
-                      navigate(boothUrl('day', loc.boothSummary!.id))
-                    }
-                  />
-                ))
+              dayBooths.slice(0, 3).map((loc) => (
+                <UserBoothListCard
+                  key={loc.boothSummary!.id}
+                  name={loc.boothSummary!.name}
+                  tone={undefined}
+                  zoneName={loc.zoneLabel ?? undefined}
+                  sections={loc.index != null ? [loc.index] : undefined}
+                  // TODO: boothSummary에 description 추가되면 연결
+                  // description={loc.boothSummary!.description ?? undefined}
+                  onClick={() =>
+                    navigate(boothUrl('day', loc.boothSummary!.id))
+                  }
+                />
+              ))
             )}
           </div>
 
@@ -250,21 +249,20 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
                 등록된 부스가 없어요
               </div>
             ) : (
-              nightBooths
-                .slice(0, 3)
-                .map((loc) => (
-                  <UserBoothListCard
-                    key={loc.boothSummary!.id}
-                    name={loc.boothSummary!.name}
-                    tone={undefined}
-                    zoneName={loc.zoneLabel ?? undefined}
-                    sections={undefined}
-                    description={undefined}
-                    onClick={() =>
-                      navigate(boothUrl('night', loc.boothSummary!.id))
-                    }
-                  />
-                ))
+              nightBooths.slice(0, 3).map((loc) => (
+                <UserBoothListCard
+                  key={loc.boothSummary!.id}
+                  name={loc.boothSummary!.name}
+                  tone={undefined}
+                  zoneName={loc.zoneLabel ?? undefined}
+                  sections={loc.index != null ? [loc.index] : undefined}
+                  // TODO: boothSummary에 description 추가되면 연결
+                  // description={loc.boothSummary!.description ?? undefined}
+                  onClick={() =>
+                    navigate(boothUrl('night', loc.boothSummary!.id))
+                  }
+                />
+              ))
             )}
           </div>
 
@@ -325,21 +323,20 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
                 등록된 부스가 없어요
               </div>
             ) : (
-              truckBooths
-                .slice(0, 3)
-                .map((loc) => (
-                  <UserBoothListCard
-                    key={loc.boothSummary!.id}
-                    name={loc.boothSummary!.name}
-                    tone={undefined}
-                    zoneName={loc.zoneLabel ?? undefined}
-                    sections={undefined}
-                    description={undefined}
-                    onClick={() =>
-                      navigate(boothUrl('truck', loc.boothSummary!.id))
-                    }
-                  />
-                ))
+              truckBooths.slice(0, 3).map((loc) => (
+                <UserBoothListCard
+                  key={loc.boothSummary!.id}
+                  name={loc.boothSummary!.name}
+                  tone={undefined}
+                  zoneName={loc.zoneLabel ?? undefined}
+                  sections={loc.index != null ? [loc.index] : undefined}
+                  // TODO: boothSummary에 description 추가되면 연결
+                  // description={loc.boothSummary!.description ?? undefined}
+                  onClick={() =>
+                    navigate(boothUrl('truck', loc.boothSummary!.id))
+                  }
+                />
+              ))
             )}
           </div>
         </div>{' '}

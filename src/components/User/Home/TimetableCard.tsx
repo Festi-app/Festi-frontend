@@ -24,7 +24,7 @@ export function TimetableCard({
   if (!slots.length)
     return (
       <div className="flex items-center justify-center rounded-[20px] border border-border bg-surface py-6 text-[13px] text-ink-40">
-        등록된 공연 일정이 없어요
+        공연 일정이 없어요
       </div>
     )
 

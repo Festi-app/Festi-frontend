@@ -435,7 +435,7 @@ export function AdminTimetable() {
           <div className="min-h-0 flex-1 overflow-y-auto bg-bg">
             {slots.length === 0 ? (
               <div className="py-16 text-center text-sm text-ink-40">
-                등록된 공연 일정이 없어요
+                공연 일정이 없어요
               </div>
             ) : (
               slots.map((slot) => {
@@ -507,7 +507,7 @@ export function AdminTimetable() {
             <div className="overflow-hidden rounded-[16px] border border-border bg-surface">
               {slots.length === 0 ? (
                 <div className="py-8 text-center text-[12px] text-ink-40">
-                  공연 없음
+                  공연 일정이 없어요
                 </div>
               ) : (
                 slots.map((slot, i) => {
