@@ -3,7 +3,7 @@ import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
 import { I } from '../../tokens'
 import { useBooths } from '../../features/Booth/hooks/useBooths'
-import { getZoneName } from '../../data/zones'
+// import { getZoneName } from '../../data/zones' // TODO: location API 연결 후 활성화
 import { useTimetableStore } from '../../stores/useTimetableStore'
 import { SectionHeader } from '../../components/User/Home/SectionHeader'
 import { WaitingCarousel } from '../../components/User/WaitingCarousel'
