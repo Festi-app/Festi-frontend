@@ -230,7 +230,7 @@ function AddSlotForm({
   const createTimeline = useCreateFestivalTimeline()
   const [form, setForm] = useState(EMPTY_FORM)
 
-  const isValid = form.time && form.end && form.name && form.artist
+  const isValid = form.time && form.end && form.name && form.artist && festivalDayId
 
   function submit() {
     if (!isValid || !festivalDayId) return
@@ -298,6 +298,11 @@ function AddSlotForm({
           className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
         />
       </div>
+      {!festivalDayId && (
+        <div className="mb-3 rounded-lg bg-alert/10 px-3 py-2 text-[12px] font-semibold text-alert">
+          축제 설정에서 일자 정보를 먼저 저장해주세요
+        </div>
+      )}
       <div className="flex gap-2">
         <button
           type="button"
@@ -421,32 +426,32 @@ export function AdminTimetable() {
 
           {/* 슬롯 목록 */}
           <div className="min-h-0 flex-1 overflow-y-auto bg-bg">
-            {slots.length === 0 ? (
+            {slots.map((slot) => {
+              const slotStart = toMin(slot.startTime)
+              const slotEnd = toMin(slot.endTime)
+              const isNow =
+                selectedDay === currentDay &&
+                nowMin >= slotStart &&
+                nowMin < slotEnd
+              return (
+                <SlotRow
+                  key={slot.id}
+                  slot={slot}
+                  festivalDayId={selectedDayData?.id ?? ''}
+                  isNow={isNow}
+                />
+              )
+            })}
+
+            {slots.length === 0 && !adding && (
               <div className="py-16 text-center text-sm text-ink-40">
                 공연 일정이 없어요
               </div>
-            ) : (
-              slots.map((slot) => {
-                const slotStart = toMin(slot.startTime)
-                const slotEnd = toMin(slot.endTime)
-                const isNow =
-                  selectedDay === currentDay &&
-                  nowMin >= slotStart &&
-                  nowMin < slotEnd
-                return (
-                  <SlotRow
-                    key={slot.id}
-                    slot={slot}
-                    festivalDayId={selectedDayData?.id ?? ''}
-                    isNow={isNow}
-                  />
-                )
-              })
             )}
 
-            {adding && selectedDayData ? (
+            {adding ? (
               <AddSlotForm
-                festivalDayId={selectedDayData.id}
+                festivalDayId={selectedDayData?.id ?? ''}
                 onDone={() => setAdding(false)}
               />
             ) : (
@@ -454,8 +459,7 @@ export function AdminTimetable() {
                 <button
                   type="button"
                   onClick={() => setAdding(true)}
-                  disabled={!selectedDayData}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-3 text-[13px] font-bold text-ink-40 transition-colors hover:border-cta hover:text-cta disabled:opacity-40"
+                  className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-3 text-[13px] font-bold text-ink-40 transition-colors hover:border-cta hover:text-cta"
                 >
                   <div className="size-4">{I.plus()}</div>
                   공연 추가
