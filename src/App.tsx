@@ -378,9 +378,9 @@ function HomeRoute() {
     </UserTabLayout>
   )
 }
-function getIdParam(params: URLSearchParams): number | undefined {
+function getIdParam(params: URLSearchParams): string | undefined {
   const v = params.get('id')
-  return v ? Number(v) : undefined
+  return v ?? undefined
 }
 
 function MapRoute() {
@@ -596,6 +596,10 @@ export default function App() {
               <BoothListRoute />
             </RequireRole>
           }
+        />
+        <Route
+          path="/waitings"
+          element={<Navigate to={ROUTES.WAITING} replace />}
         />
         <Route
           path={ROUTES.WAITING}

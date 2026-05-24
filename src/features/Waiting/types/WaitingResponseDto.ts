@@ -4,7 +4,7 @@ export type WaitingStatus = 'WAITING' | 'CALLED' | 'SEATED' | 'CANCELLED'
 
 export interface WaitingResponseDto {
   id: string
-  boothSummary: BoothSummary
+  boothSummary?: BoothSummary
   partySize: number
   status: WaitingStatus
   callCount: number

@@ -10,7 +10,7 @@ export interface BoothApplicationResponseDto {
   operatingHours?: string
   imageUrl?: string
   status: ApplicationStatus
-  rejectionReason?: string
+  reviewMemo?: string
   applicantId: string
   boothId?: string
   createdAt: string

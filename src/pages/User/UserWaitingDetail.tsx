@@ -4,46 +4,52 @@ import { useNavigate } from 'react-router-dom'
 import { ROUTES, boothUrl } from '../../constants/routes'
 import { PhotoSlot } from '../../tokens'
 import { ScreenHeader } from '../../components/User/ScreenHeader'
-import { NIGHT_BOOTHS } from '../../data/booths'
-import { getBoothZoneName } from '../../data/zones'
 import { WaitingTicketCard } from '../../components/User/Waiting/WaitingTicketCard'
 import { CancelToast } from '../../components/User/CancelToast'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
 import { useWaitingCancel } from '../../hooks/useWaitingCancel'
 import { NotificationSettings } from '../../components/User/Waiting/NotificationSettings'
-import { useWaitingStore } from '../../stores/useWaitingStore'
+import { useMyWaitings } from '../../features/Waiting/hooks/useMyWaitings'
+import { useBooth } from '../../features/Booth/hooks/useBooth'
 
 const NOTIFICATION_ROWS = [
-  { label: '내 차례 3팀 전 알림', sub: '푸시' },
-  { label: '내 차례 호출 알림', sub: '진동 + 사운드' },
+  { label: '내 차례 호출 알림', sub: '푸시 알림' },
+  { label: '도착 알림 진동', sub: '진동 + 사운드' },
 ]
+
+function formatRegistered(partySize: number, registeredAt: string): string {
+  const date = new Date(registeredAt)
+  const h = date.getHours().toString().padStart(2, '0')
+  const m = date.getMinutes().toString().padStart(2, '0')
+  return `${partySize}인 · ${h}:${m} 등록`
+}
 
 export function UserWaitingDetail({
   dark = false,
   id,
 }: {
   dark?: boolean
-  id?: number
+  id?: string
 }) {
-  const booth = NIGHT_BOOTHS.find((b) => b.id === id) ?? NIGHT_BOOTHS[0]
-  const { waitings } = useWaitingStore()
-  const waiting = waitings.find((w) => w.boothId === booth.id)
   const navigate = useNavigate()
-  const [cancelledWaiting, setCancelledWaiting] =
-    useState<typeof waiting>(undefined)
+  const { data: waitings = [] } = useMyWaitings()
+  const waiting = waitings.find((w) => w.boothSummary?.id === id)
+  const boothId = waiting?.boothSummary?.id ?? id ?? null
+  const { data: booth } = useBooth(boothId)
+
   const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
     useWaitingCancel(() => navigate(ROUTES.WAITING))
   const [notifValues, setNotifValues] = useState([true, true])
-
-  function onConfirmCancel() {
-    setCancelledWaiting(waiting)
-    handleCancel(booth.id)
-  }
 
   if (!waiting && !showCancelToast) {
     navigate(ROUTES.WAITING, { replace: true })
     return null
   }
+
+  const boothName = booth?.name ?? waiting?.boothSummary?.name ?? '—'
+  const registered = waiting
+    ? formatRegistered(waiting.partySize, waiting.registeredAt)
+    : ''
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-bg font-festi">
@@ -53,43 +59,33 @@ export function UserWaitingDetail({
         className="min-h-0 flex-1 overflow-y-auto px-5 pt-5"
         style={{ paddingBottom: tabBarPb }}
       >
-        {(waiting ?? cancelledWaiting) &&
-          (() => {
-            const w = waiting ?? cancelledWaiting!
-            return (
-              <WaitingTicketCard
-                dark={dark}
-                boothName={booth.name}
-                boothTone={booth.tone}
-                boothArea={getBoothZoneName(booth)}
-                boothSections={booth.sections}
-                registered={w.registered}
-                waitNo={w.waitNo}
-                callNo={w.callNo}
-                progressPct={w.progressPct}
-                aheadTeams={w.aheadTeams}
-                onCancel={() => setConfirmCancel(true)}
-              />
-            )
-          })()}
+        {waiting && (
+          <WaitingTicketCard
+            dark={dark}
+            boothName={boothName}
+            registered={registered}
+            onCancel={() => setConfirmCancel(true)}
+          />
+        )}
 
         <div className="relative mt-4">
           <div className="overflow-hidden rounded-[20px] border border-border bg-surface">
             <div className="flex items-center gap-3 p-4">
               <div className="size-14 shrink-0 overflow-hidden rounded-[14px]">
-                <PhotoSlot label="" tone={booth.tone} radius={14} ratio="1/1" />
+                <PhotoSlot label="" tone={undefined} radius={14} ratio="1/1" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-[15px] font-extrabold tracking-[-0.3px] text-ink">
-                  {booth.name}
+                  {boothName}
                 </div>
                 <div className="mt-0.5 text-xs text-ink-60">
-                  {getBoothZoneName(booth)} · #{booth.id}
+                  {booth?.location ?? ''}
+                  {boothId && ` · #${boothId}`}
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => navigate(boothUrl('night', booth.id))}
+                onClick={() => boothId && navigate(boothUrl('night', boothId))}
                 className="shrink-0 rounded-full border border-border bg-surface-alt px-3 py-1.5 text-xs font-bold text-ink-80"
               >
                 부스 보기
@@ -98,13 +94,13 @@ export function UserWaitingDetail({
             <div className="grid grid-cols-2 border-t border-border">
               {[
                 {
-                  l: '현재 대기',
-                  v:
-                    booth.wait == null || booth.wait === 0
-                      ? '없음'
-                      : `${booth.wait}팀`,
+                  l: '운영 상태',
+                  v: booth?.isWaitingOpen ? '웨이팅 중' : '웨이팅 마감',
                 },
-                { l: '운영 시간', v: booth.operatingHours ?? '17시 ~ 22시' },
+                {
+                  l: '운영 시간',
+                  v: booth?.operatingHours ?? '—',
+                },
               ].map((x, i) => (
                 <div
                   key={i}
@@ -149,13 +145,13 @@ export function UserWaitingDetail({
         title="웨이팅을 취소할까요?"
         body={
           <>
-            {booth.name} · {booth.id}번
+            {boothName}
             <br />
             취소 후에는 다시 등록해야 합니다.
           </>
         }
         confirmLabel="취소하기"
-        onConfirm={onConfirmCancel}
+        onConfirm={() => waiting && handleCancel(waiting.id)}
         onClose={() => setConfirmCancel(false)}
       />
 
