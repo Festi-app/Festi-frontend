@@ -111,18 +111,22 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
           />
           <div className="mb-6 flex flex-col gap-2.5 px-5">
             {dayBooths.length === 0 ? (
-              <div className="flex items-center justify-center rounded-[18px] border border-border bg-surface py-6 text-[13px] text-ink-40">등록된 부스가 없어요</div>
-            ) : dayBooths.slice(0, 3).map((b) => (
-              <UserBoothListCard
-                key={b.id}
-                name={b.name}
-                tone={undefined}
-                zoneName={undefined} // TODO: API에 zoneId 추가되면 getZoneName(b.zoneId, b.type) 연결
-                sections={undefined}
-                description={undefined}
-                onClick={() => navigate(boothUrl('day', b.id))}
-              />
-            ))}
+              <div className="flex items-center justify-center rounded-[18px] border border-border bg-surface py-6 text-[13px] text-ink-40">
+                등록된 부스가 없어요
+              </div>
+            ) : (
+              dayBooths.slice(0, 3).map((b) => (
+                <UserBoothListCard
+                  key={b.id}
+                  name={b.name}
+                  tone={undefined}
+                  zoneName={undefined} // TODO: API에 zoneId 추가되면 getZoneName(b.zoneId, b.type) 연결
+                  sections={undefined}
+                  description={undefined}
+                  onClick={() => navigate(boothUrl('day', b.id))}
+                />
+              ))
+            )}
           </div>
 
           {/* 야간 부스 */}
@@ -135,18 +139,22 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
           />
           <div className="mb-6 flex flex-col gap-2.5 px-5">
             {nightBooths.length === 0 ? (
-              <div className="flex items-center justify-center rounded-[18px] border border-border bg-surface py-6 text-[13px] text-ink-40">등록된 부스가 없어요</div>
-            ) : nightBooths.slice(0, 3).map((b) => (
-              <UserBoothListCard
-                key={b.id}
-                name={b.name}
-                tone={undefined}
-                zoneName={undefined} // TODO: API에 zoneId 추가되면 getZoneName(b.zoneId, b.type) 연결
-                sections={undefined}
-                description={undefined}
-                onClick={() => navigate(boothUrl('night', b.id))}
-              />
-            ))}
+              <div className="flex items-center justify-center rounded-[18px] border border-border bg-surface py-6 text-[13px] text-ink-40">
+                등록된 부스가 없어요
+              </div>
+            ) : (
+              nightBooths.slice(0, 3).map((b) => (
+                <UserBoothListCard
+                  key={b.id}
+                  name={b.name}
+                  tone={undefined}
+                  zoneName={undefined} // TODO: API에 zoneId 추가되면 getZoneName(b.zoneId, b.type) 연결
+                  sections={undefined}
+                  description={undefined}
+                  onClick={() => navigate(boothUrl('night', b.id))}
+                />
+              ))
+            )}
           </div>
 
           {/* 공연 타임테이블 */}
@@ -199,18 +207,22 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
           />
           <div className="flex flex-col gap-2.5 px-5">
             {truckBooths.length === 0 ? (
-              <div className="flex items-center justify-center rounded-[18px] border border-border bg-surface py-6 text-[13px] text-ink-40">등록된 부스가 없어요</div>
-            ) : truckBooths.slice(0, 3).map((b) => (
-              <UserBoothListCard
-                key={b.id}
-                name={b.name}
-                tone={undefined}
-                zoneName={undefined} // TODO: API에 zoneId 추가되면 getZoneName(b.zoneId, b.type) 연결
-                sections={undefined}
-                description={undefined}
-                onClick={() => navigate(boothUrl('truck', b.id))}
-              />
-            ))}
+              <div className="flex items-center justify-center rounded-[18px] border border-border bg-surface py-6 text-[13px] text-ink-40">
+                등록된 부스가 없어요
+              </div>
+            ) : (
+              truckBooths.slice(0, 3).map((b) => (
+                <UserBoothListCard
+                  key={b.id}
+                  name={b.name}
+                  tone={undefined}
+                  zoneName={undefined} // TODO: API에 zoneId 추가되면 getZoneName(b.zoneId, b.type) 연결
+                  sections={undefined}
+                  description={undefined}
+                  onClick={() => navigate(boothUrl('truck', b.id))}
+                />
+              ))
+            )}
           </div>
         </div>{' '}
         {/* pt-4.5 */}
