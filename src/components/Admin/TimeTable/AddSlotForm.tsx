@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { I } from '../../../tokens'
+import { AdminModal } from '../AdminModal'
 import { useCreateFestivalTimeline } from '../../../features/Festival/hooks/useCreateFestivalTimeline'
 
 const EMPTY_FORM = { time: '', end: '', name: '', artist: '' }
@@ -11,18 +12,25 @@ function toApiTime(t: string): string {
 export function AddSlotForm({
   festivalDayId,
   onDone,
+  onToast,
 }: {
   festivalDayId: string
   onDone: () => void
+  onToast?: (msg: string) => void
 }) {
   const createTimeline = useCreateFestivalTimeline()
   const [form, setForm] = useState(EMPTY_FORM)
+  const [timeError, setTimeError] = useState(false)
 
   const isValid =
     form.time && form.end && form.name && form.artist && festivalDayId
 
   function submit() {
     if (!isValid || !festivalDayId) return
+    if (form.time >= form.end) {
+      setTimeError(true)
+      return
+    }
     createTimeline.mutate(
       {
         festivalDayId,
@@ -35,6 +43,7 @@ export function AddSlotForm({
         onSuccess: () => {
           setForm(EMPTY_FORM)
           onDone()
+          onToast?.('공연이 추가되었습니다')
         },
       }
     )
@@ -110,6 +119,14 @@ export function AddSlotForm({
           추가
         </button>
       </div>
+      <AdminModal
+        open={timeError}
+        variant="warning"
+        title="시간을 확인해주세요"
+        body="종료 시간이 시작 시간보다 같거나 빨라요"
+        confirmLabel="확인"
+        onClose={() => setTimeError(false)}
+      />
     </div>
   )
 }

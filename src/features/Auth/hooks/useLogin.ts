@@ -11,6 +11,7 @@ export function useLogin() {
   const navigate = useNavigate()
   return useMutation({
     mutationFn: async (body: PostLoginRequestDto) => {
+      localStorage.removeItem('token')
       const { accessToken } = await postLogin(body)
       localStorage.setItem('token', accessToken)
       try {
