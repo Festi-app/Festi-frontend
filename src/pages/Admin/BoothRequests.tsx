@@ -6,6 +6,7 @@ import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
 import { AdminModal } from '../../components/Admin/AdminModal'
+import { AdminToast } from '../../components/Admin/AdminToast'
 import { useBoothSectionStore } from '../../stores/useBoothSectionStore'
 import { I } from '../../tokens'
 import { cn } from '../../lib/cn'
@@ -146,11 +147,17 @@ export function AdminBoothRequests() {
   const { configuredModes } = useBoothSectionStore()
 
   const [filter, setFilter] = useState<StatusFilter>('PENDING')
+  const [toast, setToast] = useState<string | null>(null)
   const [sectionGateModal, setSectionGateModal] = useState<string[] | null>(
     null
   )
   const [rejectTarget, setRejectTarget] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState('')
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
 
   function handleAssignClick(app: BoothApplicationResponseDto) {
     const timeKey =
@@ -170,12 +177,14 @@ export function AdminBoothRequests() {
 
   function handleConfirmReject() {
     if (!rejectTarget || !rejectReason.trim()) return
+    const appName = applications.find((a) => a.id === rejectTarget)?.name ?? ''
     reject(
       { applicationId: rejectTarget, body: { reviewMemo: rejectReason } },
       {
         onSuccess: () => {
           setRejectTarget(null)
           setRejectReason('')
+          showToast(`'${appName}' 반려되었습니다`)
         },
       }
     )
@@ -250,7 +259,13 @@ export function AdminBoothRequests() {
               <ApplicationCard
                 key={app.id}
                 app={app}
-                onApprove={(id) => approve(id)}
+                onApprove={(id) => {
+                  const appName =
+                    applications.find((a) => a.id === id)?.name ?? ''
+                  approve(id, {
+                    onSuccess: () => showToast(`'${appName}' 승인되었습니다`),
+                  })
+                }}
                 onReject={(id) => {
                   setRejectTarget(id)
                   setRejectReason('')
@@ -298,6 +313,7 @@ export function AdminBoothRequests() {
         confirmLabel="확인"
         onClose={() => setSectionGateModal(null)}
       />
+      {toast && <AdminToast message={toast} />}
     </AdminShell>
   )
 }

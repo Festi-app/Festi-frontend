@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { AdminShell } from '../../components/Admin/AdminShell'
+import { AdminToast } from '../../components/Admin/AdminToast'
+import { AdminModal } from '../../components/Admin/AdminModal'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
 
@@ -27,6 +29,13 @@ export function AdminNotices() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [panelMode, setPanelMode] = useState<PanelMode>('idle')
   const [draft, setDraft] = useState<NoticeDraft>(EMPTY_DRAFT)
+  const [toast, setToast] = useState<string | null>(null)
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
 
   function startCreate() {
     setSelectedId(null)
@@ -52,12 +61,18 @@ export function AdminNotices() {
         onSuccess: () => {
           setPanelMode('idle')
           setSelectedId(null)
+          showToast('공지를 등록했어요')
         },
       })
     } else if (panelMode === 'edit' && selectedId) {
       updateNotice.mutate(
         { noticeId: selectedId, body: draft },
-        { onSuccess: () => setPanelMode('idle') }
+        {
+          onSuccess: () => {
+            setPanelMode('idle')
+            showToast('공지를 수정했어요')
+          },
+        }
       )
     }
   }
@@ -68,12 +83,19 @@ export function AdminNotices() {
   }
 
   function handleDelete(id: string) {
-    deleteNotice.mutate(id, {
+    setDeleteTargetId(id)
+  }
+
+  function confirmDelete() {
+    if (!deleteTargetId) return
+    deleteNotice.mutate(deleteTargetId, {
       onSuccess: () => {
-        if (selectedId === id) {
+        if (selectedId === deleteTargetId) {
           setSelectedId(null)
           setPanelMode('idle')
         }
+        showToast('공지를 삭제했어요')
+        setDeleteTargetId(null)
       },
     })
   }
@@ -81,14 +103,20 @@ export function AdminNotices() {
   function handleTogglePin(id: string) {
     const notice = notices.find((n) => n.id === id)
     if (!notice) return
-    updateNotice.mutate({
-      noticeId: id,
-      body: {
-        title: notice.title,
-        content: notice.content,
-        pinned: !notice.pinned,
+    updateNotice.mutate(
+      {
+        noticeId: id,
+        body: {
+          title: notice.title,
+          content: notice.content,
+          pinned: !notice.pinned,
+        },
       },
-    })
+      {
+        onSuccess: () =>
+          showToast(notice.pinned ? '고정 해제되었습니다' : '고정되었습니다'),
+      }
+    )
   }
 
   const pinned = notices.filter((n) => n.pinned).length
@@ -128,6 +156,16 @@ export function AdminNotices() {
           )}
         </main>
       </div>
+      <AdminModal
+        open={!!deleteTargetId}
+        variant="warning"
+        title={`"${notices.find((n) => n.id === deleteTargetId)?.title ?? '공지사항'}" 삭제할까요?`}
+        body="삭제된 공지는 복구할 수 없어요."
+        confirmLabel="삭제"
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteTargetId(null)}
+      />
+      {toast && <AdminToast message={toast} />}
     </AdminShell>
   )
 }

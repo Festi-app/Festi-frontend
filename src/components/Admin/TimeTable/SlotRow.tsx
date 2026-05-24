@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FESTIV_TOKENS, I } from '../../../tokens'
 import { cn } from '../../../lib/cn'
+import { AdminModal } from '../AdminModal'
 import { useUpdateFestivalTimeline } from '../../../features/Festival/hooks/useUpdateFestivalTimeline'
 import { useDeleteFestivalTimeline } from '../../../features/Festival/hooks/useDeleteFestivalTimeline'
 import type { TimelineResponseDto } from '../../../features/Festival/types/TimelineResponseDto'
@@ -13,14 +14,18 @@ export function SlotRow({
   slot,
   festivalDayId,
   isNow,
+  onToast,
 }: {
   slot: TimelineResponseDto
   festivalDayId: string
   isNow: boolean
+  onToast?: (msg: string) => void
 }) {
   const updateTimeline = useUpdateFestivalTimeline()
   const deleteTimeline = useDeleteFestivalTimeline()
   const [editing, setEditing] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [timeError, setTimeError] = useState(false)
   const [draft, setDraft] = useState({
     time: slot.startTime,
     end: slot.endTime,
@@ -30,6 +35,10 @@ export function SlotRow({
 
   function save() {
     if (!draft.time || !draft.end || !draft.name || !draft.artist) return
+    if (draft.time >= draft.end) {
+      setTimeError(true)
+      return
+    }
     updateTimeline.mutate(
       {
         timelineId: slot.id,
@@ -41,7 +50,12 @@ export function SlotRow({
           endTime: toApiTime(draft.end),
         },
       },
-      { onSuccess: () => setEditing(false) }
+      {
+        onSuccess: () => {
+          setEditing(false)
+          onToast?.('공연이 수정되었습니다')
+        },
+      }
     )
   }
 
@@ -121,6 +135,14 @@ export function SlotRow({
             저장
           </button>
         </div>
+        <AdminModal
+          open={timeError}
+          variant="warning"
+          title="시간을 확인해주세요"
+          body="종료 시간이 시작 시간보다 같거나 빨라요."
+          confirmLabel="확인"
+          onClose={() => setTimeError(false)}
+        />
       </div>
     )
   }
@@ -196,12 +218,28 @@ export function SlotRow({
         </button>
         <button
           type="button"
-          onClick={() => deleteTimeline.mutate(slot.id)}
+          onClick={() => setConfirmingDelete(true)}
           className="flex size-7 items-center justify-center rounded-lg border border-border bg-surface text-ink-40 transition-colors hover:border-alert hover:text-alert"
         >
           <div className="size-3.5">{I.trash()}</div>
         </button>
       </div>
+      <AdminModal
+        open={confirmingDelete}
+        variant="warning"
+        title={`"${slot.title} - ${slot.artist}" 일정을 삭제할까요?`}
+        body="삭제된 공연 일정은 복구할 수 없어요."
+        confirmLabel="삭제"
+        onConfirm={() =>
+          deleteTimeline.mutate(slot.id, {
+            onSuccess: () => {
+              setConfirmingDelete(false)
+              onToast?.('공연이 삭제되었습니다')
+            },
+          })
+        }
+        onClose={() => setConfirmingDelete(false)}
+      />
     </div>
   )
 }
