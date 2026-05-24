@@ -24,14 +24,23 @@ export const ENDPOINTS = {
     LIST: '/api/booths',
     DETAIL: (boothId: string) => `/api/booths/${boothId}`,
     MENUS: (boothId: string) => `/api/booths/${boothId}/menus`,
+    MENU_DETAIL: (boothId: string, menuId: string) =>
+      `/api/booths/${boothId}/menus/${menuId}`,
+    MENU_SOLD_OUT: (boothId: string, menuId: string) =>
+      `/api/booths/${boothId}/menus/${menuId}/sold-out`,
     WAITINGS: (boothId: string) => `/api/booths/${boothId}/waitings`,
+    WAITINGS_STATUS: (boothId: string) =>
+      `/api/booths/${boothId}/waitings/status`,
   },
   LOCATIONS: {
     LIST: '/api/locations',
+    DETAIL: (locationId: string) => `/api/locations/${locationId}`,
   },
   WAITINGS: {
     LIST: '/api/waitings',
     CANCEL: (waitingId: string) => `/api/waitings/${waitingId}`,
+    CALL: (waitingId: string) => `/api/waitings/${waitingId}/call`,
+    STATUS: (waitingId: string) => `/api/waitings/${waitingId}/status`,
   },
   FAVORITES: {
     ROOT: '/api/favorites',

@@ -381,7 +381,7 @@ function BoothListRoute() {
 function WaitingRegisterRoute() {
   const { dark } = useUI()
   const [searchParams] = useSearchParams()
-  const id = getIdParam(searchParams)
+  const id = searchParams.get('id') ?? undefined
   return (
     <UserLayout>
       <UserWaitingRegister dark={dark} id={id} />
