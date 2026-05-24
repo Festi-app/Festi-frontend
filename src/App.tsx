@@ -223,7 +223,7 @@ function NavLinks({ onClick, User }: { onClick?: () => void; User?: boolean }) {
   )
 }
 
-const NO_NAV_ROUTES = [ROUTES.SPLASH]
+const NO_NAV_ROUTES = [ROUTES.SPLASH, ROUTES.LOGIN, ROUTES.ONBOARDING]
 
 function Nav() {
   const [open, setOpen] = useState(false)
@@ -316,15 +316,17 @@ export { ALL_NAV_LINKS }
 function UserLayout({
   children,
   footer,
+  noHeader,
 }: {
   children: ReactNode
   footer?: ReactNode
+  noHeader?: boolean
 }) {
   const { key } = useLocation()
   return (
     <div className="min-h-screen overflow-hidden bg-bg md:ml-45 md:flex md:items-start md:justify-center md:px-6 md:py-10">
       <div
-        className="relative mt-14 h-[calc(100svh-3.5rem)] w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]"
+        className={`relative w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)] ${noHeader ? 'h-svh' : 'mt-14 h-[calc(100svh-3.5rem)]'}`}
         style={STANDALONE_STYLE}
       >
         <div
@@ -450,7 +452,7 @@ function MyRoute() {
 function LoginRoute() {
   const { dark } = useUI()
   return (
-    <UserLayout>
+    <UserLayout noHeader>
       <UserLogin dark={dark} />
     </UserLayout>
   )
@@ -458,7 +460,7 @@ function LoginRoute() {
 function OnboardingRoute() {
   const { dark } = useUI()
   return (
-    <UserLayout>
+    <UserLayout noHeader>
       <UserOnboarding dark={dark} />
     </UserLayout>
   )
