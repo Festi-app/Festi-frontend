@@ -349,27 +349,24 @@ export function AdminTimetable() {
     return () => clearTimeout(t)
   }, [festival?.startDate, currentDay])
 
+  const sortedFestivalDays = useMemo(
+    () => [...festivalDays].sort((a, b) => a.day.localeCompare(b.day)),
+    [festivalDays]
+  )
+
   const totalDays = useMemo(() => {
-    if (festivalDays.length > 0) return festivalDays.length
+    if (sortedFestivalDays.length > 0) return sortedFestivalDays.length
     if (startDate && endDate) {
       const s = new Date(startDate + 'T00:00:00')
       const e = new Date(endDate + 'T00:00:00')
       return Math.round((e.getTime() - s.getTime()) / 86400000) + 1
     }
     return 1
-  }, [festivalDays.length, startDate, endDate])
+  }, [sortedFestivalDays.length, startDate, endDate])
 
   const DAYS = Array.from({ length: totalDays }, (_, i) => i + 1)
 
-  // 선택된 일차에 해당하는 날짜 문자열로 festivalDay 매핑
-  const selectedDayDate = useMemo(() => {
-    if (!startDate) return null
-    const d = new Date(startDate + 'T00:00:00')
-    d.setDate(d.getDate() + selectedDay - 1)
-    return d.toISOString().slice(0, 10)
-  }, [startDate, selectedDay])
-
-  const selectedDayData = festivalDays.find((fd) => fd.day === selectedDayDate)
+  const selectedDayData = sortedFestivalDays[selectedDay - 1]
   const slots = timelines
     .filter((t) => t.festivalDay.id === selectedDayData?.id)
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
