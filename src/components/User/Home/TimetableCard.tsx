@@ -21,7 +21,12 @@ export function TimetableCard({
   currentDay: number
   nowMin: number
 }) {
-  if (!slots.length) return null
+  if (!slots.length)
+    return (
+      <div className="flex items-center justify-center rounded-[20px] border border-border bg-surface py-10 text-[13px] text-ink-40">
+        공연 일정이 없어요
+      </div>
+    )
 
   const start = toMin(slots[0].time)
   const end = toMin(slots[slots.length - 1].end)

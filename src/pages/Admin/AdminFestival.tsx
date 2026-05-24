@@ -1,7 +1,12 @@
 import { useState } from 'react'
 import { FESTIV_TOKENS, I } from '../../tokens'
 import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
-import { useFestivalStore } from '../../stores/useFestivalStore'
+import { useFestival } from '../../features/Festival/hooks/useFestival'
+import { useUpdateFestival } from '../../features/Festival/hooks/useUpdateFestival'
+// TODO: GET /api/festival/days 엔드포인트 추가되면 아래 주석 해제
+// import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
+// import { useUpdateFestivalDay } from '../../features/Festival/hooks/useUpdateFestivalDay'
+import type { FestivalDayResponseDto } from '../../features/Festival/types/FestivalDayResponseDto'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
@@ -12,43 +17,37 @@ import { Card } from '../../components/Admin/Festival/Card'
 // ── Screen: Festival Settings ─────────────────────────────────────────────────
 
 interface DayConfig {
+  id: string
   d: string
   date: string
   dayStart: string
   dayEnd: string
   nightStart: string
   nightEnd: string
-  booths: number
 }
 
 const WD_KO = ['일', '월', '화', '수', '목', '금', '토']
 
-function buildDaysFromRange(
-  start: string,
-  end: string,
-  prev: DayConfig[]
-): DayConfig[] {
-  if (!start || !end || start > end) return prev
-  const result: DayConfig[] = []
-  const cur = new Date(start + 'T00:00:00')
-  const last = new Date(end + 'T00:00:00')
-  let i = 0
-  while (cur <= last) {
-    const mo = String(cur.getMonth() + 1).padStart(2, '0')
-    const da = String(cur.getDate()).padStart(2, '0')
-    result.push({
-      d: `${i + 1}일차`,
-      date: `${mo}.${da} ${WD_KO[cur.getDay()]}`,
-      dayStart: prev[i]?.dayStart ?? '11:00',
-      dayEnd: prev[i]?.dayEnd ?? '17:00',
-      nightStart: prev[i]?.nightStart ?? '17:00',
-      nightEnd: prev[i]?.nightEnd ?? '22:00',
-      booths: prev[i]?.booths ?? 0,
-    })
-    cur.setDate(cur.getDate() + 1)
-    i++
+function formatDayDate(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00')
+  const mo = String(d.getMonth() + 1).padStart(2, '0')
+  const da = String(d.getDate()).padStart(2, '0')
+  return `${mo}.${da} ${WD_KO[d.getDay()]}`
+}
+
+function apiDayToConfig(
+  apiDay: FestivalDayResponseDto,
+  idx: number
+): DayConfig {
+  return {
+    id: apiDay.id,
+    d: `${idx + 1}일차`,
+    date: formatDayDate(apiDay.day),
+    dayStart: apiDay.dayStart,
+    dayEnd: apiDay.dayEnd,
+    nightStart: apiDay.nightStart,
+    nightEnd: apiDay.nightEnd,
   }
-  return result
 }
 
 export function AdminFestival({ dark = false }: { dark?: boolean }) {
@@ -63,45 +62,27 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   const [locationDraft, setLocationDraft] = useState('')
   const approvedBooths = accounts.filter((a) => a.status === 'approved')
 
-  const {
-    startDate: storedStart,
-    endDate: storedEnd,
-    setDates,
-  } = useFestivalStore()
+  const { data: festival } = useFestival()
+  // TODO: GET /api/festival/days 엔드포인트 추가되면 아래 주석 해제
+  const festivalDays: FestivalDayResponseDto[] = []
+  // const { data: festivalDays = [] } = useFestivalDays()
+  const updateFestival = useUpdateFestival()
+  // const updateFestivalDay = useUpdateFestivalDay()
 
+  // override = null이면 API 값 그대로 사용, 유저가 수정하면 override에 저장
+  const [nameOverride, setNameOverride] = useState<string | null>(null)
+  const [startDateOverride, setStartDateOverride] = useState<string | null>(
+    null
+  )
+  const [endDateOverride, setEndDateOverride] = useState<string | null>(null)
+  const [dayOverrides, setDayOverrides] = useState<DayConfig[] | null>(null)
   const [notice, setNotice] = useState('기본 정보와 일정, 운영 시간을 관리해요')
-  const [startDate, setStartDate] = useState(storedStart)
-  const [endDate, setEndDate] = useState(storedEnd)
-  const [selectedDay, setSelectedDay] = useState('2일차')
-  const [days, setDays] = useState<DayConfig[]>([
-    {
-      d: '1일차',
-      date: '05.20 수',
-      dayStart: '11:00',
-      dayEnd: '17:00',
-      nightStart: '17:00',
-      nightEnd: '22:00',
-      booths: 58,
-    },
-    {
-      d: '2일차',
-      date: '05.21 목',
-      dayStart: '11:00',
-      dayEnd: '17:00',
-      nightStart: '17:00',
-      nightEnd: '23:00',
-      booths: 77,
-    },
-    {
-      d: '3일차',
-      date: '05.22 금',
-      dayStart: '11:00',
-      dayEnd: '16:00',
-      nightStart: '16:00',
-      nightEnd: '21:00',
-      booths: 64,
-    },
-  ])
+  const [selectedDay, setSelectedDay] = useState('1일차')
+
+  const festivalName = nameOverride ?? festival?.name ?? ''
+  const startDate = startDateOverride ?? festival?.startDate ?? ''
+  const endDate = endDateOverride ?? festival?.endDate ?? ''
+  const days: DayConfig[] = dayOverrides ?? festivalDays.map(apiDayToConfig)
 
   function updateDayTime(
     d: string,
@@ -111,19 +92,53 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
     >,
     val: string
   ) {
-    setDays((prev) =>
-      prev.map((day) => (day.d === d ? { ...day, [key]: val } : day))
+    setDayOverrides((prev) =>
+      (prev ?? festivalDays.map(apiDayToConfig)).map((day) =>
+        day.d === d ? { ...day, [key]: val } : day
+      )
     )
   }
 
-  function handleStartDate(v: string) {
-    setStartDate(v)
-    setDays((prev) => buildDaysFromRange(v, endDate, prev))
+  function handleSave() {
+    updateFestival.mutate(
+      {
+        name: festivalName,
+        startDate,
+        endDate,
+        description: festival?.description ?? undefined,
+      },
+      {
+        onSuccess: () => {
+          setNameOverride(null)
+          setStartDateOverride(null)
+          setEndDateOverride(null)
+          setDayOverrides(null)
+          setNotice('저장 완료 · 사용자 화면에 반영됐어요')
+        },
+        onError: () => setNotice('저장에 실패했어요. 다시 시도해주세요'),
+      }
+    )
+    // TODO: GET /api/festival/days 엔드포인트 추가되면 아래 주석 해제
+    // days.forEach((day) => {
+    //   updateFestivalDay.mutate({
+    //     festivalDayId: day.id,
+    //     body: {
+    //       day: festivalDays.find((fd) => fd.id === day.id)?.day ?? day.date,
+    //       dayStart: day.dayStart,
+    //       dayEnd: day.dayEnd,
+    //       nightStart: day.nightStart,
+    //       nightEnd: day.nightEnd,
+    //     },
+    //   })
+    // })
   }
 
-  function handleEndDate(v: string) {
-    setEndDate(v)
-    setDays((prev) => buildDaysFromRange(startDate, v, prev))
+  function handleCancel() {
+    setNameOverride(null)
+    setStartDateOverride(null)
+    setEndDateOverride(null)
+    setDayOverrides(null)
+    setNotice('변경사항을 취소했어요')
   }
 
   return (
@@ -133,17 +148,10 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
         sub={notice}
         right={
           <>
-            <AdminBtn ghost onClick={() => setNotice('변경사항을 취소했어요')}>
+            <AdminBtn ghost onClick={handleCancel}>
               변경사항 취소
             </AdminBtn>
-            <AdminBtn
-              primary
-              icon={I.check('#fff')}
-              onClick={() => {
-                setDates(startDate, endDate)
-                setNotice('저장 완료 · 사용자 화면에 반영됐어요')
-              }}
-            >
+            <AdminBtn primary icon={I.check('#fff')} onClick={handleSave}>
               저장
             </AdminBtn>
           </>
@@ -153,7 +161,17 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
       <div className="grid grid-cols-[1.4fr_1fr] gap-5 overflow-auto p-6">
         {/* Left column */}
         <div className="flex flex-col gap-4">
-          {/* 기본 정보 + 일자별 운영 시간 */}
+          {/* 축제 이름 */}
+          <Card dark={dark} title="축제 이름">
+            <input
+              type="text"
+              value={festivalName}
+              onChange={(e) => setNameOverride(e.target.value)}
+              className="w-full rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] font-semibold text-ink focus:border-cta focus:outline-none"
+            />
+          </Card>
+
+          {/* 일정 + 일자별 운영 시간 */}
           <Card dark={dark} title="일정 · 운영 시간">
             {/* Dates */}
             <div className="mb-4 grid grid-cols-2 gap-3">
@@ -164,7 +182,7 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                 <input
                   type="date"
                   value={startDate}
-                  onChange={(e) => handleStartDate(e.target.value)}
+                  onChange={(e) => setStartDateOverride(e.target.value)}
                   className="w-full rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] font-semibold text-ink focus:border-cta focus:outline-none"
                 />
               </div>
@@ -175,7 +193,7 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                 <input
                   type="date"
                   value={endDate}
-                  onChange={(e) => handleEndDate(e.target.value)}
+                  onChange={(e) => setEndDateOverride(e.target.value)}
                   className="w-full rounded-xl border border-border bg-bg px-3 py-2.5 text-[13px] font-semibold text-ink focus:border-cta focus:outline-none"
                 />
               </div>
@@ -198,7 +216,7 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                     )}
                   >
                     {/* Row header (always read-only) */}
-                    <div className="grid grid-cols-[92px_1fr_1fr_80px_28px] items-center gap-3 p-3">
+                    <div className="grid grid-cols-[92px_1fr_1fr_28px] items-center gap-3 p-3">
                       <div>
                         <div
                           className={cn(
@@ -229,24 +247,7 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                         range={`${day.nightStart} — ${day.nightEnd}`}
                         selected={selected}
                       />
-                      <div className="text-right">
-                        <div
-                          className={cn(
-                            'text-sm font-extrabold',
-                            selected ? 'text-[#141A1F]' : 'text-ink'
-                          )}
-                        >
-                          {day.booths}
-                        </div>
-                        <div
-                          className={cn(
-                            'text-[10px]',
-                            selected ? 'text-[#5E676D]' : 'text-ink-60'
-                          )}
-                        >
-                          부스
-                        </div>
-                      </div>
+                      <div />
                     </div>
 
                     {/* Inline time editor for selected row */}

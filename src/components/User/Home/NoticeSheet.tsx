@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { I } from '../../../tokens'
-import { useNoticeStore } from '../../../stores/useNoticeStore'
+import { useFestivalNotices } from '../../../features/Festival/hooks/useFestivalNotices'
 import { tabBarOuterPb } from '../../../lib/safeArea'
 
 export function NoticeSheet({ onClose }: { onClose: () => void }) {
-  const { notices } = useNoticeStore()
+  const { data: notices = [] } = useFestivalNotices()
   const sorted = useMemo(
     () =>
       [...notices].sort((a, b) => {
@@ -56,6 +56,11 @@ export function NoticeSheet({ onClose }: { onClose: () => void }) {
           className="flex flex-col gap-2 overflow-y-auto px-5"
           style={{ paddingBottom: tabBarOuterPb }}
         >
+          {sorted.length === 0 && (
+            <div className="py-10 text-center text-[13px] text-ink-40">
+              등록된 공지가 없어요
+            </div>
+          )}
           {sorted.map((n) => (
             <div
               key={n.id}
@@ -71,7 +76,7 @@ export function NoticeSheet({ onClose }: { onClose: () => void }) {
                   {n.title}
                 </div>
                 <span className="ml-auto shrink-0 text-[11px] text-ink-40">
-                  {n.createdAt.slice(5).replace('-', '.')}
+                  {n.createdAt.slice(5, 10).replace('-', '.')}
                 </span>
               </div>
               <div className="mt-1 text-[12px] leading-relaxed text-ink-60">

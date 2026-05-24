@@ -1,20 +1,42 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS } from '../../tokens'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
 import { ROUTES } from '../../constants/routes'
+import { useFestival } from '../../features/Festival/hooks/useFestival'
+import type { FestivalResponseDto } from '../../features/Festival/types/FestivalResponseDto'
+
+function isFestivalActive(startDate: string, endDate: string): boolean {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const start = new Date(startDate + 'T00:00:00')
+  const end = new Date(endDate + 'T00:00:00')
+  return today >= start && today <= end
+}
+
+function getDest(festival: FestivalResponseDto | undefined): string {
+  if (festival?.startDate && festival?.endDate) {
+    return isFestivalActive(festival.startDate, festival.endDate)
+      ? ROUTES.HOME
+      : ROUTES.OFF_SEASON
+  }
+  return ROUTES.HOME
+}
 
 export function UserSplash({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
+  const { data: festival } = useFestival()
+  const festivalRef = useRef(festival)
   const [out, setOut] = useState(false)
+
+  useEffect(() => {
+    festivalRef.current = festival
+  }, [festival])
 
   useEffect(() => {
     const t = setTimeout(() => {
       setOut(true)
-      // 개발 중: 항상 홈으로 이동 — 실서비스 시 아래 주석 해제 후 위 줄 제거
-      const dest = ROUTES.HOME
-      // const { startDate, endDate } = useFestivalStore.getState()
-      // const dest = isFestivalActive(startDate, endDate) ? ROUTES.HOME : ROUTES.OFF_SEASON
+      const dest = getDest(festivalRef.current)
       setTimeout(() => navigate(dest, { replace: true }), 400)
     }, 2000)
     return () => clearTimeout(t)

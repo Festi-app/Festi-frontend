@@ -1,7 +1,6 @@
 import { FestivMark, FestivWordmark } from '../../../components/Logo'
 import { ROUTES } from '../../../constants/routes'
-import { useFestivalStore } from '../../../stores/useFestivalStore'
-import { useTimetableStore } from '../../../stores/useTimetableStore'
+import { useFestival } from '../../../features/Festival/hooks/useFestival'
 import { FESTIV_TOKENS } from '../../../tokens'
 import { getDDayInfo } from '../../../utils/getDayInfo'
 import { useNavigate } from 'react-router-dom'
@@ -16,8 +15,10 @@ function formatFestivalDate(dateStr: string) {
 }
 
 export function UserOffSeason({ dark = false }: { dark?: boolean }) {
-  const { startDate, endDate } = useFestivalStore()
-  const { festivalName } = useTimetableStore()
+  const { data: festival } = useFestival()
+  const startDate = festival?.startDate ?? ''
+  const endDate = festival?.endDate ?? ''
+  const festivalName = festival?.name ?? '축제'
   const dday = getDDayInfo(startDate, endDate)
   const navigate = useNavigate()
 
@@ -76,13 +77,15 @@ export function UserOffSeason({ dark = false }: { dark?: boolean }) {
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={() => navigate(ROUTES.HOME)}
-        className="mt-6 rounded-2xl border border-border bg-surface px-6 py-3 text-[13px] font-bold text-ink-80"
-      >
-        축제 미리 구경하기
-      </button>
+      {dday.type === 'before' && dday.days <= 7 && (
+        <button
+          type="button"
+          onClick={() => navigate(ROUTES.HOME)}
+          className="mt-6 rounded-2xl border border-border bg-surface px-6 py-3 text-[13px] font-bold text-ink-80"
+        >
+          축제 미리 구경하기
+        </button>
+      )}
 
       <div className="absolute bottom-10 flex flex-col items-center gap-1.5 text-ink-60">
         <span className="text-[12px] font-medium">축제를 더 즐겁게,</span>
