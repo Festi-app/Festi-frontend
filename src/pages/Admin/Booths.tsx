@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { FESTIV_TOKENS, I } from '../../tokens'
 import { ZONES, NIGHT_ZONES } from '../../data/zones'
 import { AdminShell } from '../../components/Admin/AdminShell'
@@ -29,7 +28,7 @@ import {
 } from '../../stores/useBoothSectionStore'
 import { BoothPermissionModal } from '../../components/Admin/Booth/BoothPermissionModal'
 import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
-import { useBoothApplications } from '../../features/BoothApplication/hooks/useBoothApplications'
+import { useBooths } from '../../features/Booth/hooks/useBooths'
 import { useLocations } from '../../features/Map/hooks/useLocations'
 import { useAssignBooth } from '../../features/Map/hooks/useAssignBooth'
 import { useCreateLocationSlots } from '../../features/Map/hooks/useCreateLocationSlots'
@@ -70,35 +69,36 @@ function selectionShadow(
 
 export function AdminBooths() {
   const { data: festivalDays = [] } = useFestivalDays()
-  const { data: applications = [] } = useBoothApplications()
+  const { data: booths = [] } = useBooths()
   const createLocationSlots = useCreateLocationSlots()
   const assignBooth = useAssignBooth()
 
-  const allOrgs: OrgAccount[] = applications
-    .filter((a) => a.status === 'APPROVED')
-    .map((a, idx) => ({
-      id: a.boothId ?? a.id,
-      name: a.boothName,
-      type: '동아리' as const,
-      color: ORG_COLORS[idx % ORG_COLORS.length],
-      applications: ([1, 2, 3] as PermDay[]).flatMap((d) =>
-        a.boothType === 'FOOD_TRUCK'
-          ? []
-          : [
-              {
-                day: d,
-                time: (a.boothType === 'NIGHT' ? '야간' : '주간') as PermTime,
-              },
-            ]
-      ),
-    }))
+  const allOrgs: OrgAccount[] = booths.map((booth, idx) => ({
+    id: booth.id,
+    name: booth.name,
+    type: '동아리' as const,
+    color: ORG_COLORS[idx % ORG_COLORS.length],
+    applications: ([1, 2, 3] as PermDay[]).flatMap((d) =>
+      booth.type === 'FOOD_TRUCK'
+        ? []
+        : [
+            {
+              day: d,
+              time: (booth.type === 'NIGHT' ? '야간' : '주간') as PermTime,
+            },
+          ]
+    ),
+  }))
 
-  const [searchParams] = useSearchParams()
-  const [step, setStep] = useState<'configure' | 'assign'>(
-    searchParams.get('step') === 'assign' ? 'assign' : 'configure'
-  )
-  const { permissions, addPermission, zoneDivisions, markModeConfigured } =
+  const { permissions, addPermission, zoneDivisions, markModeConfigured, configuredModes } =
     useBoothSectionStore()
+
+  const allConfigured = (['주간', '야간', '푸드트럭'] as BoothMapMode[]).every(
+    (m) => configuredModes.includes(m)
+  )
+  const [step, setStep] = useState<'configure' | 'assign'>(
+    allConfigured ? 'assign' : 'configure'
+  )
   const {
     trucks,
     assignments: truckAssignments,

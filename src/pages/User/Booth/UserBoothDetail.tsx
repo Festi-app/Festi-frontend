@@ -111,7 +111,7 @@ export function UserBoothDetail({
           name={booth.name}
           category={CATEGORY_LABEL[booth.category] ?? booth.category}
           type={type}
-          area={getZoneName(zoneLabel) ?? booth.location ?? undefined}
+          area={getZoneName(zoneLabel) ?? undefined}
           operatingHours={booth.operatingHours ?? undefined}
           description={booth.description ?? undefined}
           sections={sections}

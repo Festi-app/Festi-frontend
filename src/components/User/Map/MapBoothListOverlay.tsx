@@ -161,11 +161,6 @@ export function MapBoothListOverlay({
                           <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
                             {truck.name}
                           </div>
-                          {truck.location && (
-                            <div className="mt-0.5 text-[11px] text-ink-60">
-                              {truck.location}
-                            </div>
-                          )}
                         </div>
                       </button>
                     )

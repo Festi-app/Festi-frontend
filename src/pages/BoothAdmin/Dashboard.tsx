@@ -2,7 +2,9 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import { FESTIV_TOKENS, I } from '../../tokens'
+import { useQueryClient } from '@tanstack/react-query'
 import { useMyBoothApplication } from '../../features/BoothApplication/hooks/useMyBoothApplication'
+import { boothApplicationKeys } from '../../features/BoothApplication/hooks/boothApplicationKeys'
 import { useUpdateBooth } from '../../features/Booth/hooks/useUpdateBooth'
 import { useBoothWaitings } from '../../features/Waiting/hooks/useBoothWaitings'
 import { useCallWaiting } from '../../features/Waiting/hooks/useCallWaiting'
@@ -125,6 +127,7 @@ function InfoTab({
   const [saved, setSaved] = useState(false)
 
   const boothId = application.boothId
+  const isApproved = application.status === 'APPROVED'
 
   function handleSave() {
     if (!boothId) return
@@ -170,9 +173,15 @@ function InfoTab({
         </button>
       </div>
 
-      {!boothId && (
+      {!isApproved && (
         <div className="mb-4 rounded-xl bg-sun/10 px-4 py-3 text-[13px] text-[#B8860B]">
           승인 완료 후 부스 정보를 수정할 수 있어요
+        </div>
+      )}
+
+      {isApproved && !boothId && (
+        <div className="mb-4 rounded-xl bg-surface-alt px-4 py-3 text-[13px] text-ink-60">
+          부스 정보를 연동 중이에요. 잠시 후 새로고침해주세요
         </div>
       )}
 
@@ -182,7 +191,7 @@ function InfoTab({
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            disabled={!boothId}
+            disabled={!isApproved || !boothId}
             className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none disabled:opacity-60"
           />
         </div>
@@ -193,7 +202,7 @@ function InfoTab({
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            disabled={!boothId}
+            disabled={!isApproved || !boothId}
             rows={3}
             className="w-full resize-none rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none disabled:opacity-60"
           />
@@ -205,7 +214,7 @@ function InfoTab({
           <input
             value={operatingHours}
             onChange={(e) => setOperatingHours(e.target.value)}
-            disabled={!boothId}
+            disabled={!isApproved || !boothId}
             placeholder="예: 10:00 ~ 18:00"
             className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none disabled:opacity-60"
           />
@@ -217,7 +226,7 @@ function InfoTab({
           <input
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
-            disabled={!boothId}
+            disabled={!isApproved || !boothId}
             placeholder="https://..."
             className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none disabled:opacity-60"
           />
@@ -487,6 +496,7 @@ type TabKey = 'info' | 'waiting'
 
 export function BoothAdminDashboard() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const {
     data: application,
     isLoading,
@@ -509,6 +519,7 @@ export function BoothAdminDashboard() {
 
   function handleLogout() {
     localStorage.removeItem('token')
+    queryClient.removeQueries({ queryKey: boothApplicationKeys.mine() })
     navigate(ROUTES.BOOTH_ADMIN.LOGIN)
   }
 
