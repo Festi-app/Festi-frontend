@@ -3,9 +3,8 @@ import { FESTIV_TOKENS, I } from '../../tokens'
 import { useBoothAdminStore } from '../../stores/useBoothAdminStore'
 import { useFestival } from '../../features/Festival/hooks/useFestival'
 import { useUpdateFestival } from '../../features/Festival/hooks/useUpdateFestival'
-// TODO: GET /api/festival/days 엔드포인트 추가되면 아래 주석 해제
-// import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
-// import { useUpdateFestivalDay } from '../../features/Festival/hooks/useUpdateFestivalDay'
+import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
+import { useUpdateFestivalDay } from '../../features/Festival/hooks/useUpdateFestivalDay'
 import type { FestivalDayResponseDto } from '../../features/Festival/types/FestivalDayResponseDto'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
@@ -63,11 +62,9 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   const approvedBooths = accounts.filter((a) => a.status === 'approved')
 
   const { data: festival } = useFestival()
-  // TODO: GET /api/festival/days 엔드포인트 추가되면 아래 주석 해제
-  const festivalDays: FestivalDayResponseDto[] = []
-  // const { data: festivalDays = [] } = useFestivalDays()
+  const { data: festivalDays = [] } = useFestivalDays()
   const updateFestival = useUpdateFestival()
-  // const updateFestivalDay = useUpdateFestivalDay()
+  const updateFestivalDay = useUpdateFestivalDay()
 
   // override = null이면 API 값 그대로 사용, 유저가 수정하면 override에 저장
   const [nameOverride, setNameOverride] = useState<string | null>(null)
@@ -82,7 +79,33 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   const festivalName = nameOverride ?? festival?.name ?? ''
   const startDate = startDateOverride ?? festival?.startDate ?? ''
   const endDate = endDateOverride ?? festival?.endDate ?? ''
-  const days: DayConfig[] = dayOverrides ?? festivalDays.map(apiDayToConfig)
+
+  // festivalDays API 연동 전: startDate/endDate로 일차 자동 생성
+  const generatedDays: DayConfig[] = (() => {
+    if (!startDate || !endDate) return []
+    const s = new Date(startDate + 'T00:00:00')
+    const e = new Date(endDate + 'T00:00:00')
+    const total = Math.round((e.getTime() - s.getTime()) / 86400000) + 1
+    return Array.from({ length: total }, (_, i) => {
+      const d = new Date(startDate + 'T00:00:00')
+      d.setDate(d.getDate() + i)
+      const mo = String(d.getMonth() + 1).padStart(2, '0')
+      const da = String(d.getDate()).padStart(2, '0')
+      const existing = festivalDays[i]
+      return existing
+        ? apiDayToConfig(existing, i)
+        : {
+            id: '',
+            d: `${i + 1}일차`,
+            date: `${mo}.${da} ${WD_KO[d.getDay()]}`,
+            dayStart: '10:00',
+            dayEnd: '18:00',
+            nightStart: '18:00',
+            nightEnd: '22:00',
+          }
+    })
+  })()
+  const days: DayConfig[] = dayOverrides ?? generatedDays
 
   function updateDayTime(
     d: string,
@@ -93,7 +116,7 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
     val: string
   ) {
     setDayOverrides((prev) =>
-      (prev ?? festivalDays.map(apiDayToConfig)).map((day) =>
+      (prev ?? generatedDays).map((day) =>
         day.d === d ? { ...day, [key]: val } : day
       )
     )
@@ -118,19 +141,21 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
         onError: () => setNotice('저장에 실패했어요. 다시 시도해주세요'),
       }
     )
-    // TODO: GET /api/festival/days 엔드포인트 추가되면 아래 주석 해제
-    // days.forEach((day) => {
-    //   updateFestivalDay.mutate({
-    //     festivalDayId: day.id,
-    //     body: {
-    //       day: festivalDays.find((fd) => fd.id === day.id)?.day ?? day.date,
-    //       dayStart: day.dayStart,
-    //       dayEnd: day.dayEnd,
-    //       nightStart: day.nightStart,
-    //       nightEnd: day.nightEnd,
-    //     },
-    //   })
-    // })
+    days.forEach((day) => {
+      if (!day.id) return
+      const originalDay = festivalDays.find((fd) => fd.id === day.id)
+      if (!originalDay) return
+      updateFestivalDay.mutate({
+        festivalDayId: day.id,
+        body: {
+          day: originalDay.day,
+          dayStart: day.dayStart,
+          dayEnd: day.dayEnd,
+          nightStart: day.nightStart,
+          nightEnd: day.nightEnd,
+        },
+      })
+    })
   }
 
   function handleCancel() {
@@ -202,6 +227,11 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
               일자별 운영 시간
             </div>
             <div className="flex flex-col gap-2.5">
+              {days.length === 0 && (
+                <div className="rounded-[14px] border border-dashed border-border bg-surface-alt py-4 text-center text-[12px] text-ink-40">
+                  시작일과 종료일을 먼저 설정하세요
+                </div>
+              )}
               {days.map((day) => {
                 const selected = day.d === selectedDay
                 return (
