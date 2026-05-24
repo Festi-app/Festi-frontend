@@ -6,13 +6,14 @@ import { FilterChips } from '../../components/User/My/FilterChips'
 import { ProfileInfoRow } from '../../components/User/My/ProfileInfoRow'
 import { EmptyState } from '../../components/User/EmptyState'
 import { Toast } from '../../components/shared/Toast'
-import { useUserStore } from '../../stores/useUserStore'
 import { useUI } from '../../stores/useUIStore'
 import { formatPhone } from '../../lib/format'
 import { boothUrl } from '../../constants/routes'
 import { useFavorites } from '../../features/Favorite/hooks/useFavorites'
 import { useToggleFavorite } from '../../features/Favorite/hooks/useToggleFavorite'
 import type { BoothType } from '../../features/Favorite/types/BoothSummaryDto'
+import { useMe } from '../../features/User/hooks/useMe'
+import { useUpdateMe } from '../../features/User/hooks/useUpdateMe'
 
 const TYPE_LABEL: Record<BoothType, string> = {
   DAY: '주간',
@@ -34,12 +35,15 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [profileOpen, setProfileOpen] = useState(false)
-  const { name, phone, userId, setName, setPhone } = useUserStore()
+  const { data: me } = useMe()
+  const updateMe = useUpdateMe()
+  const name = me?.name ?? ''
+  const phone = me?.phone ?? ''
+  const userId = me?.id ?? ''
   const [editingName, setEditingName] = useState(false)
-  const [nameInput, setNameInput] = useState(name)
+  const [nameInput, setNameInput] = useState('')
   const [editingPhone, setEditingPhone] = useState(false)
-  const [phoneInput, setPhoneInput] = useState(phone)
-  // TODO: 위치 정보 API 추가되면 zone/section 표시에 사용
+  const [phoneInput, setPhoneInput] = useState('')
   const muted = dark ? '#8B939B' : '#5E676D'
   void muted
   const { dark: isDark, setDark } = useUI()
@@ -61,13 +65,17 @@ export function UserMy({ dark = false }: { dark?: boolean }) {
   }
 
   function saveName() {
-    setName(nameInput)
-    setEditingName(false)
+    updateMe.mutate(
+      { name: nameInput },
+      { onSuccess: () => setEditingName(false) }
+    )
   }
 
   function savePhone() {
-    setPhone(phoneInput)
-    setEditingPhone(false)
+    updateMe.mutate(
+      { phone: phoneInput },
+      { onSuccess: () => setEditingPhone(false) }
+    )
   }
 
   function closeProfile() {

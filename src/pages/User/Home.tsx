@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
 import { I } from '../../tokens'
-import { DAY_BOOTHS, NIGHT_BOOTHS, TRUCK_BOOTHS } from '../../data/booths'
+import { useBooths } from '../../features/Booth/hooks/useBooths'
 import { getZoneName } from '../../data/zones'
 import { useTimetableStore } from '../../stores/useTimetableStore'
 import { SectionHeader } from '../../components/User/Home/SectionHeader'
@@ -19,6 +19,9 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
   const { festivalName, venue, currentDay, nowMin, days } = useTimetableStore()
   const { startDate, endDate } = useFestivalStore()
+  const { data: dayBooths = [] } = useBooths({ type: 'DAY' })
+  const { data: nightBooths = [] } = useBooths({ type: 'NIGHT' })
+  const { data: truckBooths = [] } = useBooths({ type: 'FOOD_TRUCK' })
   const [timetableDay, setTimetableDay] = useState(currentDay)
 
   const today = new Date()
@@ -107,14 +110,14 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
             className="mt-5"
           />
           <div className="mb-6 flex flex-col gap-2.5 px-5">
-            {DAY_BOOTHS.slice(0, 3).map((b) => (
+            {dayBooths.slice(0, 3).map((b) => (
               <UserBoothListCard
                 key={b.id}
                 name={b.name}
-                tone={b.tone}
-                zoneName={getZoneName(b.zoneId, b.type)}
-                sections={b.sections}
-                description={b.description}
+                tone={undefined}
+                zoneName={undefined} // TODO: API에 zoneId 추가되면 getZoneName(b.zoneId, b.type) 연결
+                sections={undefined}
+                description={undefined}
                 onClick={() => navigate(boothUrl('day', b.id))}
               />
             ))}
@@ -129,14 +132,14 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
             onMore={() => navigate(boothListUrl('night'))}
           />
           <div className="mb-6 flex flex-col gap-2.5 px-5">
-            {NIGHT_BOOTHS.slice(0, 3).map((b) => (
+            {nightBooths.slice(0, 3).map((b) => (
               <UserBoothListCard
                 key={b.id}
                 name={b.name}
-                tone={b.tone}
-                zoneName={getZoneName(b.zoneId, b.type)}
-                sections={b.sections}
-                description={b.description}
+                tone={undefined}
+                zoneName={undefined} // TODO: API에 zoneId 추가되면 getZoneName(b.zoneId, b.type) 연결
+                sections={undefined}
+                description={undefined}
                 onClick={() => navigate(boothUrl('night', b.id))}
               />
             ))}
@@ -191,15 +194,15 @@ export function UserHome({ dark = false }: { dark?: boolean }) {
             onMore={() => navigate(boothListUrl('truck'))}
           />
           <div className="flex flex-col gap-2.5 px-5">
-            {TRUCK_BOOTHS.slice(0, 3).map((t) => (
+            {truckBooths.slice(0, 3).map((b) => (
               <UserBoothListCard
-                key={t.id}
-                name={t.name}
-                tone={t.tone}
-                zoneName={getZoneName(t.zoneId, t.type)}
-                sections={t.sections}
-                description={t.description}
-                onClick={() => navigate(boothUrl('truck', t.id))}
+                key={b.id}
+                name={b.name}
+                tone={undefined}
+                zoneName={undefined} // TODO: API에 zoneId 추가되면 getZoneName(b.zoneId, b.type) 연결
+                sections={undefined}
+                description={undefined}
+                onClick={() => navigate(boothUrl('truck', b.id))}
               />
             ))}
           </div>

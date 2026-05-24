@@ -1,15 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  TRUCK_BOOTHS,
-  DAY_BOOTHS,
-  NIGHT_BOOTHS,
-  NIGHT_BOOTH_MENUS,
-  DAY_BOOTH_MENUS,
-  TRUCK_BOOTH_MENUS,
-} from '../../../data/booths'
-import { getBoothZoneName, ALL_ZONES } from '../../../data/zones'
-import { TRUCK_ZONES } from '../../../stores/useTruckPlacementStore'
 import { I } from '../../../tokens'
 import { PhotoHero } from '../../../components/User/PhotoHero'
 import { Toast } from '../../../components/shared/Toast'
@@ -19,6 +9,17 @@ import { useWaitingStore } from '../../../stores/useWaitingStore'
 import { ConfirmModal } from '../../../components/User/ConfirmModal'
 import { useWaitingCancel } from '../../../hooks/useWaitingCancel'
 import { BoothDetailContent } from '../../../components/User/BoothDetailContent'
+import { useBooth } from '../../../features/Booth/hooks/useBooth'
+import { useBoothMenus } from '../../../features/Booth/hooks/useBoothMenus'
+
+const CATEGORY_LABEL: Record<string, string> = {
+  ACTIVITY: '활동',
+  INFO: '정보',
+  MARKET: '마켓',
+  EXPERIENCE: '체험',
+  PROMOTION: '홍보',
+  ALCOHOL: '주류',
+}
 
 export function UserBoothDetail({
   dark = false,
@@ -27,7 +28,7 @@ export function UserBoothDetail({
 }: {
   dark?: boolean
   type?: string
-  id?: number
+  id?: string
 }) {
   const navigate = useNavigate()
   const isNight = type === 'night'
@@ -37,51 +38,39 @@ export function UserBoothDetail({
   const [toast, setToast] = useState<'saved' | 'unsaved' | null>(null)
   const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
     useWaitingCancel()
-  const fallbackId = isNight ? 16 : isTruck ? 1 : 6
-  const resolvedId = id ?? fallbackId
-  const favorite = isSaved(String(resolvedId))
+
+  const { data: booth, isLoading } = useBooth(id ?? '')
+  const { data: menus = [] } = useBoothMenus(id ?? '')
+
+  const favorite = id ? isSaved(id) : false
   const alreadyWaiting =
-    isNight && waitings.some((w) => w.boothId === resolvedId)
+    isNight && waitings.some((w) => w.boothId === Number(id))
 
   function toggleFavorite() {
-    toggle(String(resolvedId))
+    if (!id) return
+    toggle(id)
     setToast(favorite ? 'unsaved' : 'saved')
     setTimeout(() => setToast(null), 2000)
   }
-  const rawBooth = isNight
-    ? NIGHT_BOOTHS.find((b) => b.id === resolvedId)
-    : isTruck
-      ? TRUCK_BOOTHS.find((t) => t.id === resolvedId)
-      : DAY_BOOTHS.find((b) => b.id === resolvedId)
-  const boothData = {
-    ...(rawBooth ??
-      (isNight ? NIGHT_BOOTHS[0] : isTruck ? TRUCK_BOOTHS[0] : DAY_BOOTHS[0])),
-    label: isTruck ? 'cover · food truck' : `cover · booth #${resolvedId}`,
-  }
-  const zoneColor = isTruck
-    ? TRUCK_ZONES.find((z) => z.id === boothData.zoneId)?.color
-    : ALL_ZONES.find((z) => z.id === boothData.zoneId)?.color
-
-  const menus = useMemo(
-    () =>
-      isNight
-        ? NIGHT_BOOTH_MENUS.filter((m) => m.boothId === resolvedId)
-        : isTruck
-          ? TRUCK_BOOTH_MENUS.filter((m) => m.boothId === resolvedId)
-          : DAY_BOOTH_MENUS.filter((m) => m.boothId === resolvedId),
-    [isNight, isTruck, resolvedId]
-  )
 
   const heroHeight = isTruck ? 'h-72' : 'h-80'
   const bodyHeight = isTruck
     ? 'h-[calc(100%-288px+28px)]'
     : 'h-[calc(100%-320px+28px)]'
 
+  if (isLoading || !booth) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-bg font-festi text-sm text-ink-40">
+        불러오는 중...
+      </div>
+    )
+  }
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-bg font-festi">
       <PhotoHero
-        tone={boothData.tone}
-        label={boothData.label}
+        tone="leaf"
+        label={isTruck ? 'cover · food truck' : `cover · booth`}
         height={heroHeight}
         showDots={!isTruck}
         onBack={() => navigate(-1)}
@@ -89,30 +78,24 @@ export function UserBoothDetail({
         onFavorite={toggleFavorite}
       />
 
-      {/* Body */}
       <div
         className={`relative z-2 -mt-7 ${bodyHeight} overflow-auto overscroll-none rounded-t-[28px] bg-surface px-5 pt-5 ${isNight ? 'pb-36' : 'pb-10'}`}
       >
         <BoothDetailContent
           dark={dark}
-          name={boothData.name}
-          category={boothData.category}
-          id={boothData.id}
-          sections={boothData.sections}
+          name={booth.name}
+          category={CATEGORY_LABEL[booth.category] ?? booth.category}
+          id={booth.id}
           type={type}
-          area={getBoothZoneName(boothData)}
-          operatingHours={boothData.operatingHours}
-          days={rawBooth?.days}
-          description={boothData.description}
+          operatingHours={booth.operatingHours ?? undefined}
+          description={booth.description ?? undefined}
           menus={menus}
-          circleColor={zoneColor}
         />
       </div>
 
-      {/* Sticky CTA - night only */}
       {isNight && (
         <div className="absolute inset-x-0 bottom-0 z-20 bg-[linear-gradient(180deg,transparent_0%,#ffffff_30%)] px-5 pt-3 pb-7 dark:bg-[linear-gradient(180deg,transparent_0%,#1a1e23_30%)]">
-          {boothData.wait == null || boothData.wait === 0 ? (
+          {!booth.isWaitingOpen ? (
             <div className="flex w-full items-center justify-between rounded-[20px] bg-pop px-5 py-4">
               <div>
                 <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-white">
@@ -140,7 +123,7 @@ export function UserBoothDetail({
               onClick={() =>
                 alreadyWaiting
                   ? setConfirmCancel(true)
-                  : navigate(`/waiting/register?id=${boothData.id}`, {
+                  : navigate(`/waiting/register?id=${booth.id}`, {
                       replace: true,
                     })
               }
@@ -157,7 +140,7 @@ export function UserBoothDetail({
                 <div className="text-[11px] font-semibold opacity-60">
                   {alreadyWaiting
                     ? '웨이팅을 취소할 수 있어요'
-                    : `현재 ${boothData.wait}팀 대기`}
+                    : '웨이팅 등록하기'}
                 </div>
               </div>
               <div className="size-4.5">
@@ -173,13 +156,13 @@ export function UserBoothDetail({
         title="웨이팅을 취소할까요?"
         body={
           <>
-            {boothData.name} · 웨이팅
+            {booth.name} · 웨이팅
             <br />
             취소 후에는 다시 등록해야 합니다.
           </>
         }
         confirmLabel="취소하기"
-        onConfirm={() => handleCancel(resolvedId)}
+        onConfirm={() => handleCancel(Number(id) || 0)}
         onClose={() => setConfirmCancel(false)}
       />
 
