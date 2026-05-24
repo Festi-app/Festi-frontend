@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link, useSearchParams } from 'react-router-dom'
-import { ROUTES } from '../../constants/routes'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useLogin } from '../../features/Auth/hooks/useLogin'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
 import { FESTIV_TOKENS } from '../../tokens'
@@ -11,7 +10,6 @@ function cn(...classes: Array<string | false | null | undefined>) {
 }
 
 export function BoothAdminLogin() {
-  const navigate = useNavigate()
   const { dark } = useUI()
   const [searchParams] = useSearchParams()
   const justRegistered = searchParams.get('registered') === '1'
@@ -25,21 +23,7 @@ export function BoothAdminLogin() {
     if (!username.trim() || !password) return
     login(
       { id: username.trim(), password },
-      {
-        onSuccess: ({ accessToken }) => {
-          try {
-            const payload = JSON.parse(atob(accessToken.split('.')[1]))
-            if (payload.role === 'FESTIVAL_ADMIN') {
-              navigate(ROUTES.ADMIN.FESTIVAL)
-              return
-            }
-          } catch {
-            // ignore malformed token — fall through to booth admin
-          }
-          navigate(ROUTES.BOOTH_ADMIN.DASHBOARD)
-        },
-        onError: () => setError(true),
-      }
+      { onError: () => setError(true) }
     )
   }
 
