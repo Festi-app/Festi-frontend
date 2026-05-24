@@ -12,7 +12,7 @@ export function useUpdateMenu(boothId: string) {
       body,
     }: {
       menuId: string
-      body: MenusResponseDto
+      body: Partial<MenusResponseDto>
     }) => patchMenu(boothId, menuId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: menuKeys.list(boothId) })

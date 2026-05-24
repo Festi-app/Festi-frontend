@@ -55,7 +55,9 @@ function ApplicationCard({
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[15px] font-extrabold text-ink">{app.name}</span>
+            <span className="text-[15px] font-extrabold text-ink">
+              {app.name}
+            </span>
             <span
               className={cn(
                 'rounded-full px-2 py-0.5 text-[10px] font-bold',
@@ -144,13 +146,21 @@ export function AdminBoothRequests() {
   const { configuredModes } = useBoothSectionStore()
 
   const [filter, setFilter] = useState<StatusFilter>('PENDING')
-  const [sectionGateModal, setSectionGateModal] = useState<string[] | null>(null)
+  const [sectionGateModal, setSectionGateModal] = useState<string[] | null>(
+    null
+  )
   const [rejectTarget, setRejectTarget] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState('')
 
   function handleAssignClick(app: BoothApplicationResponseDto) {
-    const timeKey = app.boothType === 'DAY' ? '주간' : app.boothType === 'NIGHT' ? '야간' : null
-    const missing = timeKey && !configuredModes.includes(timeKey as never) ? [timeKey] : []
+    const timeKey =
+      app.boothType === 'DAY'
+        ? '주간'
+        : app.boothType === 'NIGHT'
+          ? '야간'
+          : null
+    const missing =
+      timeKey && !configuredModes.includes(timeKey as never) ? [timeKey] : []
     if (missing.length > 0) {
       setSectionGateModal(missing)
     } else {
@@ -161,7 +171,7 @@ export function AdminBoothRequests() {
   function handleConfirmReject() {
     if (!rejectTarget || !rejectReason.trim()) return
     reject(
-      { applicationId: rejectTarget, body: { reason: rejectReason } },
+      { applicationId: rejectTarget, body: { reviewMemo: rejectReason } },
       {
         onSuccess: () => {
           setRejectTarget(null)
@@ -213,7 +223,9 @@ export function AdminBoothRequests() {
             <span
               className={cn(
                 'ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold',
-                filter === s ? 'bg-cta text-cta-ink' : 'bg-surface-alt text-ink-60'
+                filter === s
+                  ? 'bg-cta text-cta-ink'
+                  : 'bg-surface-alt text-ink-60'
               )}
             >
               {counts[s]}
@@ -275,7 +287,9 @@ export function AdminBoothRequests() {
         body={
           <>
             배정하기 전에{' '}
-            <strong>{sectionGateModal?.map((m) => `${m} 구역`).join(', ')}</strong>{' '}
+            <strong>
+              {sectionGateModal?.map((m) => `${m} 구역`).join(', ')}
+            </strong>{' '}
             섹션 개수를 먼저 설정하고 저장해주세요.
             <br />
             부스 배치 페이지에서 해당 구역 설정을 완료하세요.

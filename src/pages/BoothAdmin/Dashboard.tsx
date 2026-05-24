@@ -66,16 +66,26 @@ function StatusScreen({
           <div className="flex flex-col gap-2.5">
             {[
               { label: '부스명', value: application.name },
-              { label: '유형', value: BOOTH_TYPE_LABEL[application.boothType] ?? application.boothType },
+              {
+                label: '유형',
+                value:
+                  BOOTH_TYPE_LABEL[application.boothType] ??
+                  application.boothType,
+              },
               application.operatingHours
                 ? { label: '운영 시간', value: application.operatingHours }
                 : null,
               {
                 label: '신청일',
-                value: new Date(application.createdAt).toLocaleDateString('ko-KR'),
+                value: new Date(application.createdAt).toLocaleDateString(
+                  'ko-KR'
+                ),
               },
             ]
-              .filter((item): item is { label: string; value: string } => item !== null)
+              .filter(
+                (item): item is { label: string; value: string } =>
+                  item !== null
+              )
               .map(({ label, value }) => (
                 <div key={label} className="flex justify-between text-[13px]">
                   <span className="text-ink-60">{label}</span>
@@ -99,12 +109,18 @@ function StatusScreen({
 
 // ── Info tab ──────────────────────────────────────────────────────────────────
 
-function InfoTab({ application }: { application: BoothApplicationResponseDto }) {
+function InfoTab({
+  application,
+}: {
+  application: BoothApplicationResponseDto
+}) {
   const { mutate: updateBooth, isPending: isSaving } = useUpdateBooth()
 
   const [name, setName] = useState(application.name)
   const [description, setDescription] = useState(application.description ?? '')
-  const [operatingHours, setOperatingHours] = useState(application.operatingHours ?? '')
+  const [operatingHours, setOperatingHours] = useState(
+    application.operatingHours ?? ''
+  )
   const [imageUrl, setImageUrl] = useState(application.imageUrl ?? '')
   const [saved, setSaved] = useState(false)
 
@@ -136,7 +152,9 @@ function InfoTab({ application }: { application: BoothApplicationResponseDto }) 
       <div className="mb-6 flex items-center justify-between">
         <div>
           <div className="text-[18px] font-extrabold text-ink">부스 정보</div>
-          <div className="text-[12px] text-ink-60">부스 정보를 수정하고 저장하세요</div>
+          <div className="text-[12px] text-ink-60">
+            부스 정보를 수정하고 저장하세요
+          </div>
         </div>
         <button
           type="button"
@@ -169,7 +187,9 @@ function InfoTab({ application }: { application: BoothApplicationResponseDto }) 
           />
         </div>
         <div>
-          <div className="mb-1.5 text-[12px] font-bold text-ink-60">부스 소개</div>
+          <div className="mb-1.5 text-[12px] font-bold text-ink-60">
+            부스 소개
+          </div>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -179,7 +199,9 @@ function InfoTab({ application }: { application: BoothApplicationResponseDto }) 
           />
         </div>
         <div>
-          <div className="mb-1.5 text-[12px] font-bold text-ink-60">운영 시간</div>
+          <div className="mb-1.5 text-[12px] font-bold text-ink-60">
+            운영 시간
+          </div>
           <input
             value={operatingHours}
             onChange={(e) => setOperatingHours(e.target.value)}
@@ -189,7 +211,9 @@ function InfoTab({ application }: { application: BoothApplicationResponseDto }) 
           />
         </div>
         <div>
-          <div className="mb-1.5 text-[12px] font-bold text-ink-60">이미지 URL</div>
+          <div className="mb-1.5 text-[12px] font-bold text-ink-60">
+            이미지 URL
+          </div>
           <input
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
@@ -205,18 +229,30 @@ function InfoTab({ application }: { application: BoothApplicationResponseDto }) 
 
 // ── Waiting tab ───────────────────────────────────────────────────────────────
 
-function WaitingTab({ boothId, boothName }: { boothId: string; boothName: string }) {
+function WaitingTab({
+  boothId,
+  boothName,
+}: {
+  boothId: string
+  boothName: string
+}) {
   const { data: waitingList = [] } = useBoothWaitings(boothId)
   const { mutate: callWaiting } = useCallWaiting(boothId)
   const { mutate: updateStatus } = useUpdateWaitingStatus(boothId)
 
   const notifiedRef = useRef<Set<string>>(new Set())
   const [toast, setToast] = useState<string | null>(null)
-  const [notifiedKeys, setNotifiedKeys] = useState<ReadonlySet<string>>(new Set())
+  const [notifiedKeys, setNotifiedKeys] = useState<ReadonlySet<string>>(
+    new Set()
+  )
 
   const queueOnly = waitingList.filter((w) => w.status === 'WAITING')
-  const active = waitingList.filter((w) => w.status === 'WAITING' || w.status === 'CALLED')
-  const finished = waitingList.filter((w) => w.status === 'SEATED' || w.status === 'CANCELLED')
+  const active = waitingList.filter(
+    (w) => w.status === 'WAITING' || w.status === 'CALLED'
+  )
+  const finished = waitingList.filter(
+    (w) => w.status === 'SEATED' || w.status === 'CANCELLED'
+  )
 
   const queueKey = queueOnly.map((w) => w.id).join(',')
 
@@ -227,9 +263,15 @@ function WaitingTab({ boothId, boothName }: { boothId: string; boothName: string
       const key3 = `${w.id}-3`
       const key1 = `${w.id}-1`
       if (pos === 4 && !notifiedRef.current.has(key3))
-        toFire.push({ key: key3, msg: `${pos}번 팀에게 3팀 전 알림을 발송했어요` })
+        toFire.push({
+          key: key3,
+          msg: `${pos}번 팀에게 3팀 전 알림을 발송했어요`,
+        })
       if (pos === 2 && !notifiedRef.current.has(key1))
-        toFire.push({ key: key1, msg: `${pos}번 팀에게 1팀 전 알림을 발송했어요` })
+        toFire.push({
+          key: key1,
+          msg: `${pos}번 팀에게 1팀 전 알림을 발송했어요`,
+        })
     })
     if (toFire.length === 0) return
     toFire.forEach((f) => notifiedRef.current.add(f.key))
@@ -256,12 +298,18 @@ function WaitingTab({ boothId, boothName }: { boothId: string; boothName: string
 
       <div className="mb-6">
         <div className="text-[18px] font-extrabold text-ink">웨이팅 관리</div>
-        <div className="text-[12px] text-ink-60">{boothName} · 3팀·1팀 전 자동 알림</div>
+        <div className="text-[12px] text-ink-60">
+          {boothName} · 3팀·1팀 전 자동 알림
+        </div>
       </div>
 
       <div className="mb-5 grid grid-cols-4 gap-2.5">
         {[
-          { label: '대기 중', count: queueOnly.length, color: FESTIV_TOKENS.ink },
+          {
+            label: '대기 중',
+            count: queueOnly.length,
+            color: FESTIV_TOKENS.ink,
+          },
           {
             label: '호출됨',
             count: waitingList.filter((w) => w.status === 'CALLED').length,
@@ -292,7 +340,9 @@ function WaitingTab({ boothId, boothName }: { boothId: string; boothName: string
 
       {active.length === 0 ? (
         <div className="rounded-2xl border border-border bg-surface py-12 text-center">
-          <div className="mb-1 text-[15px] font-bold text-ink-60">대기 중인 팀이 없어요</div>
+          <div className="mb-1 text-[15px] font-bold text-ink-60">
+            대기 중인 팀이 없어요
+          </div>
           <div className="text-[12px] text-ink-40">
             사용자가 웨이팅 등록 시 여기에 표시됩니다
           </div>
@@ -310,7 +360,9 @@ function WaitingTab({ boothId, boothName }: { boothId: string; boothName: string
                 key={w.id}
                 className={cn(
                   'rounded-2xl border p-4 transition-colors',
-                  w.status === 'CALLED' ? 'border-cta/30 bg-cta/5' : 'border-border bg-surface'
+                  w.status === 'CALLED'
+                    ? 'border-cta/30 bg-cta/5'
+                    : 'border-border bg-surface'
                 )}
               >
                 <div className="mb-3 flex items-center gap-3">
@@ -318,7 +370,9 @@ function WaitingTab({ boothId, boothName }: { boothId: string; boothName: string
                     className="flex size-9 shrink-0 items-center justify-center rounded-full text-[15px] font-extrabold text-white"
                     style={{
                       background:
-                        w.status === 'CALLED' ? FESTIV_TOKENS.coral : FESTIV_TOKENS.ink40,
+                        w.status === 'CALLED'
+                          ? FESTIV_TOKENS.coral
+                          : FESTIV_TOKENS.ink40,
                     }}
                   >
                     {queuePos > 0 ? queuePos : idx + 1}
@@ -363,7 +417,10 @@ function WaitingTab({ boothId, boothName }: { boothId: string; boothName: string
                     <button
                       type="button"
                       onClick={() =>
-                        updateStatus({ waitingId: w.id, body: { status: 'SEATED' } })
+                        updateStatus({
+                          waitingId: w.id,
+                          body: { status: 'SEATED' },
+                        })
                       }
                       className="flex items-center justify-center gap-1.5 rounded-xl bg-pop py-2.5 text-[13px] font-extrabold text-white"
                     >
@@ -373,7 +430,10 @@ function WaitingTab({ boothId, boothName }: { boothId: string; boothName: string
                     <button
                       type="button"
                       onClick={() =>
-                        updateStatus({ waitingId: w.id, body: { status: 'CANCELLED' } })
+                        updateStatus({
+                          waitingId: w.id,
+                          body: { status: 'CANCELLED' },
+                        })
                       }
                       className="rounded-xl border border-border bg-surface py-2.5 text-[13px] font-bold text-ink-60 hover:bg-surface-alt"
                     >
@@ -401,7 +461,9 @@ function WaitingTab({ boothId, boothName }: { boothId: string; boothName: string
                 <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-alt text-[13px] font-extrabold text-ink-40">
                   {idx + 1}
                 </div>
-                <div className="flex-1 text-[13px] text-ink-60">{w.partySize}명</div>
+                <div className="flex-1 text-[13px] text-ink-60">
+                  {w.partySize}명
+                </div>
                 <div
                   className={cn(
                     'text-[11px] font-bold',
@@ -467,9 +529,12 @@ export function BoothAdminDashboard() {
     <div className="flex h-full flex-col overflow-hidden bg-bg font-festi">
       <header className="sticky top-14 z-40 flex items-center gap-4 border-b border-border bg-surface px-5 py-3.5 md:top-0">
         <div className="min-w-0 flex-1">
-          <div className="text-[15px] font-extrabold text-ink">{application.name}</div>
+          <div className="text-[15px] font-extrabold text-ink">
+            {application.name}
+          </div>
           <div className="text-[11px] text-ink-60">
-            {BOOTH_TYPE_LABEL[application.boothType] ?? application.boothType} 부스
+            {BOOTH_TYPE_LABEL[application.boothType] ?? application.boothType}{' '}
+            부스
           </div>
         </div>
         <button
@@ -494,7 +559,9 @@ export function BoothAdminDashboard() {
                 onClick={() => setTab(key)}
                 className={cn(
                   'mb-1 flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-[13px] font-bold transition-colors',
-                  tab === key ? 'bg-mint-soft text-ink' : 'text-ink-60 hover:bg-surface-alt'
+                  tab === key
+                    ? 'bg-mint-soft text-ink'
+                    : 'text-ink-60 hover:bg-surface-alt'
                 )}
               >
                 {label}
@@ -522,7 +589,10 @@ export function BoothAdminDashboard() {
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           {tab === 'info' && <InfoTab application={application} />}
           {tab === 'waiting' && application.boothId && (
-            <WaitingTab boothId={application.boothId} boothName={application.name} />
+            <WaitingTab
+              boothId={application.boothId}
+              boothName={application.name}
+            />
           )}
         </main>
       </div>

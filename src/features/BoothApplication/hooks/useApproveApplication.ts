@@ -6,9 +6,12 @@ export function useApproveApplication() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (applicationId: string) => postApproveApplication(applicationId),
+    mutationFn: (applicationId: string) =>
+      postApproveApplication(applicationId),
     onSuccess: (_, applicationId) => {
-      queryClient.invalidateQueries({ queryKey: boothApplicationKeys.adminList() })
+      queryClient.invalidateQueries({
+        queryKey: boothApplicationKeys.adminList(),
+      })
       queryClient.invalidateQueries({
         queryKey: boothApplicationKeys.adminDetail(applicationId),
       })

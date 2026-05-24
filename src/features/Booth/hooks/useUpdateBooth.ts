@@ -7,8 +7,13 @@ export function useUpdateBooth() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ boothId, body }: { boothId: string; body: PatchBoothRequestDto }) =>
-      patchBooth(boothId, body),
+    mutationFn: ({
+      boothId,
+      body,
+    }: {
+      boothId: string
+      body: PatchBoothRequestDto
+    }) => patchBooth(boothId, body),
     onSuccess: (_, { boothId }) => {
       queryClient.invalidateQueries({ queryKey: boothKeys.detail(boothId) })
     },

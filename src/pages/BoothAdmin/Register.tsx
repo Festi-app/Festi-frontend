@@ -47,16 +47,18 @@ function TextInput({
   )
 }
 
-const BOOTH_TYPE_OPTIONS: { value: BoothType; label: string; desc: string }[] = [
-  { value: 'DAY', label: '주간 부스', desc: '낮 시간대 운영하는 일반 부스' },
-  { value: 'NIGHT', label: '야간 부스', desc: '야간 운영 주점 부스' },
-]
+const BOOTH_TYPE_OPTIONS: { value: BoothType; label: string; desc: string }[] =
+  [
+    { value: 'DAY', label: '주간 부스', desc: '낮 시간대 운영하는 일반 부스' },
+    { value: 'NIGHT', label: '야간 부스', desc: '야간 운영 주점 부스' },
+  ]
 
 const STEPS = ['부스 정보', '상세 내용', '계정 정보']
 
 export function BoothAdminRegister() {
   const navigate = useNavigate()
-  const { mutate: submitApplication, isPending: isSubmitting } = useSubmitBoothApplication()
+  const { mutate: submitApplication, isPending: isSubmitting } =
+    useSubmitBoothApplication()
 
   const [step, setStep] = useState(1)
 
@@ -107,7 +109,8 @@ export function BoothAdminRegister() {
       },
       {
         onSuccess: () => navigate(`${ROUTES.BOOTH_ADMIN.LOGIN}?registered=1`),
-        onError: () => setSubmitError('신청 중 오류가 발생했어요. 다시 시도해주세요.'),
+        onError: () =>
+          setSubmitError('신청 중 오류가 발생했어요. 다시 시도해주세요.'),
       }
     )
   }
@@ -126,10 +129,16 @@ export function BoothAdminRegister() {
             </div>
             <FestivWordmark size={18} color={FESTIV_TOKENS.ink} />
             <span className="text-[12px] text-ink-40">·</span>
-            <span className="text-[12px] font-medium text-ink-40">축제를 더 즐겁게</span>
+            <span className="text-[12px] font-medium text-ink-40">
+              축제를 더 즐겁게
+            </span>
           </div>
-          <div className="text-[26px] font-extrabold tracking-tight text-ink">부스 신청</div>
-          <div className="mt-1 text-[13px] text-ink-60">부스 정보를 입력해주세요</div>
+          <div className="text-[26px] font-extrabold tracking-tight text-ink">
+            부스 신청
+          </div>
+          <div className="mt-1 text-[13px] text-ink-60">
+            부스 정보를 입력해주세요
+          </div>
         </div>
 
         {/* Step indicator */}
@@ -202,7 +211,9 @@ export function BoothAdminRegister() {
                       >
                         {opt.label}
                       </div>
-                      <div className="mt-0.5 text-[11px] text-ink-40">{opt.desc}</div>
+                      <div className="mt-0.5 text-[11px] text-ink-40">
+                        {opt.desc}
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -338,7 +349,10 @@ export function BoothAdminRegister() {
 
         <div className="mt-4 text-center text-[12px] text-ink-60">
           이미 계정이 있으신가요?{' '}
-          <Link to="/booth-admin/login" className="font-bold text-cta no-underline">
+          <Link
+            to="/booth-admin/login"
+            className="font-bold text-cta no-underline"
+          >
             로그인
           </Link>
         </div>

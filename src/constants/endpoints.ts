@@ -23,7 +23,8 @@ export const ENDPOINTS = {
   BOOTHS: {
     LIST: '/api/booths',
     FOOD_TRUCKS: '/api/booths/admin/food-trucks',
-    FOOD_TRUCK_DETAIL: (boothId: string) => `/api/booths/admin/food-trucks/${boothId}`,
+    FOOD_TRUCK_DETAIL: (boothId: string) =>
+      `/api/booths/admin/food-trucks/${boothId}`,
     DETAIL: (boothId: string) => `/api/booths/${boothId}`,
     MENUS: (boothId: string) => `/api/booths/${boothId}/menus`,
     MENU_DETAIL: (boothId: string, menuId: string) =>

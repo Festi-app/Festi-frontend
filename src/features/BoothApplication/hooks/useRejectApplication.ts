@@ -15,7 +15,9 @@ export function useRejectApplication() {
       body: RejectApplicationRequestDto
     }) => postRejectApplication(applicationId, body),
     onSuccess: (_, { applicationId }) => {
-      queryClient.invalidateQueries({ queryKey: boothApplicationKeys.adminList() })
+      queryClient.invalidateQueries({
+        queryKey: boothApplicationKeys.adminList(),
+      })
       queryClient.invalidateQueries({
         queryKey: boothApplicationKeys.adminDetail(applicationId),
       })

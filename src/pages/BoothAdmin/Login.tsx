@@ -64,7 +64,9 @@ export function BoothAdminLogin() {
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-[0_4px_24px_rgba(20,26,31,0.06)]">
           <div className="flex flex-col gap-4">
             <div>
-              <div className="mb-1.5 text-[12px] font-bold text-ink-60">아이디</div>
+              <div className="mb-1.5 text-[12px] font-bold text-ink-60">
+                아이디
+              </div>
               <input
                 type="text"
                 value={username}
@@ -78,7 +80,9 @@ export function BoothAdminLogin() {
               />
             </div>
             <div>
-              <div className="mb-1.5 text-[12px] font-bold text-ink-60">비밀번호</div>
+              <div className="mb-1.5 text-[12px] font-bold text-ink-60">
+                비밀번호
+              </div>
               <input
                 type="password"
                 value={password}
@@ -114,7 +118,10 @@ export function BoothAdminLogin() {
 
         <div className="mt-4 text-center text-[12px] text-ink-60">
           계정이 없으신가요?{' '}
-          <Link to="/booth-admin/register" className="font-bold text-cta no-underline">
+          <Link
+            to="/booth-admin/register"
+            className="font-bold text-cta no-underline"
+          >
             회원가입 신청
           </Link>
         </div>
