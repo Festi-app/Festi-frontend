@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useFavoritesStore } from '../../../stores/useFavoritesStore'
+import { useToggleFavorite } from '../../../features/Favorite/hooks/useToggleFavorite'
 import { ScreenHeader } from '../../../components/User/ScreenHeader'
 import { FESTIV_TOKENS, I } from '../../../tokens'
 import { tabBarPb } from '../../../lib/safeArea'
@@ -30,7 +30,7 @@ const TITLE_MAP: Record<'night' | 'day' | 'truck', string> = {
 export function UserBoothList() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { isSaved, toggleSave } = useFavoritesStore()
+  const { isSaved, toggle } = useToggleFavorite()
   const type = (searchParams.get('type') ?? 'night') as
     | 'day'
     | 'night'
@@ -52,7 +52,7 @@ export function UserBoothList() {
         ) : (
           <div className="flex flex-col gap-3">
             {booths.map((b) => {
-              const saved = isSaved(type, b.id)
+              const saved = isSaved(b.id)
               return (
                 <div
                   key={b.id}
@@ -75,7 +75,7 @@ export function UserBoothList() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation()
-                            toggleSave(type, b.id)
+                            toggle(b.id)
                           }}
                           className="mt-0.5 size-4.5 shrink-0"
                         >
