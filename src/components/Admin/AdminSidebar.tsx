@@ -4,9 +4,11 @@ import { FESTIV_TOKENS, I } from '../../tokens'
 import { FestivMark, FestivWordmark } from '../Logo'
 import { cn } from '../../lib/cn'
 import { ROUTES } from '../../constants/routes'
+import { useFestival } from '../../features/Festival/hooks/useFestival'
 
 export function AdminSidebar({ active }: { active: string }) {
   const navigate = useNavigate()
+  const { data: festival } = useFestival()
   const items: Array<{
     id: string
     label: string
@@ -89,7 +91,7 @@ export function AdminSidebar({ active }: { active: string }) {
             FESTIVAL
           </div>
           <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">
-            2026 봄축제
+            {festival?.name ?? '축제'}
           </div>
         </div>
       </div>
