@@ -177,7 +177,8 @@ export function AdminBoothRequests() {
 
   function handleConfirmReject() {
     if (!rejectTarget || !rejectReason.trim()) return
-    const appName = applications.find((a) => a.id === rejectTarget)?.name ?? ''
+    const appName =
+      applications.find((a) => a.id === rejectTarget)?.boothName ?? ''
     reject(
       { applicationId: rejectTarget, body: { reviewMemo: rejectReason } },
       {
@@ -261,7 +262,7 @@ export function AdminBoothRequests() {
                 app={app}
                 onApprove={(id) => {
                   const appName =
-                    applications.find((a) => a.id === id)?.name ?? ''
+                    applications.find((a) => a.id === id)?.boothName ?? ''
                   approve(id, {
                     onSuccess: () => showToast(`'${appName}' 승인되었습니다`),
                   })

@@ -90,8 +90,13 @@ export function AdminBooths() {
     ),
   }))
 
-  const { permissions, addPermission, zoneDivisions, markModeConfigured, configuredModes } =
-    useBoothSectionStore()
+  const {
+    permissions,
+    addPermission,
+    zoneDivisions,
+    markModeConfigured,
+    configuredModes,
+  } = useBoothSectionStore()
 
   const allConfigured = (['주간', '야간', '푸드트럭'] as BoothMapMode[]).every(
     (m) => configuredModes.includes(m)
