@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 import { FESTIV_TOKENS, I } from '../../tokens'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
@@ -324,16 +325,7 @@ function AddSlotForm({
 export function AdminTimetable() {
   const { data: festival } = useFestival()
   const { data: timelines = [] } = useFestivalTimelines()
-
-  // TODO: GET /api/festival/days 엔드포인트 추가되면 해당 API로 교체
-  // 현재는 timelines의 festivalDay에서 id 추출
-  const festivalDays = useMemo(() => {
-    const seen = new Map<string, { id: string; day: string }>()
-    timelines.forEach((t) => {
-      if (!seen.has(t.festivalDay.id)) seen.set(t.festivalDay.id, t.festivalDay)
-    })
-    return Array.from(seen.values()).sort((a, b) => a.day.localeCompare(b.day))
-  }, [timelines])
+  const { data: festivalDays = [] } = useFestivalDays()
 
   const [selectedDay, setSelectedDay] = useState<number>(1)
   const [activeCurrentDay, setActiveCurrentDay] = useState<number | null>(null)
@@ -357,16 +349,15 @@ export function AdminTimetable() {
     return () => clearTimeout(t)
   }, [festival?.startDate, currentDay])
 
-  // TODO: GET /api/festival/days 엔드포인트 추가되면 fetchedDays.length로 총 일수 바로 사용 가능
-  // 현재는 festival.startDate~endDate로 직접 계산
   const totalDays = useMemo(() => {
+    if (festivalDays.length > 0) return festivalDays.length
     if (startDate && endDate) {
       const s = new Date(startDate + 'T00:00:00')
       const e = new Date(endDate + 'T00:00:00')
       return Math.round((e.getTime() - s.getTime()) / 86400000) + 1
     }
-    return Math.max(festivalDays.length, 1)
-  }, [startDate, endDate, festivalDays.length])
+    return 1
+  }, [festivalDays.length, startDate, endDate])
 
   const DAYS = Array.from({ length: totalDays }, (_, i) => i + 1)
 

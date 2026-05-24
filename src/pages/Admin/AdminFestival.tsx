@@ -5,6 +5,7 @@ import { useFestival } from '../../features/Festival/hooks/useFestival'
 import { useUpdateFestival } from '../../features/Festival/hooks/useUpdateFestival'
 import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 import { useUpdateFestivalDay } from '../../features/Festival/hooks/useUpdateFestivalDay'
+import { useCreateFestivalDay } from '../../features/Festival/hooks/useCreateFestivalDay'
 import type { FestivalDayResponseDto } from '../../features/Festival/types/FestivalDayResponseDto'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
@@ -65,6 +66,7 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
   const { data: festivalDays = [] } = useFestivalDays()
   const updateFestival = useUpdateFestival()
   const updateFestivalDay = useUpdateFestivalDay()
+  const createFestivalDay = useCreateFestivalDay()
 
   // override = null이면 API 값 그대로 사용, 유저가 수정하면 override에 저장
   const [nameOverride, setNameOverride] = useState<string | null>(null)
@@ -141,20 +143,32 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
         onError: () => setNotice('저장에 실패했어요. 다시 시도해주세요'),
       }
     )
-    days.forEach((day) => {
-      if (!day.id) return
-      const originalDay = festivalDays.find((fd) => fd.id === day.id)
-      if (!originalDay) return
-      updateFestivalDay.mutate({
-        festivalDayId: day.id,
-        body: {
-          day: originalDay.day,
+    days.forEach((day, idx) => {
+      if (day.id) {
+        const originalDay = festivalDays.find((fd) => fd.id === day.id)
+        if (!originalDay) return
+        updateFestivalDay.mutate({
+          festivalDayId: day.id,
+          body: {
+            day: originalDay.day,
+            dayStart: day.dayStart,
+            dayEnd: day.dayEnd,
+            nightStart: day.nightStart,
+            nightEnd: day.nightEnd,
+          },
+        })
+      } else if (startDate) {
+        const d = new Date(startDate + 'T00:00:00')
+        d.setDate(d.getDate() + idx)
+        const isoDate = d.toISOString().slice(0, 10)
+        createFestivalDay.mutate({
+          day: isoDate,
           dayStart: day.dayStart,
           dayEnd: day.dayEnd,
           nightStart: day.nightStart,
           nightEnd: day.nightEnd,
-        },
-      })
+        })
+      }
     })
   }
 
