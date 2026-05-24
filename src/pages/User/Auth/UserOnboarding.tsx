@@ -7,6 +7,7 @@ import { InputField } from '../../../components/shared/InputField'
 import { PasswordField } from '../../../components/shared/PasswordField'
 import { formatPhone } from '../../../lib/format'
 import { ROUTES } from '../../../constants/routes'
+import { useSignup } from '../../../features/Auth/hooks/useSignup'
 
 export function UserOnboarding({ dark = false }: { dark?: boolean }) {
   const navigate = useNavigate()
@@ -18,6 +19,8 @@ export function UserOnboarding({ dark = false }: { dark?: boolean }) {
   const [submitted, setSubmitted] = useState(false)
   const [showToast, setShowToast] = useState(false)
   const wordmarkColor = dark ? '#F2F5F7' : FESTIV_TOKENS.ink
+
+  const { mutate: signup, isPending } = useSignup()
 
   const errors = {
     email:
@@ -45,8 +48,15 @@ export function UserOnboarding({ dark = false }: { dark?: boolean }) {
   function handleSubmit() {
     setSubmitted(true)
     if (!isValid) return
-    setShowToast(true)
-    setTimeout(() => navigate(ROUTES.HOME), 1800)
+    signup(
+      { id: userId, password, name, phone },
+      {
+        onSuccess: () => {
+          setShowToast(true)
+          setTimeout(() => navigate(ROUTES.LOGIN, { replace: true }), 1800)
+        },
+      }
+    )
   }
 
   return (
@@ -128,6 +138,7 @@ export function UserOnboarding({ dark = false }: { dark?: boolean }) {
         <button
           type="button"
           onClick={handleSubmit}
+          disabled={isPending}
           className={`flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-[16px] font-extrabold tracking-[-0.3px] transition-[background,box-shadow] duration-200 active:opacity-80 ${
             isValid
               ? 'bg-coral text-white shadow-[0_8px_22px_rgba(0,198,224,0.35)]'
@@ -135,7 +146,7 @@ export function UserOnboarding({ dark = false }: { dark?: boolean }) {
           }`}
         >
           {isValid && <div className="size-5 opacity-80">{I.check()}</div>}
-          가입하기
+          {isPending ? '가입 중…' : '가입하기'}
         </button>
       </div>
 

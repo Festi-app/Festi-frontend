@@ -3,7 +3,10 @@ import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
 
-import { useNoticeStore } from '../../stores/useNoticeStore'
+import { useFestivalNotices } from '../../features/Festival/hooks/useFestivalNotices'
+import { useCreateFestivalNotice } from '../../features/Festival/hooks/useCreateFestivalNotice'
+import { useUpdateFestivalNotice } from '../../features/Festival/hooks/useUpdateFestivalNotice'
+import { useDeleteFestivalNotice } from '../../features/Festival/hooks/useDeleteFestivalNotice'
 import { I } from '../../tokens'
 import {
   EMPTY_DRAFT,
@@ -16,8 +19,10 @@ import { NoticeList } from '../../components/Admin/Notice/NoticeList'
 type PanelMode = 'idle' | 'create' | 'edit'
 
 export function AdminNotices() {
-  const { notices, addNotice, updateNotice, deleteNotice, togglePin } =
-    useNoticeStore()
+  const { data: notices = [] } = useFestivalNotices()
+  const createNotice = useCreateFestivalNotice()
+  const updateNotice = useUpdateFestivalNotice()
+  const deleteNotice = useDeleteFestivalNotice()
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [panelMode, setPanelMode] = useState<PanelMode>('idle')
@@ -43,31 +48,47 @@ export function AdminNotices() {
 
   function handleSave() {
     if (panelMode === 'create') {
-      addNotice(draft)
-      setPanelMode('idle')
-      setSelectedId(null)
+      createNotice.mutate(draft, {
+        onSuccess: () => {
+          setPanelMode('idle')
+          setSelectedId(null)
+        },
+      })
     } else if (panelMode === 'edit' && selectedId) {
-      updateNotice(selectedId, draft)
-      setPanelMode('idle')
+      updateNotice.mutate(
+        { noticeId: selectedId, body: draft },
+        { onSuccess: () => setPanelMode('idle') }
+      )
     }
   }
 
   function handleCancel() {
-    setPanelMode(panelMode === 'create' ? 'idle' : 'edit')
-    if (panelMode === 'create') {
-      setSelectedId(null)
-      setPanelMode('idle')
-    } else {
-      setPanelMode('idle')
-    }
+    setSelectedId(null)
+    setPanelMode('idle')
   }
 
   function handleDelete(id: string) {
-    deleteNotice(id)
-    if (selectedId === id) {
-      setSelectedId(null)
-      setPanelMode('idle')
-    }
+    deleteNotice.mutate(id, {
+      onSuccess: () => {
+        if (selectedId === id) {
+          setSelectedId(null)
+          setPanelMode('idle')
+        }
+      },
+    })
+  }
+
+  function handleTogglePin(id: string) {
+    const notice = notices.find((n) => n.id === id)
+    if (!notice) return
+    updateNotice.mutate({
+      noticeId: id,
+      body: {
+        title: notice.title,
+        content: notice.content,
+        pinned: !notice.pinned,
+      },
+    })
   }
 
   const pinned = notices.filter((n) => n.pinned).length
@@ -89,7 +110,7 @@ export function AdminNotices() {
           notices={notices}
           selectedId={selectedId}
           onSelect={startEdit}
-          onTogglePin={togglePin}
+          onTogglePin={handleTogglePin}
           onDelete={handleDelete}
         />
 
