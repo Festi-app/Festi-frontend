@@ -22,9 +22,6 @@ export function UserLogin({ dark = false }: { dark?: boolean }) {
     login(
       { id: userId, password },
       {
-        onSuccess: () => {
-          navigate(ROUTES.HOME, { replace: true })
-        },
         onError: () => {
           setLoginFailed(true)
           setTimeout(() => setLoginFailed(false), 2000)

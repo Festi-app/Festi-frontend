@@ -1,16 +1,16 @@
 import { useState } from 'react'
-import { useNavigate, Link, useSearchParams } from 'react-router-dom'
-import { ROUTES } from '../../constants/routes'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useLogin } from '../../features/Auth/hooks/useLogin'
 import { FestivMark, FestivWordmark } from '../../components/Logo'
 import { FESTIV_TOKENS } from '../../tokens'
+import { useUI } from '../../stores/useUIStore'
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
 }
 
 export function BoothAdminLogin() {
-  const navigate = useNavigate()
+  const { dark } = useUI()
   const [searchParams] = useSearchParams()
   const justRegistered = searchParams.get('registered') === '1'
   const { mutate: login, isPending } = useLogin()
@@ -24,7 +24,6 @@ export function BoothAdminLogin() {
     login(
       { id: username.trim(), password },
       {
-        onSuccess: () => navigate(ROUTES.BOOTH_ADMIN.DASHBOARD),
         onError: () => setError(true),
       }
     )
@@ -41,14 +40,17 @@ export function BoothAdminLogin() {
             >
               <FestivMark color="#fff" size={18} />
             </div>
-            <FestivWordmark size={18} color={FESTIV_TOKENS.ink} />
+            <FestivWordmark
+              size={18}
+              color={dark ? '#F2F5F7' : FESTIV_TOKENS.ink}
+            />
             <span className="text-[12px] text-ink-40">·</span>
             <span className="text-[12px] font-medium text-ink-40">
               축제를 더 즐겁게
             </span>
           </div>
           <div className="text-[26px] font-extrabold tracking-tight text-ink">
-            부스 관리자 로그인
+            축제 관리자 로그인
           </div>
           <div className="mt-1 text-[13px] text-ink-60">
             아이디와 비밀번호로 로그인하세요
