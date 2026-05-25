@@ -25,6 +25,7 @@ import {
   useDeleteMenuImage,
 } from '../../features/Image/hooks/useMenuImage'
 import { ImageUpload } from '../../components/shared/ImageUpload'
+import { AdminToast } from '../../components/Admin/AdminToast'
 import { useUI } from '../../stores/useUIStore'
 import { useFestival } from '../../features/Festival/hooks/useFestival'
 import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
@@ -46,11 +47,7 @@ const BOOTH_TYPE_LABEL: Record<string, string> = {
 // ── Toast ─────────────────────────────────────────────────────────────────────
 
 function DashToast({ message }: { message: string }) {
-  return (
-    <div className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-2xl bg-ink px-5 py-3 text-[13px] font-semibold text-white shadow-xl md:bottom-6 md:left-[calc(50%+7.5rem)]">
-      {message}
-    </div>
-  )
+  return <AdminToast message={message} />
 }
 
 // ── Delete confirm modal ───────────────────────────────────────────────────────
