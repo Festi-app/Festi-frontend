@@ -102,6 +102,7 @@ export function UserBoothDetail({
       <PhotoHero
         tone="leaf"
         label={isTruck ? 'cover · food truck' : `cover · booth`}
+        imageUrl={booth.imageUrl}
         height={heroHeight}
         showDots={!isTruck}
         onBack={() => navigate(-1)}

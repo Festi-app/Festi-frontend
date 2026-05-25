@@ -5,26 +5,10 @@ import { boothUrl } from '../../constants/routes'
 import { ScreenHeader } from '../../components/User/ScreenHeader'
 import { FieldLabel } from '../../components/shared/FieldLabel'
 import { Toast } from '../../components/shared/Toast'
-import { NotificationSettings } from '../../components/User/Waiting/NotificationSettings'
 import { useRegisterWaiting } from '../../features/Waiting/hooks/useRegisterWaiting'
 import { useMyWaitings } from '../../features/Waiting/hooks/useMyWaitings'
 import { useBooth } from '../../features/Booth/hooks/useBooth'
 import { useMe } from '../../features/User/hooks/useMe'
-import {
-  useRegisterPushSubscription,
-  useRemovePushSubscription,
-  getStoredSubscriptionId,
-} from '../../features/PushSubscription/hooks/usePushSubscription'
-
-const NOTIFICATION_ROWS = [
-  { label: '내 차례 호출 알림', sub: '푸시 알림' },
-  { label: '도착 알림 진동', sub: '진동 + 사운드' },
-]
-
-const pushSupported =
-  typeof window !== 'undefined' &&
-  'serviceWorker' in navigator &&
-  'PushManager' in window
 
 const BOOTH_TYPE_VIEW = {
   DAY: { label: '주간', param: 'day', color: FESTIV_TOKENS.mint },
@@ -35,10 +19,6 @@ const BOOTH_TYPE_VIEW = {
 export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
   const navigate = useNavigate()
   const [people, setPeople] = useState(4)
-  const [notifications, setNotifications] = useState([
-    pushSupported ? !!getStoredSubscriptionId() : false,
-    true,
-  ])
   const [showToast, setShowToast] = useState(false)
   const [limitToast, setLimitToast] = useState(false)
 
@@ -46,42 +26,6 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
   const { data: booth } = useBooth(id ?? null)
   const { data: me } = useMe()
   const { data: waitings = [] } = useMyWaitings()
-  const { mutate: registerPush } = useRegisterPushSubscription()
-  const { mutate: removePush } = useRemovePushSubscription()
-
-  function handleNotificationChange(i: number) {
-    if (i === 0 && pushSupported) {
-      const next = !notifications[0]
-      if (next) {
-        registerPush(undefined, {
-          onSuccess: () =>
-            setNotifications((cur) =>
-              cur.map((v, idx) => (idx === 0 ? true : v))
-            ),
-          onError: () =>
-            setNotifications((cur) =>
-              cur.map((v, idx) => (idx === 0 ? false : v))
-            ),
-        })
-      } else {
-        const subId = getStoredSubscriptionId()
-        if (subId) {
-          removePush(subId, {
-            onSuccess: () =>
-              setNotifications((cur) =>
-                cur.map((v, idx) => (idx === 0 ? false : v))
-              ),
-          })
-        } else {
-          setNotifications((cur) =>
-            cur.map((v, idx) => (idx === 0 ? false : v))
-          )
-        }
-      }
-    } else {
-      setNotifications((cur) => cur.map((v, idx) => (idx === i ? !v : v)))
-    }
-  }
 
   function handleRegister() {
     if (!id) return
@@ -203,16 +147,6 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
               {n}
             </button>
           ))}
-        </div>
-
-        {/* Notification toggles */}
-        <FieldLabel>알림 설정</FieldLabel>
-        <div className="overflow-hidden rounded-[18px] border border-border bg-surface">
-          <NotificationSettings
-            rows={NOTIFICATION_ROWS}
-            values={notifications}
-            onChange={handleNotificationChange}
-          />
         </div>
 
         <div className="mt-4 rounded-[14px] bg-surface-alt p-3.5 text-[11px] leading-normal text-ink-60">

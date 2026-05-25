@@ -67,7 +67,7 @@ export function WaitingCarousel() {
               >
                 <div className="absolute -top-7.5 -right-7.5 size-30 rounded-full bg-white/10" />
                 <div className="flex size-12 shrink-0 items-center justify-center rounded-[14px] bg-white/20 font-festi text-lg font-extrabold text-white">
-                  {isCalled ? '!' : w.partySize}
+                  {w.position}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="mb-0.5 text-[11px] font-semibold opacity-75">

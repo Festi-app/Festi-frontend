@@ -1,4 +1,10 @@
 import { FESTIV_TOKENS, PhotoSlot, Pill } from '../../tokens'
+import { API_BASE } from '../../constants/endpoints'
+
+function resolveUrl(url: string | null | undefined) {
+  if (!url) return null
+  return url.startsWith('/') ? `${API_BASE}${url}` : url
+}
 
 export function MenuItemCard({
   name,
@@ -8,6 +14,7 @@ export function MenuItemCard({
   best = false,
   isSoldOut = false,
   showImage = false,
+  imageUrl,
   priceDisplay,
 }: {
   name: string
@@ -17,15 +24,29 @@ export function MenuItemCard({
   best?: boolean
   isSoldOut?: boolean
   showImage?: boolean
+  imageUrl?: string | null
   priceDisplay?: string
 }) {
+  const resolvedImageUrl = resolveUrl(imageUrl)
+
   return (
     <div
       className={`flex items-center gap-3 rounded-2xl border border-border bg-surface p-2 ${isSoldOut ? 'opacity-50' : ''}`}
     >
       {showImage && (
         <div className="size-16 shrink-0 overflow-hidden rounded-xl">
-          <PhotoSlot label="" tone={tone} radius={12} ratio="1/1" />
+          {resolvedImageUrl ? (
+            <img
+              src={resolvedImageUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                ;(e.target as HTMLImageElement).style.display = 'none'
+              }}
+            />
+          ) : (
+            <PhotoSlot label="" tone={tone} radius={12} ratio="1/1" />
+          )}
         </div>
       )}
       <div className={`min-w-0 flex-1 ${showImage ? '' : 'px-2 py-1'}`}>
