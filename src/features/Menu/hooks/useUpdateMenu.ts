@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { patchMenu } from '../apis/patchMenu'
 import { menuKeys } from './useMenus'
-import type { MenusResponseDto } from '../types/MenusResponseDto'
+import type { PatchMenuRequestDto } from '../types/PatchMenuRequestDto'
 
 export function useUpdateMenu(boothId: string) {
   const queryClient = useQueryClient()
@@ -12,7 +12,7 @@ export function useUpdateMenu(boothId: string) {
       body,
     }: {
       menuId: string
-      body: Partial<MenusResponseDto>
+      body: PatchMenuRequestDto
     }) => patchMenu(boothId, menuId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: menuKeys.list(boothId) })
