@@ -98,8 +98,8 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
         </button>
 
         {/* Waiting count banner */}
-        {booth?.isWaitingOpen && (
-          (booth.waitingTeamCount ?? 0) === 0 ? (
+        {booth?.isWaitingOpen &&
+          ((booth.waitingTeamCount ?? 0) === 0 ? (
             <button
               type="button"
               onClick={handleRegister}
@@ -114,7 +114,8 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
                 </div>
               </div>
               <div className="shrink-0 text-[24px] font-extrabold tabular-nums tracking-[-0.5px] text-pop">
-                0<span className="text-[13px] font-semibold opacity-60">팀</span>
+                0
+                <span className="text-[13px] font-semibold opacity-60">팀</span>
               </div>
             </button>
           ) : (
@@ -128,11 +129,11 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
                 </div>
               </div>
               <div className="shrink-0 text-[24px] font-extrabold tabular-nums tracking-[-0.5px] text-ink">
-                {booth.waitingTeamCount}<span className="text-[13px] font-semibold opacity-60">팀</span>
+                {booth.waitingTeamCount}
+                <span className="text-[13px] font-semibold opacity-60">팀</span>
               </div>
             </div>
-          )
-        )}
+          ))}
 
         {/* People picker */}
         <FieldLabel>인원</FieldLabel>

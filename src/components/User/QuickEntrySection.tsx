@@ -116,8 +116,7 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
                         alt=""
                         className="aspect-square w-full object-cover"
                         onError={(e) => {
-                          ;(e.target as HTMLImageElement).style.display =
-                            'none'
+                          ;(e.target as HTMLImageElement).style.display = 'none'
                         }}
                       />
                     ) : (

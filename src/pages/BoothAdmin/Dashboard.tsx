@@ -78,13 +78,18 @@ function DeleteModal({
       <div
         className="w-full max-w-md rounded-3xl bg-surface shadow-[0_24px_60px_rgba(20,26,31,0.28)]"
         style={{
-          animation: 'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
+          animation:
+            'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
         }}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="px-6 pt-6 pb-5">
-          <div className="mb-2 text-[18px] font-extrabold tracking-[-0.4px] text-ink">{title}</div>
-          <div className="text-[13px] leading-relaxed text-ink-60">{message}</div>
+          <div className="mb-2 text-[18px] font-extrabold tracking-[-0.4px] text-ink">
+            {title}
+          </div>
+          <div className="text-[13px] leading-relaxed text-ink-60">
+            {message}
+          </div>
         </div>
         <div className="flex gap-2 border-t border-border px-6 py-4">
           <button
@@ -317,14 +322,18 @@ function InfoTab({
           />
         </div>
         <div>
-          <div className="mb-1.5 text-[12px] font-bold text-ink-60">카테고리</div>
+          <div className="mb-1.5 text-[12px] font-bold text-ink-60">
+            카테고리
+          </div>
           <select
             value={category ?? ''}
             onChange={(e) => setCategoryDraft(e.target.value as BoothCategory)}
             disabled={!isApproved || !boothId}
             className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink focus:border-cta focus:outline-none disabled:opacity-60"
           >
-            <option value="" disabled>카테고리 선택</option>
+            <option value="" disabled>
+              카테고리 선택
+            </option>
             <option value="ACTIVITY">활동</option>
             <option value="INFO">정보</option>
             <option value="MARKET">마켓</option>
@@ -1208,7 +1217,16 @@ export function BoothAdminDashboard() {
                     : 'text-ink-40 hover:text-ink-60'
                 )}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <circle cx="12" cy="12" r="5" />
                   <line x1="12" y1="1" x2="12" y2="3" />
                   <line x1="12" y1="21" x2="12" y2="23" />
@@ -1231,7 +1249,16 @@ export function BoothAdminDashboard() {
                     : 'text-ink-40 hover:text-ink-60'
                 )}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
                 다크
