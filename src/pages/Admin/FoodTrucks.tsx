@@ -16,6 +16,8 @@ import { useCreateMenu } from '../../features/Menu/hooks/useCreateMenu'
 import { useUpdateMenu } from '../../features/Menu/hooks/useUpdateMenu'
 import { useDeleteMenu } from '../../features/Menu/hooks/useDeleteMenu'
 import { postMenu } from '../../features/Menu/apis/postMenu'
+import { getMenus } from '../../features/Menu/apis/getMenus'
+import { deleteMenu as deleteMenuApi } from '../../features/Menu/apis/deleteMenu'
 import type { MenusResponseDto } from '../../features/Menu/types/MenusResponseDto'
 import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 
@@ -23,6 +25,15 @@ import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 // 저장 포맷: "1일차·2일차 10:00~20:00"
 
 const TIME_RE = /^\d{2}:\d{2}$/
+const MENU_GRID_COLS = 'grid-cols-[minmax(0,1fr)_10.5rem_3.5rem]'
+
+function onlyDigits(value: string) {
+  return value.replace(/[^0-9]/g, '')
+}
+
+function isValidMenuInput(name: string, price: string) {
+  return name.trim().length > 0 && onlyDigits(price).length > 0
+}
 
 function parseOH(oh: string | null | undefined) {
   if (!oh) return { days: [] as number[], start: '10:00', end: '20:00' }
@@ -67,33 +78,51 @@ function MenuRow({
 }) {
   const [name, setName] = useState(menu.name)
   const [price, setPrice] = useState(String(menu.price))
+  const canSave = isValidMenuInput(name, price)
 
-  function handleBlur() {
-    const parsedPrice = Number(price.replace(/[^0-9]/g, '')) || 0
-    onUpdate(menu.id, { name, price: parsedPrice })
+  function handleSave() {
+    if (!canSave) return
+    onUpdate(menu.id, {
+      name: name.trim(),
+      price: Number(onlyDigits(price)),
+      description: menu.description,
+      imageUrl: menu.imageUrl,
+      sortOrder: menu.sortOrder,
+      isSoldOut: menu.isSoldOut,
+    })
   }
 
   return (
-    <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2">
+    <div className={cn('grid items-center gap-2', MENU_GRID_COLS)}>
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
-        onBlur={handleBlur}
-        className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+        className="min-w-0 w-full rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
       />
       <input
         value={price}
-        onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))}
-        onBlur={handleBlur}
-        className="w-28 rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        onChange={(e) => setPrice(onlyDigits(e.target.value))}
+        className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
       />
-      <button
-        type="button"
-        onClick={() => onDelete(menu.id)}
-        className="flex size-6 shrink-0 items-center justify-center rounded-lg text-ink-40 hover:text-alert"
-      >
-        <div className="size-3.5">{I.trash(FESTIV_TOKENS.ink40)}</div>
-      </button>
+      <div className="flex w-14 justify-end gap-1">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={!canSave}
+          className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-cta text-white disabled:opacity-30"
+        >
+          <div className="size-3">{I.check('#fff')}</div>
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(menu.id)}
+          className="flex size-6 shrink-0 items-center justify-center rounded-lg text-ink-40 hover:text-alert"
+        >
+          <div className="size-3.5">{I.trash(FESTIV_TOKENS.ink40)}</div>
+        </button>
+      </div>
     </div>
   )
 }
@@ -161,6 +190,16 @@ function TruckEditorForm({
   const [startTime, setStartTime] = useState(parsed.start)
   const [endTime, setEndTime] = useState(parsed.end)
   const [saved, setSaved] = useState(false)
+  const [menuToast, setMenuToast] = useState<string | null>(null)
+  const [deleteMenuTarget, setDeleteMenuTarget] = useState<{
+    id: string
+    name: string
+  } | null>(null)
+
+  function showMenuToast(msg: string) {
+    setMenuToast(msg)
+    setTimeout(() => setMenuToast(null), 2500)
+  }
 
   function toggleDay(d: number) {
     setSelectedDays((prev) =>
@@ -226,22 +265,21 @@ function TruckEditorForm({
   }
 
   function commitPending(localId: string, name: string, price: string) {
-    if (!name.trim()) {
-      setPendingMenus((prev) => prev.filter((m) => m.localId !== localId))
-      return
-    }
+    if (!isValidMenuInput(name, price)) return
     createMenu(
       {
         name: name.trim(),
-        price: Number(price.replace(/[^0-9]/g, '')) || 0,
+        price: Number(onlyDigits(price)),
         description: null,
         imageUrl: null,
         isSoldOut: false,
         sortOrder: menus.length,
       },
       {
-        onSuccess: () =>
-          setPendingMenus((prev) => prev.filter((m) => m.localId !== localId)),
+        onSuccess: () => {
+          setPendingMenus((prev) => prev.filter((m) => m.localId !== localId))
+          showMenuToast('메뉴가 등록되었습니다')
+        },
       }
     )
   }
@@ -491,8 +529,19 @@ function TruckEditorForm({
                 <MenuRow
                   key={menu.id}
                   menu={menu}
-                  onUpdate={(menuId, body) => updateMenu({ menuId, body })}
-                  onDelete={(menuId) => deleteMenu(menuId)}
+                  onUpdate={(menuId, body) =>
+                    updateMenu(
+                      { menuId, body },
+                      {
+                        onSuccess: () => showMenuToast('메뉴가 수정되었습니다'),
+                      }
+                    )
+                  }
+                  onDelete={(menuId) => {
+                    const target = menus.find((m) => m.id === menuId)
+                    if (target)
+                      setDeleteMenuTarget({ id: target.id, name: target.name })
+                  }}
                 />
               ))}
               {pendingMenus.map((m) => (
@@ -533,7 +582,7 @@ function TruckEditorForm({
                     <button
                       type="button"
                       onClick={() => commitPending(m.localId, m.name, m.price)}
-                      disabled={!m.name.trim()}
+                      disabled={!isValidMenuInput(m.name, m.price)}
                       className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-cta text-white disabled:opacity-30"
                     >
                       <div className="size-3">{I.check('#fff')}</div>
@@ -591,7 +640,25 @@ function TruckEditorForm({
         {/*  )}*/}
         {/*</div>*/}
       </div>
+      <AdminModal
+        open={!!deleteMenuTarget}
+        variant="warning"
+        title={`"${deleteMenuTarget?.name}" 메뉴를 삭제할까요?`}
+        body="삭제된 메뉴는 복구할 수 없어요."
+        confirmLabel="삭제"
+        onConfirm={() => {
+          if (!deleteMenuTarget) return
+          deleteMenu(deleteMenuTarget.id, {
+            onSuccess: () => {
+              showMenuToast(`"${deleteMenuTarget.name}" 메뉴가 삭제되었습니다`)
+              setDeleteMenuTarget(null)
+            },
+          })
+        }}
+        onClose={() => setDeleteMenuTarget(null)}
+      />
       {saved && <AdminToast message="저장되었습니다" />}
+      {menuToast && <AdminToast message={menuToast} />}
     </main>
   )
 }
@@ -608,6 +675,7 @@ export function AdminFoodTrucks() {
     name: string
   } | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   function showToast(msg: string) {
     setToast(msg)
@@ -716,13 +784,26 @@ export function AdminFoodTrucks() {
         title={`"${deleteTarget?.name}" 업체를 삭제할까요?`}
         body="삭제된 업체는 복구할 수 없어요."
         confirmLabel="삭제"
-        onConfirm={() => {
-          if (!deleteTarget) return
-          deleteBooth(deleteTarget.id, {
+        onConfirm={async () => {
+          if (!deleteTarget || isDeleting) return
+          const { id, name } = deleteTarget
+          setIsDeleting(true)
+          setDeleteTarget(null)
+          try {
+            const menus = await getMenus(id)
+            await Promise.all(menus.map((m) => deleteMenuApi(id, m.id)))
+          } catch {
+            // 메뉴 삭제 실패해도 업체 삭제 시도
+          }
+          deleteBooth(id, {
             onSuccess: () => {
-              if (effectiveId === deleteTarget.id) setSelectedId('')
-              showToast(`"${deleteTarget.name}" 업체가 삭제되었습니다`)
-              setDeleteTarget(null)
+              if (effectiveId === id) setSelectedId('')
+              showToast(`"${name}" 업체가 삭제되었습니다`)
+              setIsDeleting(false)
+            },
+            onError: () => {
+              showToast('업체 삭제 중 오류가 발생했습니다')
+              setIsDeleting(false)
             },
           })
         }}
