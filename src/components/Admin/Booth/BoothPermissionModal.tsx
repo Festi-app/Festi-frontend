@@ -7,7 +7,14 @@ import {
 } from './boothShared'
 import type { BoothPermission } from '../../../stores/useBoothSectionStore'
 import { cn } from '../../../lib/cn'
-import { Pill } from '../../../tokens'
+import { Pill, FESTIV_TOKENS } from '../../../tokens'
+
+const CAT_COLOR: Record<string, string> = {
+  정보: FESTIV_TOKENS.mint,
+  체험: FESTIV_TOKENS.grape,
+  마켓: FESTIV_TOKENS.sun,
+  활동: FESTIV_TOKENS.pop,
+}
 import { NIGHT_ZONES, ZONES } from '../../../data/zones'
 
 export function BoothPermissionModal({
@@ -83,12 +90,15 @@ export function BoothPermissionModal({
                     key={cat}
                     type="button"
                     onClick={() => setSelectedCategory(cat)}
-                    className={cn(
-                      'rounded-xl py-2 text-[12px] font-bold transition-all',
+                    className="rounded-xl py-2 text-[12px] font-bold transition-all"
+                    style={
                       selectedCategory === cat
-                        ? 'bg-cta text-cta-ink'
-                        : 'bg-surface-alt text-ink-60 hover:bg-surface-alt/80'
-                    )}
+                        ? { background: CAT_COLOR[cat], color: '#141A1F' }
+                        : {
+                            background: `${CAT_COLOR[cat]}33`,
+                            color: CAT_COLOR[cat],
+                          }
+                    }
                   >
                     {cat}
                   </button>
@@ -112,6 +122,11 @@ export function BoothPermissionModal({
                 const alreadyHas = permissions.some(
                   (p) => p.orgId === org.id && p.zoneId === zoneId
                 )
+                const isSelected = selectedOrgId === org.id
+                const accentColor =
+                  isSelected && selectedCategory
+                    ? (CAT_COLOR[selectedCategory] ?? FESTIV_TOKENS.coral)
+                    : FESTIV_TOKENS.coral
                 return (
                   <button
                     key={org.id}
@@ -129,15 +144,15 @@ export function BoothPermissionModal({
                     style={
                       selectedOrgId === org.id
                         ? {
-                            background: `${org.color}22`,
-                            borderColor: org.color,
+                            background: `${accentColor}22`,
+                            borderColor: accentColor,
                           }
                         : {}
                     }
                   >
                     <div
                       className="size-3 shrink-0 rounded-full"
-                      style={{ background: org.color }}
+                      style={{ background: accentColor }}
                     />
                     <div className="min-w-0 flex-1">
                       <div className="text-[13px] font-bold text-ink">
@@ -149,7 +164,7 @@ export function BoothPermissionModal({
                         </div>
                       )}
                     </div>
-                    <Pill color={`${org.color}22`} ink={org.color}>
+                    <Pill color={`${accentColor}22`} ink={accentColor}>
                       {org.type}
                     </Pill>
                   </button>

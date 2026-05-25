@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { tabBarPb } from '../../lib/safeArea'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES, boothUrl } from '../../constants/routes'
@@ -8,14 +7,8 @@ import { WaitingTicketCard } from '../../components/User/Waiting/WaitingTicketCa
 import { CancelToast } from '../../components/User/CancelToast'
 import { ConfirmModal } from '../../components/User/ConfirmModal'
 import { useWaitingCancel } from '../../hooks/useWaitingCancel'
-import { NotificationSettings } from '../../components/User/Waiting/NotificationSettings'
 import { useMyWaitings } from '../../features/Waiting/hooks/useMyWaitings'
 import { useBooth } from '../../features/Booth/hooks/useBooth'
-
-const NOTIFICATION_ROWS = [
-  { label: '내 차례 호출 알림', sub: '푸시 알림' },
-  { label: '도착 알림 진동', sub: '진동 + 사운드' },
-]
 
 function formatRegistered(partySize: number, registeredAt: string): string {
   const date = new Date(registeredAt)
@@ -39,7 +32,6 @@ export function UserWaitingDetail({
 
   const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
     useWaitingCancel(() => navigate(ROUTES.WAITING))
-  const [notifValues, setNotifValues] = useState([true, true])
 
   if (!waiting && !showCancelToast) {
     navigate(ROUTES.WAITING, { replace: true })
@@ -116,21 +108,6 @@ export function UserWaitingDetail({
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="mt-4 overflow-hidden rounded-[20px] border border-border bg-surface">
-            <div className="px-4 pt-4 pb-1 text-[13px] font-bold tracking-[-0.2px] text-ink-60">
-              알림 설정
-            </div>
-            <NotificationSettings
-              rows={NOTIFICATION_ROWS}
-              values={notifValues}
-              onChange={(i) =>
-                setNotifValues((prev) =>
-                  prev.map((v, idx) => (idx === i ? !v : v))
-                )
-              }
-            />
           </div>
 
           <div className="mt-3.5 rounded-[14px] bg-surface-alt p-3.5 text-[11px] leading-normal text-ink-60">

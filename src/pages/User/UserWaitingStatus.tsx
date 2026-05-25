@@ -13,8 +13,10 @@ import { waitingDetailUrl } from '../../constants/routes'
 import { useMyWaitings } from '../../features/Waiting/hooks/useMyWaitings'
 import {
   useRegisterPushSubscription,
+  useRemovePushSubscription,
   getStoredSubscriptionId,
 } from '../../features/PushSubscription/hooks/usePushSubscription'
+import { Switch } from '../../components/shared/Switch'
 
 function formatRegistered(partySize: number, registeredAt: string): string {
   const date = new Date(registeredAt)
@@ -44,13 +46,18 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
   const [isSubscribed, setIsSubscribed] = useState(
     () => !!getStoredSubscriptionId()
   )
-  const { mutate: registerPush, isPending: isRegistering } =
-    useRegisterPushSubscription()
+  const { mutate: registerPush } = useRegisterPushSubscription()
+  const { mutate: removePush } = useRemovePushSubscription()
 
-  function handleEnableNotification() {
-    registerPush(undefined, {
-      onSuccess: () => setIsSubscribed(true),
-    })
+  function handleToggleNotification() {
+    if (isSubscribed) {
+      setIsSubscribed(false)
+      const id = getStoredSubscriptionId()
+      if (id) removePush(id, { onError: () => setIsSubscribed(true) })
+    } else {
+      setIsSubscribed(true)
+      registerPush(undefined, { onError: () => setIsSubscribed(false) })
+    }
   }
 
   if (isLoading) {
@@ -95,31 +102,22 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
             </div>
           )}
 
-          {pushSupported &&
-            !isSubscribed &&
-            Notification.permission !== 'denied' && (
-              <button
-                type="button"
-                onClick={handleEnableNotification}
-                disabled={isRegistering}
-                className="mt-3.5 flex w-full items-center gap-3 rounded-[18px] border border-border bg-surface p-3.5 text-left transition-colors active:bg-surface-alt disabled:opacity-50"
-              >
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface-alt text-ink-60">
-                  {I.bell()}
+          {pushSupported && Notification.permission !== 'denied' && (
+            <div className="mt-3.5 flex w-full items-center gap-3 rounded-[18px] border border-border bg-surface p-3.5">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface-alt text-ink-60">
+                {I.bell()}
+              </div>
+              <div className="flex-1">
+                <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">
+                  호출 알림 받기
                 </div>
-                <div className="flex-1">
-                  <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">
-                    호출 알림 받기
-                  </div>
-                  <div className="mt-0.5 text-xs text-ink-60">
-                    호출 시 브라우저 알림으로 바로 알려드려요
-                  </div>
+                <div className="mt-0.5 text-xs text-ink-60">
+                  호출 시 브라우저 알림으로 바로 알려드려요
                 </div>
-                <div className="shrink-0 text-[11px] font-bold text-cta">
-                  {isRegistering ? '설정 중...' : '켜기'}
-                </div>
-              </button>
-            )}
+              </div>
+              <Switch on={isSubscribed} onClick={handleToggleNotification} />
+            </div>
+          )}
 
           <div className="flex items-center justify-between px-0.5 pb-2 pt-5">
             <div className="flex items-center gap-1.5">
