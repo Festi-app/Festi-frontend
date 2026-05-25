@@ -16,6 +16,7 @@ type Marker = {
   type: string
   category?: string
   wait?: number
+  sections?: number[]
 }
 
 export function MapSearchOverlay({
@@ -102,7 +103,7 @@ export function MapSearchOverlay({
                             ?.color ?? typeColor(m.type),
                       }}
                     >
-                      {m.id}
+                      #{m.sections?.[0] ?? ''}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline gap-1.5">

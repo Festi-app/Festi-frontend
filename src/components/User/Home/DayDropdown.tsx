@@ -34,11 +34,11 @@ export function DayDropdown({
   }, [open])
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative shrink-0" ref={ref}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 rounded-full border border-border bg-white/80 px-3 py-2 text-[13px] font-bold tracking-[-0.2px] text-ink shadow-[0_1px_8px_rgba(20,26,31,0.10)] backdrop-blur-sm dark:border-white/30 dark:bg-white/15 dark:text-white"
+        className="flex items-center gap-1 whitespace-nowrap rounded-full border border-border bg-white/80 px-3 py-2 text-[13px] font-bold tracking-[-0.2px] text-ink shadow-[0_1px_8px_rgba(20,26,31,0.10)] backdrop-blur-sm dark:border-white/30 dark:bg-white/15 dark:text-white"
       >
         {value}일차
         {value === currentDay && (

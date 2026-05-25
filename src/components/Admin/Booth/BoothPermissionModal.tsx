@@ -4,7 +4,6 @@ import {
   type BoothCategory,
   type PermDay,
   type PermTime,
-  CATEGORY_COLORS,
 } from './boothShared'
 import type { BoothPermission } from '../../../stores/useBoothSectionStore'
 import { cn } from '../../../lib/cn'
@@ -78,24 +77,23 @@ export function BoothPermissionModal({
               부스 유형
             </div>
             <div className="grid grid-cols-4 gap-1.5">
-              {(Object.keys(CATEGORY_COLORS) as BoothCategory[]).map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat)}
-                  className={cn(
-                    'rounded-xl py-2 text-[12px] font-bold transition-all',
-                    selectedCategory === cat ? 'text-white' : 'text-ink-60'
-                  )}
-                  style={
-                    selectedCategory === cat
-                      ? { background: CATEGORY_COLORS[cat] }
-                      : { background: `${CATEGORY_COLORS[cat]}22` }
-                  }
-                >
-                  {cat}
-                </button>
-              ))}
+              {(['정보', '체험', '마켓', '활동'] as BoothCategory[]).map(
+                (cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat)}
+                    className={cn(
+                      'rounded-xl py-2 text-[12px] font-bold transition-all',
+                      selectedCategory === cat
+                        ? 'bg-cta text-cta-ink'
+                        : 'bg-surface-alt text-ink-60 hover:bg-surface-alt/80'
+                    )}
+                  >
+                    {cat}
+                  </button>
+                )
+              )}
             </div>
           </div>
         )}

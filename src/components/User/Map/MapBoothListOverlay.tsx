@@ -1,6 +1,5 @@
 import { tabBarPb } from '../../../lib/safeArea'
 import { FESTIV_TOKENS } from '../../../tokens'
-import { useBooths } from '../../../features/Booth/hooks/useBooths'
 import { ZONES, NIGHT_ZONES } from '../../../data/zones'
 import { TRUCK_ZONES } from '../../../stores/useTruckPlacementStore'
 import {
@@ -40,8 +39,6 @@ export function MapBoothListOverlay({
     type: 'day' | 'night' | 'truck'
   ) => void
 }) {
-  const { data: truckBooths = [] } = useBooths({ type: 'FOOD_TRUCK' })
-
   return (
     <>
       <div
@@ -134,40 +131,7 @@ export function MapBoothListOverlay({
             className="h-full overflow-y-auto overscroll-none px-4"
             style={{ paddingBottom: tabBarPb }}
           >
-            {listTab === 'truck' ? (
-              truckBooths.length === 0 ? (
-                <div className="flex h-full items-center justify-center text-sm text-ink-40">
-                  등록된 부스가 없어요
-                </div>
-              ) : (
-                <div className="flex flex-col divide-y divide-border">
-                  {truckBooths.map((truck) => {
-                    return (
-                      <button
-                        key={truck.id}
-                        type="button"
-                        onClick={() =>
-                          onSelectBooth({ id: Number(truck.id) }, 'truck')
-                        }
-                        className="flex w-full items-center gap-3 py-3.5 text-left"
-                      >
-                        <div
-                          className="flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]"
-                          style={{ background: FESTIV_TOKENS.sun }}
-                        >
-                          #
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[14px] font-bold tracking-[-0.3px] text-ink">
-                            {truck.name}
-                          </div>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              )
-            ) : listMarkers.length === 0 ? (
+            {listMarkers.length === 0 ? (
               <div
                 className={`flex h-full items-center justify-center text-sm text-ink-40 ${listTab === 'day' ? 'pb-11' : ''}`}
               >
@@ -184,7 +148,14 @@ export function MapBoothListOverlay({
                       key={m.id}
                       type="button"
                       onClick={() =>
-                        onSelectBooth(m, m.type === 'night' ? 'night' : 'day')
+                        onSelectBooth(
+                          m,
+                          m.type === 'night'
+                            ? 'night'
+                            : m.type === 'truck'
+                              ? 'truck'
+                              : 'day'
+                        )
                       }
                       className="flex items-center gap-3 py-3.5 text-left"
                     >

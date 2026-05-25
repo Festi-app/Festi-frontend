@@ -7,7 +7,7 @@ import {
 } from '../../../../stores/useBoothSectionStore'
 import { FESTIV_TOKENS, I, Pill } from '../../../../tokens'
 import { cn } from '../../../../lib/cn'
-import { type OrgAccount, CATEGORY_COLORS } from '../boothShared'
+import { type OrgAccount } from '../boothShared'
 
 const ALL_ZONES = [...ZONES, ...NIGHT_ZONES]
 
@@ -133,10 +133,7 @@ export function DayNightContent({
                           {p.orgName}
                         </span>
                         {showCategory && (
-                          <span
-                            className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-white"
-                            style={{ background: CATEGORY_COLORS[p.category] }}
-                          >
+                          <span className="shrink-0 rounded-md bg-surface-alt px-1.5 py-0.5 text-[10px] font-bold text-ink-60">
                             {p.category}
                           </span>
                         )}

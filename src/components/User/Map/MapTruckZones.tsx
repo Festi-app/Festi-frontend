@@ -38,42 +38,45 @@ export function MapTruckZones({
               zIndex: 2,
             }}
           >
-            {zoneLocations.map((loc, idx) => {
-              const truck = loc.boothSummary
-              const isSelected =
-                selectedSection?.zoneId === zone.id &&
-                selectedSection.slot === loc.index
-              const isLast = idx === zoneLocations.length - 1
-              return (
-                <button
-                  key={loc.index}
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onSelectSection(zone.id, loc.index, !!truck)
-                  }}
-                  className="flex min-h-0 min-w-0 flex-1 select-none items-center justify-center text-[7px] font-extrabold"
-                  style={{
-                    background: isSelected
-                      ? zone.color
-                      : truck
-                        ? zone.color + 'CC'
-                        : 'transparent',
-                    color: FESTIV_TOKENS.ink,
-                    boxShadow: isSelected
-                      ? 'inset 0 0 0 2px rgba(255,255,255,0.9)'
-                      : undefined,
-                    ...(isLast
-                      ? {}
-                      : zone.dir === 'row'
-                        ? { borderRight: '1px solid rgba(20,26,31,0.18)' }
-                        : { borderBottom: '1px solid rgba(20,26,31,0.18)' }),
-                  }}
-                >
-                  {truck ? truck.name.slice(0, 3) : null}
-                </button>
-              )
-            })}
+            {Array.from({ length: zone.slotCount }, (_, i) => i + 1).map(
+              (slotIndex) => {
+                const loc = zoneLocations.find((l) => l.index === slotIndex)
+                const truck = loc?.boothSummary ?? null
+                const isSelected =
+                  selectedSection?.zoneId === zone.id &&
+                  selectedSection.slot === slotIndex
+                const isLast = slotIndex === zone.slotCount
+                return (
+                  <button
+                    key={slotIndex}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onSelectSection(zone.id, slotIndex, !!truck)
+                    }}
+                    className="flex min-h-0 min-w-0 flex-1 select-none items-center justify-center text-[7px] font-extrabold"
+                    style={{
+                      background: isSelected
+                        ? zone.color
+                        : truck
+                          ? zone.color
+                          : 'transparent',
+                      color: FESTIV_TOKENS.ink,
+                      boxShadow: isSelected
+                        ? 'inset 0 0 0 2px rgba(255,255,255,0.9)'
+                        : undefined,
+                      ...(isLast
+                        ? {}
+                        : zone.dir === 'row'
+                          ? { borderRight: '1px solid rgba(20,26,31,0.18)' }
+                          : { borderBottom: '1px solid rgba(20,26,31,0.18)' }),
+                    }}
+                  >
+                    {slotIndex}
+                  </button>
+                )
+              }
+            )}
           </div>
         )
       })}
