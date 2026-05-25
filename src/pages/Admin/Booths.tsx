@@ -29,6 +29,7 @@ import { useBooths } from '../../features/Booth/hooks/useBooths'
 import { useLocations } from '../../features/Map/hooks/useLocations'
 import { useAssignBooth } from '../../features/Map/hooks/useAssignBooth'
 import { useCreateLocationSlots } from '../../features/Map/hooks/useCreateLocationSlots'
+import type { GetLocationsResponseDto } from '../../features/Map/types/LocationsResponseDto'
 import type { BoothType } from '../../types/common'
 
 const ORG_COLORS = [
@@ -46,6 +47,16 @@ const CAT_COLOR: Record<string, string> = {
   체험: FESTIV_TOKENS.grape,
   마켓: FESTIV_TOKENS.sun,
   활동: FESTIV_TOKENS.pop,
+}
+
+function slotCountsByZone(locations: GetLocationsResponseDto[]) {
+  return locations.reduce<Record<string, number>>((counts, location) => {
+    counts[location.zoneLabel] = Math.max(
+      counts[location.zoneLabel] ?? 0,
+      location.index
+    )
+    return counts
+  }, {})
 }
 
 function groupBorder(idx: number, sections: number[], dir: 'row' | 'column') {
@@ -117,6 +128,7 @@ export function AdminBooths() {
     permissions,
     addPermission,
     zoneDivisions,
+    setZoneDivisions,
     markModeConfigured,
     configuredModes,
   } = useBoothSectionStore()
@@ -124,13 +136,14 @@ export function AdminBooths() {
   const allConfigured = (['주간', '야간', '푸드트럭'] as BoothMapMode[]).every(
     (m) => configuredModes.includes(m)
   )
-  const [step, setStep] = useState<'configure' | 'assign'>(
-    allConfigured ? 'assign' : 'configure'
+  const [stepOverride, setStep] = useState<'configure' | 'assign' | null>(
+    allConfigured ? 'assign' : null
   )
   const {
     trucks,
     assignments: truckAssignments,
     slotCounts: truckSlotCounts,
+    setSlotCount: setTruckSlotCount,
     zoneRotations: truckZoneRotations,
   } = useTruckPlacementStore()
   const [mapMode, setMapMode] = useState<BoothMapMode>('주간')
@@ -162,6 +175,39 @@ export function AdminBooths() {
     day: currentFestivalDay?.day ?? '',
     type: modeToType[mapMode],
   })
+  const initialFestivalDay = festivalDays[0]?.day ?? ''
+  const {
+    data: configuredDayLocations = [],
+    isSuccess: hasLoadedDayLocations,
+  } = useLocations({
+    day: initialFestivalDay,
+    type: 'DAY',
+  })
+  const {
+    data: configuredNightLocations = [],
+    isSuccess: hasLoadedNightLocations,
+  } = useLocations({
+    day: initialFestivalDay,
+    type: 'NIGHT',
+  })
+  const {
+    data: configuredTruckLocations = [],
+    isSuccess: hasLoadedTruckLocations,
+  } = useLocations({
+    day: initialFestivalDay,
+    type: 'FOOD_TRUCK',
+  })
+  const hasLoadedConfiguredLocations =
+    hasLoadedDayLocations && hasLoadedNightLocations && hasLoadedTruckLocations
+  const hasExistingSlots =
+    hasLoadedConfiguredLocations &&
+    [
+      configuredDayLocations,
+      configuredNightLocations,
+      configuredTruckLocations,
+    ].some((modeLocations) => modeLocations.length > 0)
+  const step = stepOverride ?? (hasExistingSlots ? 'assign' : 'configure')
+  const hasInitializedSlots = useRef(false)
   const [truckDay, setTruckDay] = useState(1)
   const [truckTime, setTruckTime] = useState<TruckTime>('야간')
   const [selectedTruckZone, setSelectedTruckZone] = useState<string | null>(
@@ -177,6 +223,49 @@ export function AdminBooths() {
   const [draftTruckSlots, setDraftTruckSlots] = useState<
     Record<string, number>
   >({})
+  const displayedNotice =
+    stepOverride === null && hasExistingSlots
+      ? '기존 슬롯을 불러왔어요. 지도에서 권한을 부여하세요'
+      : notice
+
+  useEffect(() => {
+    if (
+      hasInitializedSlots.current ||
+      !initialFestivalDay ||
+      !hasLoadedConfiguredLocations
+    ) {
+      return
+    }
+    hasInitializedSlots.current = true
+
+    const configuredLocations = [
+      { mode: '주간' as const, locations: configuredDayLocations },
+      { mode: '야간' as const, locations: configuredNightLocations },
+      { mode: '푸드트럭' as const, locations: configuredTruckLocations },
+    ]
+
+    configuredLocations.forEach(({ mode, locations: modeLocations }) => {
+      if (modeLocations.length > 0) markModeConfigured(mode)
+    })
+
+    setZoneDivisions((previous) => ({
+      ...previous,
+      ...slotCountsByZone(configuredDayLocations),
+      ...slotCountsByZone(configuredNightLocations),
+    }))
+    Object.entries(slotCountsByZone(configuredTruckLocations)).forEach(
+      ([zoneId, count]) => setTruckSlotCount(zoneId, count)
+    )
+  }, [
+    configuredDayLocations,
+    configuredNightLocations,
+    configuredTruckLocations,
+    hasLoadedConfiguredLocations,
+    initialFestivalDay,
+    markModeConfigured,
+    setTruckSlotCount,
+    setZoneDivisions,
+  ])
 
   async function handleConfigureSave() {
     const { zoneDivisions } = useBoothSectionStore.getState()
@@ -302,7 +391,7 @@ export function AdminBooths() {
     <AdminShell active="booths">
       <AdminTopBar
         title="부스 배치"
-        sub={`${step === 'configure' ? '구역 설정' : `${mapMode} · 권한 부여`} · ${notice}`}
+        sub={`${step === 'configure' ? '구역 설정' : `${mapMode} · 권한 부여`} · ${displayedNotice}`}
         right={
           step === 'assign' ? (
             <>
