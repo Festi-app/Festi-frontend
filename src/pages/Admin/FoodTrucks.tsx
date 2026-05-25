@@ -6,12 +6,6 @@ import { AdminBtn } from '../../components/Admin/AdminBtn'
 import { AdminModal } from '../../components/Admin/AdminModal'
 import { AdminToast } from '../../components/Admin/AdminToast'
 import { cn } from '../../lib/cn'
-import soongsilTruckMap from '../../assets/soongsil-truck-map.png'
-import {
-  TRUCK_ZONES,
-  useTruckPlacementStore,
-} from '../../stores/useTruckPlacementStore'
-import type { FoodTruck, TruckTime } from '../../stores/useTruckPlacementStore'
 import { useBooths } from '../../features/Booth/hooks/useBooths'
 import { useBooth } from '../../features/Booth/hooks/useBooth'
 import { useUpdateFoodTruck } from '../../features/Booth/hooks/useUpdateFoodTruck'
@@ -57,347 +51,6 @@ function buildOH(days: number[], start: string, end: string) {
       .join('·') +
     ' ' +
     time
-  )
-}
-
-// ── Map view (로컬 store 기반 위치 배정 — 별개 기능) ────────────────────────
-
-function TruckMapView({ trucks }: { trucks: FoodTruck[] }) {
-  const [time, setTime] = useState<TruckTime>('야간')
-  const [selectedZone, setSelectedZone] = useState<string | null>(null)
-  const [selectedSlot, setSelectedSlot] = useState<number | null>(null)
-  const {
-    assignments,
-    slotCounts,
-    zoneRotations,
-    setSlotCount,
-    setAssignment,
-    removeAssignment,
-    cleanupZoneSlots,
-  } = useTruckPlacementStore()
-
-  const zone = TRUCK_ZONES.find((z) => z.id === selectedZone)
-
-  function assignKey(t: TruckTime, zoneId: string, slot: number) {
-    return `${t}:${zoneId}:${slot}`
-  }
-
-  function assignedTruck(zoneId: string, slot: number) {
-    const id = assignments[assignKey(time, zoneId, slot)]
-    return trucks.find((t) => t.id === id) ?? null
-  }
-
-  function assign(truckId: string) {
-    if (selectedZone === null || selectedSlot === null) return
-    setAssignment(assignKey(time, selectedZone, selectedSlot), truckId)
-    setSelectedSlot(null)
-  }
-
-  function unassign(zoneId: string, slot: number) {
-    removeAssignment(assignKey(time, zoneId, slot))
-  }
-
-  function assignedTruckIds() {
-    return new Set(
-      Object.entries(assignments)
-        .filter(([k]) => k.startsWith(time + ':'))
-        .map(([, v]) => v)
-    )
-  }
-
-  function changeSlotCount(zoneId: string, delta: number) {
-    const current = slotCounts[zoneId] ?? 1
-    const next = Math.max(1, Math.min(8, current + delta))
-    if (next === current) return
-    setSlotCount(zoneId, next)
-    if (next < current) {
-      cleanupZoneSlots(zoneId, next)
-      if (
-        selectedZone === zoneId &&
-        selectedSlot !== null &&
-        selectedSlot >= next
-      ) {
-        setSelectedSlot(null)
-      }
-    }
-  }
-
-  return (
-    <div className="flex min-h-0 flex-1 overflow-hidden">
-      <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-surface">
-        <div className="flex gap-1 border-b border-border p-3">
-          {(['주간', '야간'] as TruckTime[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => {
-                setTime(t)
-                setSelectedZone(null)
-                setSelectedSlot(null)
-              }}
-              className={cn(
-                'flex-1 rounded-lg py-1.5 text-[12px] font-bold transition-colors',
-                time === t
-                  ? 'bg-cta text-cta-ink'
-                  : 'bg-surface-alt text-ink-60'
-              )}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-2">
-          {TRUCK_ZONES.map((z) => {
-            const count = slotCounts[z.id]
-            const filled = Array.from(
-              { length: count },
-              (_, i) => !!assignments[assignKey(time, z.id, i)]
-            )
-            const filledCount = filled.filter(Boolean).length
-            const sel = selectedZone === z.id
-            return (
-              <div
-                key={z.id}
-                onClick={() => {
-                  setSelectedZone(z.id)
-                  setSelectedSlot(null)
-                }}
-                className={cn(
-                  'mb-1 w-full cursor-pointer rounded-xl px-3 py-2.5 transition-colors',
-                  sel
-                    ? 'bg-surface-alt ring-1 ring-inset ring-border'
-                    : 'hover:bg-surface-alt/60'
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="size-2.5 shrink-0 rounded-full"
-                    style={{ background: z.color }}
-                  />
-                  <span className="text-[13px] font-bold text-ink">
-                    {z.label}
-                  </span>
-                  <span className="ml-auto text-[11px] text-ink-40">
-                    {filledCount}/{count}
-                  </span>
-                </div>
-                <div className="mt-0.5 pl-4.5 text-[11px] text-ink-60">
-                  {z.name}
-                </div>
-
-                {sel && (
-                  <div
-                    className="mt-2 flex flex-col gap-1.5 pl-4.5"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-7 text-[10px] text-ink-40">섹션</span>
-                      <button
-                        type="button"
-                        disabled={count <= 1}
-                        onClick={() => changeSlotCount(z.id, -1)}
-                        className="flex size-4 items-center justify-center rounded bg-border text-[11px] font-bold text-ink-60 hover:bg-surface-alt disabled:opacity-30"
-                      >
-                        −
-                      </button>
-                      <span className="w-4 text-center text-[12px] font-bold text-ink">
-                        {count}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={count >= 8}
-                        onClick={() => changeSlotCount(z.id, 1)}
-                        className="flex size-4 items-center justify-center rounded bg-border text-[11px] font-bold text-ink-60 hover:bg-surface-alt disabled:opacity-30"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-1.5 flex flex-wrap gap-1 pl-4.5">
-                  {filled.map((f, i) => (
-                    <span
-                      key={i}
-                      className={cn(
-                        'rounded-full px-1.5 py-0.5 text-[9px] font-bold',
-                        f ? 'text-white' : 'bg-border text-ink-40'
-                      )}
-                      style={f ? { background: z.color } : {}}
-                    >
-                      {i + 1}번
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </aside>
-
-      <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-[#E8F4F5]">
-        <div
-          className="relative h-full min-h-0"
-          style={{ aspectRatio: '822 / 590', maxWidth: '100%' }}
-        >
-          <img
-            src={soongsilTruckMap}
-            alt="숭실대 푸드트럭 배치 지도"
-            className="h-full w-full"
-            draggable={false}
-          />
-          {TRUCK_ZONES.map((z) => {
-            const selZone = selectedZone === z.id
-            const rotate = zoneRotations[z.id] ?? z.rotate
-            const slots = Array.from({ length: slotCounts[z.id] }, (_, i) => i)
-            return (
-              <div
-                key={z.id}
-                className="absolute"
-                style={{
-                  left: z.left,
-                  top: z.top,
-                  width: z.width,
-                  height: z.height,
-                  transform: `rotate(${rotate}deg)`,
-                  transformOrigin: 'center',
-                }}
-              >
-                <div
-                  className={cn(
-                    'flex h-full overflow-hidden rounded-sm border border-[rgba(20,26,31,0.22)] shadow-[0_6px_16px_rgba(0,0,0,0.18)]',
-                    z.dir === 'row' ? 'flex-row' : 'flex-col'
-                  )}
-                  style={{ background: z.color }}
-                >
-                  {slots.map((idx) => {
-                    const truck = assignedTruck(z.id, idx)
-                    const selSlot = selZone && selectedSlot === idx
-                    const isLast = idx === slots.length - 1
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          setSelectedZone(z.id)
-                          setSelectedSlot(idx)
-                        }}
-                        title={`${z.label} ${idx + 1}번${truck ? ` · ${truck.name}` : ''}`}
-                        className={cn(
-                          'flex min-h-0 min-w-0 flex-1 items-center justify-center text-[8px] font-extrabold transition-[background,box-shadow]',
-                          selSlot
-                            ? 'shadow-[inset_0_0_0_2px_rgba(255,255,255,0.95)]'
-                            : 'hover:brightness-110'
-                        )}
-                        style={{
-                          background: truck ? '#2E363C' : 'transparent',
-                          color: truck ? '#fff' : FESTIV_TOKENS.ink,
-                          ...(isLast
-                            ? {}
-                            : z.dir === 'row'
-                              ? { borderRight: '1px solid rgba(20,26,31,0.18)' }
-                              : {
-                                  borderBottom: '1px solid rgba(20,26,31,0.18)',
-                                }),
-                        }}
-                      >
-                        {truck ? truck.name.slice(0, 3) : `${idx + 1}`}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      <aside className="flex w-64 shrink-0 flex-col border-l border-border bg-surface">
-        {zone && selectedSlot !== null ? (
-          <>
-            <div className="border-b border-border px-4 py-3">
-              <div className="text-[12px] font-extrabold uppercase tracking-wide text-ink-40">
-                배정 · {zone.label} {selectedSlot + 1}번
-              </div>
-              <div className="mt-0.5 text-[13px] font-bold text-ink">
-                {zone.name}
-              </div>
-            </div>
-            {assignedTruck(zone.id, selectedSlot) && (
-              <div className="mx-3 mt-3 flex items-center justify-between rounded-xl border border-border bg-bg px-3 py-2">
-                <div>
-                  <div className="text-[11px] text-ink-40">현재 배정</div>
-                  <div className="text-[13px] font-bold text-ink">
-                    {assignedTruck(zone.id, selectedSlot)!.name}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => unassign(zone.id, selectedSlot)}
-                  className="text-[11px] font-semibold text-alert"
-                >
-                  해제
-                </button>
-              </div>
-            )}
-            <div className="px-4 pb-2 pt-3 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
-              업체 선택
-            </div>
-            <div className="flex-1 overflow-y-auto px-2 pb-3">
-              {trucks.map((truck) => {
-                const already = assignedTruckIds().has(truck.id)
-                const current =
-                  assignedTruck(zone.id, selectedSlot)?.id === truck.id
-                return (
-                  <button
-                    key={truck.id}
-                    type="button"
-                    disabled={already && !current}
-                    onClick={() => assign(truck.id)}
-                    className={cn(
-                      'mb-1 flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-colors',
-                      current
-                        ? 'bg-cta/10 ring-1 ring-inset ring-cta/40'
-                        : already
-                          ? 'cursor-not-allowed opacity-40'
-                          : 'hover:bg-surface-alt'
-                    )}
-                  >
-                    <div
-                      className="flex size-7 shrink-0 items-center justify-center rounded-full text-[10px] font-extrabold text-white"
-                      style={{ background: zone.color }}
-                    >
-                      {truck.name[0]}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-[13px] font-bold text-ink">
-                        {truck.name}
-                      </div>
-                    </div>
-                    {current && (
-                      <span className="size-4 shrink-0 text-cta">
-                        {I.check('#00C6E0')}
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          </>
-        ) : zone ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-ink-40">
-            <div className="size-8">{I.map()}</div>
-            <div className="text-[13px] font-semibold">슬롯을 선택하세요</div>
-          </div>
-        ) : (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-ink-40">
-            <div className="size-8">{I.map()}</div>
-            <div className="text-[13px] font-semibold">구역을 선택하세요</div>
-          </div>
-        )}
-      </aside>
-    </div>
   )
 }
 
@@ -946,7 +599,6 @@ function TruckEditorForm({
 // ── AdminFoodTrucks ───────────────────────────────────────────────────────────
 
 export function AdminFoodTrucks() {
-  const [view, setView] = useState<'목록' | '배치도'>('목록')
   const { data: booths = [], isLoading } = useBooths({ type: 'FOOD_TRUCK' })
   const { mutate: deleteBooth } = useDeleteFoodTruck()
   const [selectedId, setSelectedId] = useState<string>('')
@@ -962,30 +614,10 @@ export function AdminFoodTrucks() {
     setTimeout(() => setToast(null), 3000)
   }
 
-  const storeTrucks = useTruckPlacementStore((s) => s.trucks)
-
-  const viewToggle = (
-    <div className="flex gap-0.5 rounded-xl border border-border bg-surface-alt p-0.5">
-      {(['목록', '배치도'] as const).map((v) => (
-        <button
-          key={v}
-          type="button"
-          onClick={() => setView(v)}
-          className={cn(
-            'rounded-lg px-3 py-1.5 text-[12px] font-bold transition-colors',
-            view === v ? 'bg-surface text-ink shadow-sm' : 'text-ink-60'
-          )}
-        >
-          {v}
-        </button>
-      ))}
-    </div>
-  )
-
   if (isLoading) {
     return (
       <AdminShell active="trucks">
-        <AdminTopBar title="푸드트럭" sub="불러오는 중..." right={viewToggle} />
+        <AdminTopBar title="푸드트럭" sub="불러오는 중..." />
       </AdminShell>
     )
   }
@@ -998,95 +630,86 @@ export function AdminFoodTrucks() {
         title="푸드트럭"
         sub={sub}
         right={
-          <div className="flex items-center gap-2">
-            {viewToggle}
-            {view === '목록' && (
-              <AdminBtn
-                primary
-                icon={I.plus('#fff')}
-                onClick={() => setSelectedId('new')}
-              >
-                업체 추가
-              </AdminBtn>
-            )}
-          </div>
+          <AdminBtn
+            primary
+            icon={I.plus('#fff')}
+            onClick={() => setSelectedId('new')}
+          >
+            업체 추가
+          </AdminBtn>
         }
       />
 
-      {view === '배치도' ? (
-        <TruckMapView trucks={storeTrucks} />
-      ) : (
-        <div className="flex min-h-0 flex-1 overflow-hidden">
-          <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-surface">
-            <div className="border-b border-border px-4 py-3">
-              <div className="text-[12px] font-extrabold uppercase tracking-wide text-ink-40">
-                업체 목록
-              </div>
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-surface">
+          <div className="border-b border-border px-4 py-3">
+            <div className="text-[12px] font-extrabold uppercase tracking-wide text-ink-40">
+              업체 목록
             </div>
-            <div className="flex-1 overflow-y-auto p-2">
-              {selectedId === 'new' && (
-                <div className="mb-1 flex w-full items-center gap-2.5 rounded-xl bg-cta/10 px-3 py-2.5">
-                  <div className="truncate text-[13px] font-bold text-cta">
-                    새 업체
-                  </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2">
+            {selectedId === 'new' && (
+              <div className="mb-1 flex w-full items-center gap-2.5 rounded-xl bg-cta/10 px-3 py-2.5">
+                <div className="truncate text-[13px] font-bold text-cta">
+                  새 업체
                 </div>
-              )}
-              {booths.map((booth) => (
-                <button
-                  key={booth.id}
-                  type="button"
-                  onClick={() => setSelectedId(booth.id)}
+              </div>
+            )}
+            {booths.map((booth) => (
+              <button
+                key={booth.id}
+                type="button"
+                onClick={() => setSelectedId(booth.id)}
+                className={cn(
+                  'flex w-full items-center rounded-xl px-3 py-2.5 text-left transition-colors',
+                  effectiveId === booth.id
+                    ? 'bg-cta/10'
+                    : 'hover:bg-surface-alt'
+                )}
+              >
+                <div
                   className={cn(
-                    'flex w-full items-center rounded-xl px-3 py-2.5 text-left transition-colors',
-                    effectiveId === booth.id
-                      ? 'bg-cta/10'
-                      : 'hover:bg-surface-alt'
+                    'truncate text-[13px] font-bold',
+                    effectiveId === booth.id ? 'text-cta' : 'text-ink'
                   )}
                 >
-                  <div
-                    className={cn(
-                      'truncate text-[13px] font-bold',
-                      effectiveId === booth.id ? 'text-cta' : 'text-ink'
-                    )}
-                  >
-                    {booth.name}
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className="border-t border-border p-2">
-              <button
-                type="button"
-                onClick={() => setSelectedId('new')}
-                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2.5 text-[12px] font-bold text-ink-60 hover:bg-surface-alt"
-              >
-                <div className="size-3.5">{I.plus(FESTIV_TOKENS.ink40)}</div>
-                업체 추가
+                  {booth.name}
+                </div>
               </button>
-            </div>
-          </aside>
+            ))}
+          </div>
+          <div className="border-t border-border p-2">
+            <button
+              type="button"
+              onClick={() => setSelectedId('new')}
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2.5 text-[12px] font-bold text-ink-60 hover:bg-surface-alt"
+            >
+              <div className="size-3.5">{I.plus(FESTIV_TOKENS.ink40)}</div>
+              업체 추가
+            </button>
+          </div>
+        </aside>
 
-          {effectiveId && (
-            <TruckEditor
-              key={effectiveId}
-              boothId={effectiveId}
-              onCreated={(id, name) => {
-                setSelectedId(id)
-                showToast(`${name} 업체가 추가되었습니다`)
-              }}
-              onDelete={
-                effectiveId !== 'new'
-                  ? () => {
-                      const booth = booths.find((b) => b.id === effectiveId)
-                      if (booth)
-                        setDeleteTarget({ id: booth.id, name: booth.name })
-                    }
-                  : undefined
-              }
-            />
-          )}
-        </div>
-      )}
+        {effectiveId && (
+          <TruckEditor
+            key={effectiveId}
+            boothId={effectiveId}
+            onCreated={(id, name) => {
+              setSelectedId(id)
+              showToast(`${name} 업체가 추가되었습니다`)
+            }}
+            onDelete={
+              effectiveId !== 'new'
+                ? () => {
+                    const booth = booths.find((b) => b.id === effectiveId)
+                    if (booth)
+                      setDeleteTarget({ id: booth.id, name: booth.name })
+                  }
+                : undefined
+            }
+          />
+        )}
+      </div>
       <AdminModal
         open={!!deleteTarget}
         variant="warning"
