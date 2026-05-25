@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I, PhotoSlot } from '../../tokens'
 import { boothUrl } from '../../constants/routes'
 import { useLocations } from '../../features/Map/hooks/useLocations'
+import { useBooths } from '../../features/Booth/hooks/useBooths'
 import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 import { getZoneName } from '../../lib/format'
 
@@ -15,23 +16,30 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
 
   function handleRefresh() {
     setSpinning(true)
-    refetch()
+    refetchLocations()
+    refetchBooths()
   }
 
   const { data: festivalDaysList = [] } = useFestivalDays()
   const todayFestivalDay =
     festivalDaysList.find((d) => d.day === todayStr)?.day ?? ''
-  const { data: nightLocations = [], refetch } = useLocations({
+  const { data: nightLocations = [], refetch: refetchLocations } = useLocations({
+    day: todayFestivalDay,
+    type: 'NIGHT',
+  })
+  const { data: nightBooths = [], refetch: refetchBooths } = useBooths({
     day: todayFestivalDay,
     type: 'NIGHT',
   })
 
-  const booths = nightLocations.filter(
-    (loc) =>
-      loc.boothSummary !== null &&
-      loc.boothSummary.isWaitingOpen &&
-      (loc.boothSummary.waitingTeamCount ?? Infinity) <= 2
-  )
+  const booths = nightBooths
+    .filter((booth) => (booth.waitingTeamCount ?? Infinity) <= 2)
+    .map((booth) => ({
+      booth,
+      location: nightLocations.find(
+        (loc) => loc.boothSummary?.id === booth.id
+      ),
+    }))
 
   return (
     <>
@@ -78,9 +86,8 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
         <div
           className={`flex gap-3 overflow-x-auto px-5 pb-1 ${compact ? 'mb-0' : 'mb-6'}`}
         >
-          {booths.map((loc) => {
-            const b = loc.boothSummary!
-            const wait = b.waitingTeamCount ?? 0
+          {booths.map(({ booth, location }) => {
+            const wait = booth.waitingTeamCount ?? 0
             const badgeBg =
               wait === 0
                 ? FESTIV_TOKENS.pop
@@ -89,9 +96,9 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
                   : FESTIV_TOKENS.sun
             return (
               <button
-                key={b.id}
+                key={booth.id}
                 type="button"
-                onClick={() => navigate(boothUrl('night', b.id))}
+                onClick={() => navigate(boothUrl('night', booth.id))}
                 className="w-36 shrink-0 rounded-[20px] border border-border bg-surface p-2.5 text-left transition-transform duration-100 active:scale-[0.97]"
               >
                 <div className="relative mb-2.5">
@@ -101,9 +108,9 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
                     ratio="1/1"
                     radius={14}
                   />
-                  {loc.index != null && (
+                  {location?.index != null && (
                     <div className="absolute top-2 left-2 rounded-full bg-[rgba(15,42,51,0.85)] px-2 py-0.75 text-[11px] font-bold text-white">
-                      #{loc.index + 1}
+                      #{location.index + 1}
                     </div>
                   )}
                   <div
@@ -114,10 +121,10 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
                   </div>
                 </div>
                 <div className="text-sm font-bold leading-[1.2] tracking-[-0.3px] text-ink">
-                  {b.name}
+                  {booth.name}
                 </div>
                 <div className="mt-1 text-[11px] text-ink-60">
-                  {getZoneName(loc.zoneLabel)}
+                  {location ? getZoneName(location.zoneLabel) : ''}
                 </div>
               </button>
             )

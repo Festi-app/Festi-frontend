@@ -7,6 +7,7 @@ type WaitingButtonProps = {
   disabled?: boolean
   waitBadge?: number
   alreadyWaiting?: boolean
+  isWaitingOpen?: boolean
 }
 
 function WaitingButton({
@@ -15,8 +16,23 @@ function WaitingButton({
   disabled,
   waitBadge,
   alreadyWaiting,
+  isWaitingOpen,
 }: WaitingButtonProps) {
   const noWait = waitBadge == null || waitBadge === 0
+  if (isWaitingOpen === false) {
+    return (
+      <div className="flex w-full items-center justify-between rounded-[20px] bg-[#D0D5D8] px-5 py-4 text-left dark:bg-[#2F353B]">
+        <div>
+          <div className="text-[17px] font-extrabold tracking-[-0.4px] text-ink-60 dark:text-ink-40">
+            웨이팅 마감
+          </div>
+          <div className="text-[11px] font-semibold text-ink-40">
+            현장 웨이팅이 마감되었습니다.
+          </div>
+        </div>
+      </div>
+    )
+  }
   if (alreadyWaiting) {
     return (
       <button
@@ -90,6 +106,7 @@ export function WaitingActions({
   disabled?: boolean
   waitBadge?: number
   alreadyWaiting?: boolean
+  isWaitingOpen?: boolean
   sticky?: boolean
 }) {
   if (!props.onWaiting) return null

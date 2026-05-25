@@ -126,6 +126,7 @@ export function MapDayNightSheet({
                     onWaiting={() => onWaiting(linkedBooth.id)}
                     onAlreadyWaiting={() => onAlreadyWaiting(linkedBooth.id)}
                     alreadyWaiting={isAlreadyWaiting(linkedBooth.id)}
+                    isWaitingOpen={linkedBooth.isWaitingOpen}
                   />
                 )}
               </>
@@ -166,6 +167,7 @@ export function MapDayNightSheet({
                 onWaiting={() => onWaiting(linkedBooth.id)}
                 onAlreadyWaiting={() => onAlreadyWaiting(linkedBooth.id)}
                 alreadyWaiting={isAlreadyWaiting(linkedBooth.id)}
+                isWaitingOpen={linkedBooth.isWaitingOpen}
               />
             )}
           </div>
