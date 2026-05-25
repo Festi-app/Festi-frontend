@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I, PhotoSlot, Pill } from '../../tokens'
+import { boothUrl } from '../../constants/routes'
 import { ScreenHeader } from '../../components/User/ScreenHeader'
 import { FieldLabel } from '../../components/shared/FieldLabel'
 import { Toast } from '../../components/shared/Toast'
 import { NotificationSettings } from '../../components/User/Waiting/NotificationSettings'
-import { useUserStore } from '../../stores/useUserStore'
 import { useRegisterWaiting } from '../../features/Waiting/hooks/useRegisterWaiting'
+import { useMyWaitings } from '../../features/Waiting/hooks/useMyWaitings'
+import { useBooth } from '../../features/Booth/hooks/useBooth'
+import { useMe } from '../../features/User/hooks/useMe'
 import {
   useRegisterPushSubscription,
   useRemovePushSubscription,
@@ -23,17 +26,26 @@ const pushSupported =
   'serviceWorker' in navigator &&
   'PushManager' in window
 
+const BOOTH_TYPE_VIEW = {
+  DAY: { label: '주간', param: 'day', color: FESTIV_TOKENS.mint },
+  NIGHT: { label: '야간', param: 'night', color: FESTIV_TOKENS.alert },
+  FOOD_TRUCK: { label: '푸드트럭', param: 'truck', color: FESTIV_TOKENS.sun },
+} as const
+
 export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
   const navigate = useNavigate()
-  const { phone } = useUserStore()
   const [people, setPeople] = useState(4)
   const [notifications, setNotifications] = useState([
     pushSupported ? !!getStoredSubscriptionId() : false,
     true,
   ])
   const [showToast, setShowToast] = useState(false)
+  const [limitToast, setLimitToast] = useState(false)
 
   const { mutate: registerWaiting } = useRegisterWaiting(id ?? '')
+  const { data: booth } = useBooth(id ?? null)
+  const { data: me } = useMe()
+  const { data: waitings = [] } = useMyWaitings()
   const { mutate: registerPush } = useRegisterPushSubscription()
   const { mutate: removePush } = useRemovePushSubscription()
 
@@ -73,6 +85,16 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
 
   function handleRegister() {
     if (!id) return
+    const activeWaitingCount = waitings.filter(
+      (waiting) => waiting.status === 'WAITING' || waiting.status === 'CALLED'
+    ).length
+
+    if (activeWaitingCount >= 3) {
+      setLimitToast(true)
+      setTimeout(() => setLimitToast(false), 2200)
+      return
+    }
+
     registerWaiting(
       { partySize: people },
       {
@@ -80,9 +102,17 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
           setShowToast(true)
           setTimeout(() => navigate('/waiting', { replace: true }), 1800)
         },
+        onError: () => {
+          setLimitToast(true)
+          setTimeout(() => setLimitToast(false), 2200)
+        },
       }
     )
   }
+
+  const boothTypeView = booth
+    ? BOOTH_TYPE_VIEW[booth.type]
+    : BOOTH_TYPE_VIEW.NIGHT
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-bg font-festi">
@@ -92,21 +122,36 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
         {/* Booth card */}
         <button
           type="button"
-          onClick={() => id && navigate(`/booth?type=night&id=${id}`)}
+          onClick={() =>
+            id && navigate(boothUrl(boothTypeView.param, id))
+          }
           className="flex w-full gap-3 rounded-[18px] border border-border bg-surface p-3 text-left"
         >
           <div className="size-14 shrink-0 overflow-hidden rounded-[14px]">
-            <PhotoSlot label="" tone="mint" radius={14} ratio="1/1" />
+            {booth?.imageUrl ? (
+              <img
+                src={booth.imageUrl}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <PhotoSlot label="" tone="mint" radius={14} ratio="1/1" />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex gap-1">
-              <Pill color={FESTIV_TOKENS.alert} ink="#fff">
-                야간
+              <Pill color={boothTypeView.color} ink="#fff">
+                {boothTypeView.label}
               </Pill>
             </div>
             <div className="mt-1 text-[15px] font-extrabold tracking-[-0.3px] text-ink">
-              부스 정보 불러오는 중…
+              {booth?.name ?? '부스 정보 불러오는 중…'}
             </div>
+            {booth?.description && (
+              <div className="mt-0.5 line-clamp-1 text-[12px] font-medium text-ink-60">
+                {booth.description}
+              </div>
+            )}
           </div>
         </button>
 
@@ -187,7 +232,7 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
           className="w-full rounded-[20px] bg-cta px-5 py-4 text-center text-cta-ink shadow-[0_8px_22px_rgba(0,198,224,0.4)] transition-transform duration-100 active:scale-[0.98]"
         >
           <div className="text-[11px] font-semibold opacity-70">
-            {people}명 · {phone}
+            {people}명 · {me?.phone ?? ''}
           </div>
           <div className="mt-0.5 text-[17px] font-extrabold tracking-[-0.4px]">
             웨이팅 등록하기
@@ -219,6 +264,18 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
             }
           />
         </>
+      )}
+
+      {limitToast && (
+        <Toast
+          message="웨이팅은 최대 3개까지 가능합니다"
+          sub="기존 웨이팅을 취소한 뒤 다시 등록해주세요"
+          icon={
+            <div className="flex size-8 items-center justify-center rounded-full bg-alert shadow-[0_0_0_3px_rgba(255,77,87,0.25)]">
+              <span className="text-[18px] font-extrabold text-white">!</span>
+            </div>
+          }
+        />
       )}
     </div>
   )
