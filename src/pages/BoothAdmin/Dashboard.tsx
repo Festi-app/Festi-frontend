@@ -894,6 +894,8 @@ function WaitingTab({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-[14px] font-bold text-ink">
+                        {[w.name, w.phone].filter(Boolean).join(' · ')}
+                        {w.name || w.phone ? ' · ' : ''}
                         {w.partySize}명
                       </span>
                       {w.callCount > 0 && (
@@ -994,6 +996,8 @@ function WaitingTab({
                   {idx + 1}
                 </div>
                 <div className="flex-1 text-[13px] text-ink-60">
+                  {[w.name, w.phone].filter(Boolean).join(' · ')}
+                  {w.name || w.phone ? ' · ' : ''}
                   {w.partySize}명
                 </div>
                 <div
