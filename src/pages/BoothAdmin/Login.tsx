@@ -25,9 +25,9 @@ export function BoothAdminLogin() {
   }
 
   return (
-    <div className="flex min-h-[calc(100dvh-3.5rem)] items-center justify-center bg-bg px-4 py-8 font-festi md:min-h-screen">
-      <div className="w-full max-w-sm">
-        <div className="mb-8">
+    <div className="flex min-h-[calc(100dvh-3.5rem)] items-start justify-center bg-bg px-4 py-8 font-festi md:min-h-screen md:items-center md:py-16">
+      <div className="w-full max-w-lg">
+        <div className="mb-6">
           <div className="mb-4 flex items-center gap-2.5">
             <div
               className="flex size-8 items-center justify-center rounded-[10px]"

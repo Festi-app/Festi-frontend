@@ -11,4 +11,6 @@ export interface WaitingResponseDto {
   registeredAt: string
   position?: number | null
   currentCallPosition?: number | null
+  name?: string | null
+  phone?: string | null
 }

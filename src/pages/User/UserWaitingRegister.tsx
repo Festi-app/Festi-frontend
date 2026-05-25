@@ -97,6 +97,44 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
           </div>
         </button>
 
+        {/* Waiting count banner */}
+        {booth?.isWaitingOpen &&
+          ((booth.waitingTeamCount ?? 0) === 0 ? (
+            <button
+              type="button"
+              onClick={handleRegister}
+              className="mt-3 flex w-full items-center gap-3 rounded-[18px] bg-pop/10 px-4 py-3.5 text-left transition-all active:scale-[0.98]"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="text-[14px] font-extrabold tracking-[-0.2px] text-pop">
+                  지금 바로 웨이팅걸기!
+                </div>
+                <div className="mt-0.5 text-[12px] font-medium text-pop/70">
+                  대기 없이 바로 입장 가능합니다
+                </div>
+              </div>
+              <div className="shrink-0 text-[24px] font-extrabold tabular-nums tracking-[-0.5px] text-pop">
+                0
+                <span className="text-[13px] font-semibold opacity-60">팀</span>
+              </div>
+            </button>
+          ) : (
+            <div className="mt-3 flex items-center gap-3 rounded-[18px] bg-surface-alt px-4 py-3.5">
+              <div className="min-w-0 flex-1">
+                <div className="text-[14px] font-extrabold tracking-[-0.2px] text-ink">
+                  현재 {booth.waitingTeamCount}팀 대기 중
+                </div>
+                <div className="mt-0.5 text-[12px] font-medium text-ink-60">
+                  웨이팅 등록 후 호출 시 입장하세요
+                </div>
+              </div>
+              <div className="shrink-0 text-[24px] font-extrabold tabular-nums tracking-[-0.5px] text-ink">
+                {booth.waitingTeamCount}
+                <span className="text-[13px] font-semibold opacity-60">팀</span>
+              </div>
+            </div>
+          ))}
+
         {/* People picker */}
         <FieldLabel>인원</FieldLabel>
         <div className="flex items-center justify-between rounded-[18px] border border-border bg-surface p-4">

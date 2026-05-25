@@ -54,27 +54,22 @@ function WaitingButton({
   }
   if (noWait) {
     return (
-      <div className="flex w-full items-center justify-between rounded-[20px] bg-pop px-5 py-4">
+      <button
+        type="button"
+        onClick={onWaiting}
+        disabled={disabled}
+        className="flex w-full items-center justify-between rounded-[20px] bg-pop px-5 py-4 text-left shadow-[0_8px_22px_rgba(0,198,224,0.3)] transition-transform duration-100 active:scale-[0.98] disabled:opacity-40"
+      >
         <div>
           <div className="text-[17px] font-extrabold tracking-[-0.4px] text-white">
-            지금 바로 입장해주세요!
+            웨이팅 걸기
           </div>
           <div className="text-[11px] font-semibold text-white/70">
-            대기 없이 바로 입장 가능합니다
+            현재 대기 없음 · 첫 번째로 입장해보세요
           </div>
         </div>
-        <div className="size-4.5 text-white">
-          <svg viewBox="0 0 16 16" width="18" height="18" fill="none">
-            <path
-              d="M3 8l3.5 3.5L13 4.5"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-      </div>
+        <div className="size-4.5">{I.chev('#fff', 'r')}</div>
+      </button>
     )
   }
   return (

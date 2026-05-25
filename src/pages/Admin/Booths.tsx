@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { FESTIV_TOKENS, I } from '../../tokens'
 import { ZONES, NIGHT_ZONES } from '../../data/zones'
 import { AdminShell } from '../../components/Admin/AdminShell'
@@ -22,6 +22,7 @@ import {
   type PermTime,
   type BoothCategory,
   type BoothMapMode,
+  type BoothPermission,
 } from '../../stores/useBoothSectionStore'
 import { AdminModal } from '../../components/Admin/AdminModal'
 import { AdminToast } from '../../components/Admin/AdminToast'
@@ -53,12 +54,34 @@ const CAT_COLOR: Record<string, string> = {
 
 function slotCountsByZone(locations: GetLocationsResponseDto[]) {
   return locations.reduce<Record<string, number>>((counts, location) => {
-    counts[location.zoneLabel] = Math.max(
-      counts[location.zoneLabel] ?? 0,
-      location.index
-    )
+    const zoneId = locationZoneId(location.zoneLabel)
+    counts[zoneId] = Math.max(counts[zoneId] ?? 0, location.index)
     return counts
   }, {})
+}
+
+function locationZoneId(zoneLabel: string) {
+  const zones = [...NIGHT_ZONES, ...ZONES, ...TRUCK_ZONES]
+  return (
+    zones.find(
+      (zone) => zoneLabel === zone.id || zoneLabel.startsWith(`${zone.id} `)
+    )?.id ?? zoneLabel
+  )
+}
+
+function toLocalCategory(category?: string): BoothCategory {
+  switch (category) {
+    case 'INFO':
+      return '정보'
+    case 'EXPERIENCE':
+      return '체험'
+    case 'MARKET':
+      return '마켓'
+    case 'ACTIVITY':
+    case 'ALCOHOL':
+    default:
+      return '활동'
+  }
 }
 
 function groupBorder(idx: number, sections: number[], dir: 'row' | 'column') {
@@ -231,6 +254,48 @@ export function AdminBooths() {
     stepOverride === null && hasExistingSlots
       ? '기존 슬롯을 불러왔어요. 지도에서 권한을 부여하세요'
       : notice
+  const serverPermissions = useMemo<BoothPermission[]>(
+    () =>
+      locations
+        .filter((location) => location.boothSummary)
+        .map((location) => {
+          const booth = location.boothSummary!
+          const org = allOrgs.find((candidate) => candidate.id === booth.id)
+          return {
+            id: `location-${location.id}`,
+            zoneId: locationZoneId(location.zoneLabel),
+            sections: [location.index - 1],
+            orgId: booth.id,
+            orgName: booth.name,
+            color: org?.color ?? FESTIV_TOKENS.coral,
+            category: toLocalCategory(booth.category),
+            day: selectedDay,
+            time: selectedTime,
+          }
+        }),
+    [allOrgs, locations, selectedDay, selectedTime]
+  )
+  const displayPermissions = useMemo<BoothPermission[]>(() => {
+    const occupiedSections = new Set(
+      serverPermissions.flatMap((permission) =>
+        permission.sections.map((section) => `${permission.zoneId}:${section}`)
+      )
+    )
+    const localPermissions = permissions
+      .filter(
+        (permission) =>
+          permission.day === selectedDay && permission.time === selectedTime
+      )
+      .map((permission) => ({
+        ...permission,
+        sections: permission.sections.filter(
+          (section) => !occupiedSections.has(`${permission.zoneId}:${section}`)
+        ),
+      }))
+      .filter((permission) => permission.sections.length > 0)
+
+    return [...serverPermissions, ...localPermissions]
+  }, [permissions, selectedDay, selectedTime, serverPermissions])
 
   useEffect(() => {
     if (
@@ -272,7 +337,7 @@ export function AdminBooths() {
   ])
 
   function tryEnterConfigure() {
-    if (permissions.length > 0) {
+    if (displayPermissions.length > 0) {
       setShowConfigureBlockModal(true)
     } else {
       setStep('configure')
@@ -354,12 +419,8 @@ export function AdminBooths() {
         (_, i) => lo + i
       ).filter(
         (idx) =>
-          !permissions.some(
-            (p) =>
-              p.zoneId === zoneId &&
-              p.sections.includes(idx) &&
-              p.day === selectedDay &&
-              p.time === selectedTime
+          !displayPermissions.some(
+            (p) => p.zoneId === zoneId && p.sections.includes(idx)
           )
       )
       if (sections.length > 0) setAssignModal({ zoneId, sections })
@@ -390,7 +451,9 @@ export function AdminBooths() {
 
     assignModal.sections.forEach((sectionIdx) => {
       const loc = locations.find(
-        (l) => l.zoneLabel === assignModal.zoneId && l.index === sectionIdx + 1
+        (l) =>
+          locationZoneId(l.zoneLabel) === assignModal.zoneId &&
+          l.index === sectionIdx + 1
       )
       if (loc) {
         assignBooth.mutate({
@@ -458,6 +521,7 @@ export function AdminBooths() {
               setSelectedTruckZone(null)
               setSelectedTruckSlot(null)
             }}
+            permissions={displayPermissions}
           />
         )}
 
@@ -615,12 +679,8 @@ export function AdminBooths() {
                     }}
                   >
                     {Array.from({ length: divisions }, (_, idx) => {
-                      const perm = permissions.find(
-                        (p) =>
-                          p.zoneId === zone.id &&
-                          p.sections.includes(idx) &&
-                          p.day === selectedDay &&
-                          p.time === selectedTime
+                      const perm = displayPermissions.find(
+                        (p) => p.zoneId === zone.id && p.sections.includes(idx)
                       )
                       const si = dragState.startIdx
                       const ci = dragState.currentIdx
@@ -649,12 +709,9 @@ export function AdminBooths() {
                       }
 
                       const isLast = idx === divisions - 1
-                      const nextPerm = permissions.find(
+                      const nextPerm = displayPermissions.find(
                         (p) =>
-                          p.zoneId === zone.id &&
-                          p.sections.includes(idx + 1) &&
-                          p.day === selectedDay &&
-                          p.time === selectedTime
+                          p.zoneId === zone.id && p.sections.includes(idx + 1)
                       )
                       const sameGroup =
                         !!perm && !!nextPerm && perm.id === nextPerm.id
@@ -790,7 +847,7 @@ export function AdminBooths() {
           day={selectedDay}
           time={selectedTime}
           orgs={allOrgs}
-          permissions={permissions}
+          permissions={displayPermissions}
           onClose={() => setAssignModal(null)}
           onAssign={handlePermissionAssign}
         />

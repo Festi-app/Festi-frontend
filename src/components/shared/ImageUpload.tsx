@@ -77,9 +77,13 @@ export function ImageUpload({
           <span className="text-[9px] font-bold text-ink-40">업로드 중</span>
         ) : resolvedUrl ? (
           <img
+            key={resolvedUrl}
             src={resolvedUrl}
             alt=""
             className="h-full w-full object-cover"
+            onLoad={(e) => {
+              ;(e.target as HTMLImageElement).style.display = ''
+            }}
             onError={(e) => {
               ;(e.target as HTMLImageElement).style.display = 'none'
             }}

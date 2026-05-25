@@ -129,27 +129,35 @@ export function UserBoothDetail({
       {isNight && (
         <div className="absolute inset-x-0 bottom-0 z-20 bg-[linear-gradient(180deg,transparent_0%,#ffffff_30%)] px-5 pt-3 pb-7 dark:bg-[linear-gradient(180deg,transparent_0%,#1a1e23_30%)]">
           {!booth.isWaitingOpen ? (
-            <div className="flex w-full items-center justify-between rounded-[20px] bg-pop px-5 py-4">
+            <button
+              type="button"
+              onClick={() =>
+                alreadyWaiting
+                  ? setConfirmCancel(true)
+                  : navigate(`/waiting/register?id=${booth.id}`, {
+                      replace: true,
+                    })
+              }
+              className={`flex items-center w-full justify-between rounded-[20px] px-5 py-4 text-left transition-transform duration-100 active:scale-[0.98] ${
+                alreadyWaiting
+                  ? 'bg-[#D0D5D8] text-ink-60 dark:bg-[#2F353B] dark:text-ink-40'
+                  : 'bg-pop text-white'
+              }`}
+            >
               <div>
-                <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px] text-white">
-                  지금 바로 입장해주세요!
+                <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px]">
+                  {alreadyWaiting ? '이미 웨이팅 중' : '웨이팅 걸기'}
                 </div>
-                <div className="text-[11px] font-semibold text-white/70">
-                  대기 없이 바로 입장 가능합니다
+                <div className="text-[11px] font-semibold opacity-60">
+                  {alreadyWaiting
+                    ? '웨이팅을 취소할 수 있어요'
+                    : '웨이팅 등록하기'}
                 </div>
               </div>
-              <div className="size-4.5 text-white">
-                <svg viewBox="0 0 16 16" width="18" height="18" fill="none">
-                  <path
-                    d="M3 8l3.5 3.5L13 4.5"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+              <div className="size-4.5">
+                {I.chev(alreadyWaiting ? undefined : '#fff', 'r')}
               </div>
-            </div>
+            </button>
           ) : (
             <button
               type="button"

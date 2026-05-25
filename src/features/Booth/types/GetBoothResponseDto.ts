@@ -9,4 +9,5 @@ export interface GetBoothResponseDto {
   operatingHours: string | null
   imageUrl: string | null
   isWaitingOpen: boolean
+  waitingTeamCount?: number | null
 }

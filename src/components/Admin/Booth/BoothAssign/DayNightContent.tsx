@@ -1,6 +1,7 @@
 import { ZONES, NIGHT_ZONES } from '../../../../data/zones'
 import {
   useBoothSectionStore,
+  type BoothPermission,
   type PermDay,
   type PermTime,
   type BoothMapMode,
@@ -11,18 +12,50 @@ import { type OrgAccount } from '../boothShared'
 
 const ALL_ZONES = [...ZONES, ...NIGHT_ZONES]
 
+function groupPermissions(permissions: BoothPermission[]) {
+  const grouped = new Map<string, BoothPermission>()
+
+  permissions.forEach((permission) => {
+    const key = [
+      permission.orgId,
+      permission.zoneId,
+      permission.day,
+      permission.time,
+      permission.category,
+    ].join(':')
+    const existing = grouped.get(key)
+
+    if (!existing) {
+      grouped.set(key, { ...permission, sections: [...permission.sections] })
+      return
+    }
+
+    grouped.set(key, {
+      ...existing,
+      id: existing.id.startsWith('location-') ? existing.id : permission.id,
+      sections: Array.from(
+        new Set([...existing.sections, ...permission.sections])
+      ).sort((a, b) => a - b),
+    })
+  })
+
+  return Array.from(grouped.values())
+}
+
 export function DayNightContent({
   orgs,
   selectedDay,
   onDayChange,
   activeMode,
+  permissions,
 }: {
   orgs: OrgAccount[]
   selectedDay: PermDay
   onDayChange: (d: PermDay) => void
   activeMode: BoothMapMode
+  permissions: BoothPermission[]
 }) {
-  const { permissions, removePermission } = useBoothSectionStore()
+  const { removePermission } = useBoothSectionStore()
   const time: PermTime = activeMode === '야간' ? '야간' : '주간'
 
   return (
@@ -121,6 +154,7 @@ export function DayNightContent({
             const filtered = permissions.filter(
               (p) => p.day === selectedDay && p.time === time
             )
+            const grouped = groupPermissions(filtered)
             return filtered.length === 0 ? (
               <div className="py-8 text-center text-[12px] text-ink-40">
                 아직 권한이 부여된 부스가 없어요
@@ -130,9 +164,9 @@ export function DayNightContent({
             ) : (
               <div className="flex flex-col gap-2">
                 <div className="mb-1 text-[11px] font-extrabold uppercase tracking-wide text-ink-40">
-                  배정 목록 — {selectedDay}일차 {time} ({filtered.length}건)
+                  배정 목록 — {selectedDay}일차 {time} ({grouped.length}건)
                 </div>
-                {filtered.map((p) => {
+                {grouped.map((p) => {
                   const zone = ALL_ZONES.find((z) => z.id === p.zoneId)!
                   const showCategory = p.time === '주간'
                   return (
@@ -161,15 +195,17 @@ export function DayNightContent({
                             {p.sections.length}개 섹션
                           </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => removePermission(p.id)}
-                          className="ml-1 mt-0.5 shrink-0"
-                        >
-                          <div className="size-4">
-                            {I.trash(FESTIV_TOKENS.ink40)}
-                          </div>
-                        </button>
+                        {!p.id.startsWith('location-') && (
+                          <button
+                            type="button"
+                            onClick={() => removePermission(p.id)}
+                            className="ml-1 mt-0.5 shrink-0"
+                          >
+                            <div className="size-4">
+                              {I.trash(FESTIV_TOKENS.ink40)}
+                            </div>
+                          </button>
+                        )}
                       </div>
                     </div>
                   )

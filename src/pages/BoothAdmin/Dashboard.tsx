@@ -25,9 +25,14 @@ import {
   useDeleteMenuImage,
 } from '../../features/Image/hooks/useMenuImage'
 import { ImageUpload } from '../../components/shared/ImageUpload'
+import { AdminToast } from '../../components/Admin/AdminToast'
+import { useUI } from '../../stores/useUIStore'
+import { useFestival } from '../../features/Festival/hooks/useFestival'
+import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 import type { BoothApplicationResponseDto } from '../../features/BoothApplication/types/BoothApplicationResponseDto'
 import type { WaitingResponseDto } from '../../features/Waiting/types/WaitingResponseDto'
 import type { MenusResponseDto } from '../../features/Menu/types/MenusResponseDto'
+import type { BoothCategory } from '../../types/common'
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
@@ -37,6 +42,71 @@ const BOOTH_TYPE_LABEL: Record<string, string> = {
   DAY: '주간',
   NIGHT: '야간',
   FOOD_TRUCK: '푸드트럭',
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+
+function DashToast({ message }: { message: string }) {
+  return <AdminToast message={message} />
+}
+
+// ── Delete confirm modal ───────────────────────────────────────────────────────
+
+function DeleteModal({
+  title,
+  message,
+  onConfirm,
+  onCancel,
+}: {
+  title: string
+  message: string
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        background: 'rgba(20,26,31,0.55)',
+        animation: 'festi-fade-in 0.18s ease both',
+      }}
+      onMouseDown={onCancel}
+    >
+      <div
+        className="w-full max-w-md rounded-3xl bg-surface shadow-[0_24px_60px_rgba(20,26,31,0.28)]"
+        style={{
+          animation:
+            'festi-toast-in 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both',
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 pt-6 pb-5">
+          <div className="mb-2 text-[18px] font-extrabold tracking-[-0.4px] text-ink">
+            {title}
+          </div>
+          <div className="text-[13px] leading-relaxed text-ink-60">
+            {message}
+          </div>
+        </div>
+        <div className="flex gap-2 border-t border-border px-6 py-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 rounded-2xl border border-border bg-surface-alt py-3 text-[14px] font-bold text-ink"
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex-1 rounded-2xl bg-alert py-3 text-[14px] font-extrabold text-white"
+          >
+            삭제
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ── Pending/Rejected screen ───────────────────────────────────────────────────
@@ -130,14 +200,16 @@ function StatusScreen({
 
 function InfoTab({
   application,
+  showToast,
 }: {
   application: BoothApplicationResponseDto
+  showToast: (msg: string) => void
 }) {
   const { mutate: updateBooth, isPending: isSaving } = useUpdateBooth()
 
   const [name, setName] = useState(application.boothName)
   const [description, setDescription] = useState(application.description ?? '')
-  const [saved, setSaved] = useState(false)
+  const [categoryDraft, setCategoryDraft] = useState<BoothCategory | null>(null)
 
   const parsedTimes = (() => {
     const raw = application.operatingHours ?? ''
@@ -156,6 +228,8 @@ function InfoTab({
   const { mutate: deleteBoothImg, isPending: isDeletingBooth } =
     useDeleteBoothImage(boothId ?? '')
 
+  const category = categoryDraft ?? boothDetail?.category ?? null
+
   function handleSave() {
     if (!boothId) return
     updateBooth(
@@ -166,15 +240,28 @@ function InfoTab({
           description: description.trim() || undefined,
           operatingHours:
             startTime && endTime ? `${startTime} ~ ${endTime}` : undefined,
+          ...(category ? { category } : {}),
         },
       },
       {
-        onSuccess: () => {
-          setSaved(true)
-          setTimeout(() => setSaved(false), 2000)
-        },
+        onSuccess: () => showToast('부스 정보가 저장되었습니다'),
+        onError: () => showToast('부스 정보 저장에 실패했습니다'),
       }
     )
+  }
+
+  function handleBoothImageUpload(file: File) {
+    uploadBoothImage(file, {
+      onSuccess: () => showToast('부스 이미지가 저장되었습니다'),
+      onError: () => showToast('부스 이미지 저장에 실패했습니다'),
+    })
+  }
+
+  function handleBoothImageDelete() {
+    deleteBoothImg(undefined, {
+      onSuccess: () => showToast('부스 이미지가 삭제되었습니다'),
+      onError: () => showToast('부스 이미지 삭제에 실패했습니다'),
+    })
   }
 
   return (
@@ -190,13 +277,10 @@ function InfoTab({
           type="button"
           onClick={handleSave}
           disabled={!boothId || isSaving}
-          className={cn(
-            'flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-[13px] font-extrabold text-white transition-colors disabled:opacity-40',
-            saved ? 'bg-pop' : 'bg-cta'
-          )}
+          className="flex items-center gap-1.5 rounded-xl bg-cta px-4 py-2.5 text-[13px] font-extrabold text-white transition-colors disabled:opacity-40"
         >
           <div className="size-4">{I.check('#fff')}</div>
-          {saved ? '저장됨' : isSaving ? '저장 중...' : '저장'}
+          {isSaving ? '저장 중...' : '저장'}
         </button>
       </div>
 
@@ -236,6 +320,27 @@ function InfoTab({
         </div>
         <div>
           <div className="mb-1.5 text-[12px] font-bold text-ink-60">
+            카테고리
+          </div>
+          <select
+            value={category ?? ''}
+            onChange={(e) => setCategoryDraft(e.target.value as BoothCategory)}
+            disabled={!isApproved || !boothId}
+            className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink focus:border-cta focus:outline-none disabled:opacity-60"
+          >
+            <option value="" disabled>
+              카테고리 선택
+            </option>
+            <option value="ACTIVITY">활동</option>
+            <option value="INFO">정보</option>
+            <option value="MARKET">마켓</option>
+            <option value="EXPERIENCE">체험</option>
+            <option value="PROMOTION">홍보</option>
+            <option value="ALCOHOL">주류</option>
+          </select>
+        </div>
+        <div>
+          <div className="mb-1.5 text-[12px] font-bold text-ink-60">
             운영 시간
           </div>
           <div className="flex items-center gap-2">
@@ -262,8 +367,8 @@ function InfoTab({
           </div>
           <ImageUpload
             currentUrl={boothDetail?.imageUrl}
-            onUpload={(file) => uploadBoothImage(file)}
-            onDelete={() => deleteBoothImg()}
+            onUpload={handleBoothImageUpload}
+            onDelete={handleBoothImageDelete}
             disabled={!isApproved || !boothId}
             isUploading={isUploadingBooth}
             isDeleting={isDeletingBooth}
@@ -284,10 +389,12 @@ function MenuItemRow({
   idx,
   menu,
   boothId,
+  showToast,
 }: {
   idx: number
   menu: MenusResponseDto
   boothId: string
+  showToast: (msg: string) => void
 }) {
   const { mutate: updateMenu, isPending: isSaving } = useUpdateMenu(boothId)
   const { mutate: deleteMenu } = useDeleteMenu(boothId)
@@ -301,7 +408,7 @@ function MenuItemRow({
   const [name, setName] = useState(menu.name)
   const [price, setPrice] = useState(String(menu.price))
   const [description, setDescription] = useState(menu.description ?? '')
-  const [saved, setSaved] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   function handleSave() {
     const parsedPrice = parseInt(price, 10)
@@ -312,106 +419,143 @@ function MenuItemRow({
         body: {
           name: name.trim(),
           price: parsedPrice,
-          ...(description.trim() ? { description: description.trim() } : {}),
+          description: description.trim() || null,
+          imageUrl: menu.imageUrl,
+          isSoldOut: menu.isSoldOut,
+          sortOrder: menu.sortOrder,
         },
       },
       {
-        onSuccess: () => {
-          setSaved(true)
-          setTimeout(() => setSaved(false), 2000)
-        },
+        onSuccess: () => showToast(`'${name.trim()}' 메뉴가 저장되었습니다`),
+        onError: () => showToast('메뉴 저장에 실패했습니다'),
       }
     )
   }
 
+  function handleDelete() {
+    deleteMenu(menu.id, {
+      onSuccess: () => showToast(`'${menu.name}' 메뉴가 삭제되었습니다`),
+      onError: () => showToast('메뉴 삭제에 실패했습니다'),
+    })
+    setShowDeleteModal(false)
+  }
+
+  function handleMenuImageUpload(file: File) {
+    uploadMenuImage(
+      { menuId: menu.id, file },
+      {
+        onSuccess: () => showToast(`'${menu.name}' 이미지가 저장되었습니다`),
+        onError: () => showToast('메뉴 이미지 저장에 실패했습니다'),
+      }
+    )
+  }
+
+  function handleMenuImageDelete() {
+    deleteMenuImg(menu.id, {
+      onSuccess: () => showToast(`'${menu.name}' 이미지가 삭제되었습니다`),
+      onError: () => showToast('메뉴 이미지 삭제에 실패했습니다'),
+    })
+  }
+
   return (
-    <div className="rounded-xl border border-border bg-bg p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-ink-40">
-            메뉴 {idx + 1}
-          </span>
-          {menu.isSoldOut && (
-            <span className="rounded-full bg-alert/15 px-2 py-0.5 text-[10px] font-bold text-alert">
-              품절
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => toggleSoldOut(menu.id)}
-            className={cn(
-              'text-[11px] font-semibold',
-              menu.isSoldOut ? 'text-pop' : 'text-ink-60'
-            )}
-          >
-            {menu.isSoldOut ? '품절 해제' : '품절'}
-          </button>
-          <button
-            type="button"
-            onClick={() => deleteMenu(menu.id)}
-            className="text-[11px] font-semibold text-alert"
-          >
-            삭제
-          </button>
-        </div>
-      </div>
-      <div className="flex gap-3">
-        <ImageUpload
-          currentUrl={menu.imageUrl}
-          onUpload={(file) => uploadMenuImage({ menuId: menu.id, file })}
-          onDelete={() => deleteMenuImg(menu.id)}
-          isUploading={isUploadingMenu}
-          isDeleting={isDeletingMenu}
-          size="sm"
+    <>
+      {showDeleteModal && (
+        <DeleteModal
+          title="메뉴 삭제"
+          message={`'${menu.name}' 메뉴를 삭제하시겠습니까? 이 작업은 되돌릴 수 없어요.`}
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteModal(false)}
         />
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="메뉴명"
-            className={INPUT_CLS}
-          />
-          <input
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="가격 (예: 8000)"
-            min={0}
-            className={INPUT_CLS}
-          />
-          <input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="메뉴 소개"
-            className={INPUT_CLS}
-          />
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isSaving}
-            className={cn(
-              'rounded-lg py-1.5 text-[12px] font-bold text-white disabled:opacity-50',
-              saved ? 'bg-pop' : 'bg-cta'
+      )}
+      <div className="rounded-xl border border-border bg-bg p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold text-ink-40">
+              메뉴 {idx + 1}
+            </span>
+            {menu.isSoldOut && (
+              <span className="rounded-full bg-alert/15 px-2 py-0.5 text-[10px] font-bold text-alert">
+                품절
+              </span>
             )}
-          >
-            {saved ? '저장됨' : isSaving ? '저장 중...' : '저장'}
-          </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => toggleSoldOut(menu.id)}
+              className={cn(
+                'text-[11px] font-semibold',
+                menu.isSoldOut ? 'text-pop' : 'text-ink-60'
+              )}
+            >
+              {menu.isSoldOut ? '품절 해제' : '품절'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              className="text-[11px] font-semibold text-alert"
+            >
+              삭제
+            </button>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <ImageUpload
+            currentUrl={menu.imageUrl}
+            onUpload={handleMenuImageUpload}
+            onDelete={handleMenuImageDelete}
+            isUploading={isUploadingMenu}
+            isDeleting={isDeletingMenu}
+            size="sm"
+          />
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="메뉴명"
+              className={INPUT_CLS}
+            />
+            <input
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="가격 (예: 8000)"
+              min={0}
+              className={INPUT_CLS}
+            />
+            <input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="메뉴 소개"
+              className={INPUT_CLS}
+            />
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="rounded-lg bg-cta py-1.5 text-[12px] font-bold text-white disabled:opacity-50"
+            >
+              {isSaving ? '저장 중...' : '저장'}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
 function NewMenuRow({
   boothId,
+  sortOrder,
   onCreated,
   onCancel,
+  showToast,
 }: {
   boothId: string
+  sortOrder: number
   onCreated: () => void
   onCancel: () => void
+  showToast: (msg: string) => void
 }) {
   const { mutate: createMenu, isPending: isCreating } = useCreateMenu(boothId)
 
@@ -429,9 +573,15 @@ function NewMenuRow({
         description: description.trim() || null,
         imageUrl: null,
         isSoldOut: false,
-        sortOrder: 0,
+        sortOrder,
       },
-      { onSuccess: onCreated }
+      {
+        onSuccess: () => {
+          showToast(`'${name.trim()}' 메뉴가 추가되었습니다`)
+          onCreated()
+        },
+        onError: () => showToast('메뉴 추가에 실패했습니다'),
+      }
     )
   }
 
@@ -488,7 +638,13 @@ function NewMenuRow({
   )
 }
 
-function MenuTab({ boothId }: { boothId: string }) {
+function MenuTab({
+  boothId,
+  showToast,
+}: {
+  boothId: string
+  showToast: (msg: string) => void
+}) {
   const { data: menus = [], isLoading } = useMenus(boothId)
   const [showNewRow, setShowNewRow] = useState(false)
 
@@ -523,13 +679,16 @@ function MenuTab({ boothId }: { boothId: string }) {
               idx={idx}
               menu={menu}
               boothId={boothId}
+              showToast={showToast}
             />
           ))}
           {showNewRow && (
             <NewMenuRow
               boothId={boothId}
+              sortOrder={menus.length}
               onCreated={() => setShowNewRow(false)}
               onCancel={() => setShowNewRow(false)}
+              showToast={showToast}
             />
           )}
           {menus.length === 0 && !showNewRow && (
@@ -659,7 +818,7 @@ function WaitingTab({
         {[
           {
             label: '대기 중',
-            count: queueOnly.length,
+            count: Math.max(0, queueOnly.length),
             color: FESTIV_TOKENS.ink,
           },
           {
@@ -732,6 +891,8 @@ function WaitingTab({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-[14px] font-bold text-ink">
+                        {[w.name, w.phone].filter(Boolean).join(' · ')}
+                        {w.name || w.phone ? ' · ' : ''}
                         {w.partySize}명
                       </span>
                       {w.callCount > 0 && (
@@ -832,6 +993,8 @@ function WaitingTab({
                   {idx + 1}
                 </div>
                 <div className="flex-1 text-[13px] text-ink-60">
+                  {[w.name, w.phone].filter(Boolean).join(' · ')}
+                  {w.name || w.phone ? ' · ' : ''}
                   {w.partySize}명
                 </div>
                 <div
@@ -866,6 +1029,70 @@ export function BoothAdminDashboard() {
   } = useMyBoothApplication()
   const [tab, setTab] = useState<TabKey>('info')
 
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  function showToast(msg: string) {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToastMsg(msg)
+    toastTimer.current = setTimeout(() => setToastMsg(null), 2500)
+  }
+
+  // ── Dark mode ──────────────────────────────────────────────────────────────
+  const { dark, setDark } = useUI()
+
+  // ── Festival day chip ──────────────────────────────────────────────────────
+  const { data: festival } = useFestival()
+  const { data: festivalDays = [] } = useFestivalDays()
+  const [now, setNow] = useState(new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1_000)
+    return () => clearInterval(id)
+  }, [])
+
+  const todayStr = now.toISOString().slice(0, 10)
+  const currentDayIdx = festivalDays.findIndex((fd) => fd.day === todayStr)
+  const currentDay = currentDayIdx >= 0 ? festivalDays[currentDayIdx] : null
+
+  const festivalStatus: 'live' | 'upcoming' | 'ended' | 'unknown' = (() => {
+    const s = festival?.startDate
+    const e = festival?.endDate
+    if (!s || !e) return 'unknown'
+    if (todayStr < s) return 'upcoming'
+    if (todayStr > e) return 'ended'
+    return 'live'
+  })()
+
+  const dayLabel = (() => {
+    const s = festival?.startDate
+    if (!s || festivalStatus !== 'live') return null
+    const diff = Math.round(
+      (new Date(todayStr + 'T00:00:00').getTime() -
+        new Date(s + 'T00:00:00').getTime()) /
+        86400000
+    )
+    return `축제 진행 중 · ${diff + 1}일차`
+  })()
+
+  const timeStr = now.toTimeString().slice(0, 5)
+  let modeLabel: string | null = null
+  if (currentDay) {
+    const ds = currentDay.dayStart?.slice(0, 5)
+    const de = currentDay.dayEnd?.slice(0, 5)
+    const ns = currentDay.nightStart?.slice(0, 5)
+    const ne = currentDay.nightEnd?.slice(0, 5)
+    if (ds && de && timeStr >= ds && timeStr < de) modeLabel = '주간 모드'
+    else if (ns && ne && timeStr >= ns && timeStr < ne) modeLabel = '야간 모드'
+  }
+
+  const timeDisplay = now.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
+
+  // ── Auth ───────────────────────────────────────────────────────────────────
   const is404 =
     isError &&
     (error as { response?: { status?: number } })?.response?.status === 404
@@ -933,6 +1160,8 @@ export function BoothAdminDashboard() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-bg font-festi">
+      {toastMsg && <DashToast message={toastMsg} />}
+
       <header className="sticky top-14 z-40 flex items-center gap-4 border-b border-border bg-surface px-5 py-3.5 md:top-0">
         <div className="min-w-0 flex-1">
           <div className="text-[15px] font-extrabold text-ink">
@@ -953,8 +1182,9 @@ export function BoothAdminDashboard() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="hidden w-48 shrink-0 border-r border-border bg-surface pt-5 md:block">
-          <div className="px-3">
+        {/* ── Desktop sidebar ── */}
+        <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface pt-5 md:flex">
+          <div className="flex-1 px-3">
             <div className="mb-2 px-2 text-[10px] font-extrabold uppercase tracking-wider text-ink-40">
               메뉴
             </div>
@@ -974,8 +1204,123 @@ export function BoothAdminDashboard() {
               </button>
             ))}
           </div>
+
+          {/* ── Dark / light toggle ── */}
+          <div className="px-3.5 pb-2">
+            <div className="flex rounded-xl border border-border bg-surface-alt p-0.5">
+              <button
+                type="button"
+                onClick={() => setDark(false)}
+                className={cn(
+                  'flex flex-1 items-center justify-center gap-1.5 rounded-[10px] py-1.5 text-[11px] font-bold transition-colors',
+                  !dark
+                    ? 'bg-surface text-ink shadow-sm'
+                    : 'text-ink-40 hover:text-ink-60'
+                )}
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="5" />
+                  <line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" />
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                  <line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" />
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+                라이트
+              </button>
+              <button
+                type="button"
+                onClick={() => setDark(true)}
+                className={cn(
+                  'flex flex-1 items-center justify-center gap-1.5 rounded-[10px] py-1.5 text-[11px] font-bold transition-colors',
+                  dark
+                    ? 'bg-surface text-ink shadow-sm'
+                    : 'text-ink-40 hover:text-ink-60'
+                )}
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+                다크
+              </button>
+            </div>
+
+            {/* ── Day chip ── */}
+            <div
+              className={cn(
+                'mb-2 mt-2 rounded-[14px] p-3',
+                festivalStatus === 'live'
+                  ? 'bg-cta text-cta-ink'
+                  : festivalStatus === 'upcoming'
+                    ? 'bg-pop/90 text-white'
+                    : festivalStatus === 'ended'
+                      ? 'bg-ink/10 text-ink'
+                      : 'bg-surface-alt text-ink-60'
+              )}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={cn(
+                      'size-1.75 rounded-full',
+                      festivalStatus === 'live'
+                        ? 'bg-mint shadow-[0_0_0_3px_rgba(169,229,231,0.2)]'
+                        : festivalStatus === 'upcoming'
+                          ? 'bg-white/70'
+                          : 'bg-current opacity-30'
+                    )}
+                  />
+                  <span className="text-[11px] font-bold tracking-[0.3px]">
+                    {festivalStatus === 'live'
+                      ? 'LIVE'
+                      : festivalStatus === 'upcoming'
+                        ? 'UPCOMING'
+                        : festivalStatus === 'ended'
+                          ? 'ENDED'
+                          : 'UNKNOWN'}
+                  </span>
+                </div>
+                <span className="text-[11px] opacity-70">{timeDisplay}</span>
+              </div>
+              <div className="mt-1.5 text-[13px] font-bold tracking-[-0.2px]">
+                {festivalStatus === 'live'
+                  ? [dayLabel, modeLabel].filter(Boolean).join(' · ') ||
+                    (festival?.name ?? '')
+                  : festivalStatus === 'upcoming'
+                    ? `${festival?.startDate} 시작`
+                    : festivalStatus === 'ended'
+                      ? `${festival?.endDate} 종료`
+                      : (festival?.name ?? '축제 준비 중')}
+              </div>
+              <div className="mt-0.5 text-[11px] opacity-60">
+                {festivalStatus === 'live' ? todayStr : (festival?.name ?? '')}
+              </div>
+            </div>
+          </div>
         </aside>
 
+        {/* ── Mobile bottom tab bar ── */}
         <div className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-border bg-surface md:hidden">
           {tabs.map(({ key, label }) => (
             <button
@@ -993,9 +1338,11 @@ export function BoothAdminDashboard() {
         </div>
 
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-          {tab === 'info' && <InfoTab application={application} />}
+          {tab === 'info' && (
+            <InfoTab application={application} showToast={showToast} />
+          )}
           {tab === 'menu' && application.boothId && (
-            <MenuTab boothId={application.boothId} />
+            <MenuTab boothId={application.boothId} showToast={showToast} />
           )}
           {tab === 'waiting' && application.boothId && (
             <WaitingTab
