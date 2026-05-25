@@ -536,6 +536,16 @@ function TruckEditorForm({
   const [startTime, setStartTime] = useState(parsed.start)
   const [endTime, setEndTime] = useState(parsed.end)
   const [saved, setSaved] = useState(false)
+  const [menuToast, setMenuToast] = useState<string | null>(null)
+  const [deleteMenuTarget, setDeleteMenuTarget] = useState<{
+    id: string
+    name: string
+  } | null>(null)
+
+  function showMenuToast(msg: string) {
+    setMenuToast(msg)
+    setTimeout(() => setMenuToast(null), 2500)
+  }
 
   function toggleDay(d: number) {
     setSelectedDays((prev) =>
@@ -614,8 +624,10 @@ function TruckEditorForm({
         sortOrder: menus.length,
       },
       {
-        onSuccess: () =>
-          setPendingMenus((prev) => prev.filter((m) => m.localId !== localId)),
+        onSuccess: () => {
+          setPendingMenus((prev) => prev.filter((m) => m.localId !== localId))
+          showMenuToast('메뉴가 등록되었습니다')
+        },
       }
     )
   }
@@ -785,13 +797,13 @@ function TruckEditorForm({
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                <div className={cn('grid items-center gap-2 px-1', MENU_GRID_COLS)}>
+                <div
+                  className={cn('grid items-center gap-2 px-1', MENU_GRID_COLS)}
+                >
                   <div className="text-[11px] font-bold text-ink-40">
                     메뉴명
                   </div>
-                  <div className="text-[11px] font-bold text-ink-40">
-                    가격
-                  </div>
+                  <div className="text-[11px] font-bold text-ink-40">가격</div>
                   <div className="w-14" />
                 </div>
                 {draftMenus.map((m) => (
@@ -855,13 +867,13 @@ function TruckEditorForm({
           ) : (
             <div className="flex flex-col gap-2">
               {(menus.length > 0 || pendingMenus.length > 0) && (
-                <div className={cn('grid items-center gap-2 px-1', MENU_GRID_COLS)}>
+                <div
+                  className={cn('grid items-center gap-2 px-1', MENU_GRID_COLS)}
+                >
                   <div className="text-[11px] font-bold text-ink-40">
                     메뉴명
                   </div>
-                  <div className="text-[11px] font-bold text-ink-40">
-                    가격
-                  </div>
+                  <div className="text-[11px] font-bold text-ink-40">가격</div>
                   <div className="w-14" />
                 </div>
               )}
@@ -869,8 +881,19 @@ function TruckEditorForm({
                 <MenuRow
                   key={menu.id}
                   menu={menu}
-                  onUpdate={(menuId, body) => updateMenu({ menuId, body })}
-                  onDelete={(menuId) => deleteMenu(menuId)}
+                  onUpdate={(menuId, body) =>
+                    updateMenu(
+                      { menuId, body },
+                      {
+                        onSuccess: () => showMenuToast('메뉴가 수정되었습니다'),
+                      }
+                    )
+                  }
+                  onDelete={(menuId) => {
+                    const menu = menus.find((m) => m.id === menuId)
+                    if (menu)
+                      setDeleteMenuTarget({ id: menu.id, name: menu.name })
+                  }}
                 />
               ))}
               {pendingMenus.map((m) => (
@@ -971,7 +994,25 @@ function TruckEditorForm({
         {/*  )}*/}
         {/*</div>*/}
       </div>
+      <AdminModal
+        open={!!deleteMenuTarget}
+        variant="warning"
+        title={`"${deleteMenuTarget?.name}" 메뉴를 삭제할까요?`}
+        body="삭제된 메뉴는 복구할 수 없어요."
+        confirmLabel="삭제"
+        onConfirm={() => {
+          if (!deleteMenuTarget) return
+          deleteMenu(deleteMenuTarget.id, {
+            onSuccess: () => {
+              showMenuToast(`"${deleteMenuTarget.name}" 메뉴가 삭제되었습니다`)
+              setDeleteMenuTarget(null)
+            },
+          })
+        }}
+        onClose={() => setDeleteMenuTarget(null)}
+      />
       {saved && <AdminToast message="저장되었습니다" />}
+      {menuToast && <AdminToast message={menuToast} />}
     </main>
   )
 }
