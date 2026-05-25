@@ -519,8 +519,12 @@ function TruckEditorForm({
           ) : (
             <div className="flex flex-col gap-2">
               {(menus.length > 0 || pendingMenus.length > 0) && (
-                <div className={cn('grid items-center gap-2 px-1', MENU_GRID_COLS)}>
-                  <div className="text-[11px] font-bold text-ink-40">메뉴명</div>
+                <div
+                  className={cn('grid items-center gap-2 px-1', MENU_GRID_COLS)}
+                >
+                  <div className="text-[11px] font-bold text-ink-40">
+                    메뉴명
+                  </div>
                   <div className="text-[11px] font-bold text-ink-40">가격</div>
                   <div className="w-14" />
                 </div>
@@ -532,7 +536,9 @@ function TruckEditorForm({
                   onUpdate={(menuId, body) =>
                     updateMenu(
                       { menuId, body },
-                      { onSuccess: () => showMenuToast('메뉴가 수정되었습니다') }
+                      {
+                        onSuccess: () => showMenuToast('메뉴가 수정되었습니다'),
+                      }
                     )
                   }
                   onDelete={(menuId) => {
@@ -596,7 +602,9 @@ function TruckEditorForm({
                       }
                       className="flex size-6 shrink-0 items-center justify-center rounded-lg text-ink-40 hover:text-alert"
                     >
-                      <div className="size-3.5">{I.trash(FESTIV_TOKENS.ink40)}</div>
+                      <div className="size-3.5">
+                        {I.trash(FESTIV_TOKENS.ink40)}
+                      </div>
                     </button>
                   </div>
                 </div>

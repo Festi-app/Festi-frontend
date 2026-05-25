@@ -302,21 +302,21 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                     {selected && (
                       <div
                         onClick={(e) => e.stopPropagation()}
-                        className="grid grid-cols-2 gap-3 border-t border-[rgba(20,26,31,0.1)] px-3 pb-3 pt-2.5"
+                        className="grid grid-cols-1 gap-3 border-t border-[rgba(20,26,31,0.1)] px-3 pb-3 pt-2.5"
                       >
                         {/* 주간 */}
-                        <div>
+                        <div className="min-w-0">
                           <div className="mb-1.5 flex items-center gap-1 text-[10px] font-extrabold text-[#5E676D]">
                             <span className="size-3">{I.sun()}</span>주간 운영
                           </div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1.5">
                             <input
                               type="time"
                               value={day.dayStart}
                               onChange={(e) =>
                                 updateDayTime(day.d, 'dayStart', e.target.value)
                               }
-                              className="flex-1 rounded-lg border border-[rgba(20,26,31,0.15)] bg-white/70 px-2 py-1.5 font-mono text-[12px] font-bold text-[#141A1F] focus:border-coral focus:outline-none"
+                              className="min-w-0 rounded-lg border border-[rgba(20,26,31,0.15)] bg-white/70 px-2 py-1.5 font-mono text-[12px] font-bold text-[#141A1F] focus:border-coral focus:outline-none"
                             />
                             <span className="text-[11px] text-[#5E676D]">
                               —
@@ -327,16 +327,16 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                               onChange={(e) =>
                                 updateDayTime(day.d, 'dayEnd', e.target.value)
                               }
-                              className="flex-1 rounded-lg border border-[rgba(20,26,31,0.15)] bg-white/70 px-2 py-1.5 font-mono text-[12px] font-bold text-[#141A1F] focus:border-coral focus:outline-none"
+                              className="min-w-0 rounded-lg border border-[rgba(20,26,31,0.15)] bg-white/70 px-2 py-1.5 font-mono text-[12px] font-bold text-[#141A1F] focus:border-coral focus:outline-none"
                             />
                           </div>
                         </div>
                         {/* 야간 */}
-                        <div>
+                        <div className="min-w-0">
                           <div className="mb-1.5 flex items-center gap-1 text-[10px] font-extrabold text-[#5E676D]">
                             <span className="size-3">{I.moon()}</span>야간 운영
                           </div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1.5">
                             <input
                               type="time"
                               value={day.nightStart}
@@ -347,7 +347,7 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                                   e.target.value
                                 )
                               }
-                              className="flex-1 rounded-lg border border-[rgba(20,26,31,0.15)] bg-white/70 px-2 py-1.5 font-mono text-[12px] font-bold text-[#141A1F] focus:border-coral focus:outline-none"
+                              className="min-w-0 rounded-lg border border-[rgba(20,26,31,0.15)] bg-white/70 px-2 py-1.5 font-mono text-[12px] font-bold text-[#141A1F] focus:border-coral focus:outline-none"
                             />
                             <span className="text-[11px] text-[#5E676D]">
                               —
@@ -358,7 +358,7 @@ export function AdminFestival({ dark = false }: { dark?: boolean }) {
                               onChange={(e) =>
                                 updateDayTime(day.d, 'nightEnd', e.target.value)
                               }
-                              className="flex-1 rounded-lg border border-[rgba(20,26,31,0.15)] bg-white/70 px-2 py-1.5 font-mono text-[12px] font-bold text-[#141A1F] focus:border-coral focus:outline-none"
+                              className="min-w-0 rounded-lg border border-[rgba(20,26,31,0.15)] bg-white/70 px-2 py-1.5 font-mono text-[12px] font-bold text-[#141A1F] focus:border-coral focus:outline-none"
                             />
                           </div>
                         </div>
