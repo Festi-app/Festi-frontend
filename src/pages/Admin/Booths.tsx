@@ -23,6 +23,8 @@ import {
   type BoothCategory,
   type BoothMapMode,
 } from '../../stores/useBoothSectionStore'
+import { AdminModal } from '../../components/Admin/AdminModal'
+import { AdminToast } from '../../components/Admin/AdminToast'
 import { BoothPermissionModal } from '../../components/Admin/Booth/BoothPermissionModal'
 import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 import { useBooths } from '../../features/Booth/hooks/useBooths'
@@ -216,6 +218,8 @@ export function AdminBooths() {
   const [selectedTruckSlot, setSelectedTruckSlot] = useState<number | null>(
     null
   )
+  const [showConfigureBlockModal, setShowConfigureBlockModal] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
   const [notice, setNotice] = useState('구역별 섹션 개수를 설정하고 저장하세요')
   const [draftDivisions, setDraftDivisions] = useState<Record<string, number>>(
     {}
@@ -266,6 +270,15 @@ export function AdminBooths() {
     setTruckSlotCount,
     setZoneDivisions,
   ])
+
+  function tryEnterConfigure() {
+    if (permissions.length > 0) {
+      setShowConfigureBlockModal(true)
+    } else {
+      setStep('configure')
+      setNotice('구역별 섹션 개수를 설정하고 저장하세요')
+    }
+  }
 
   async function handleConfigureSave() {
     const { zoneDivisions } = useBoothSectionStore.getState()
@@ -342,7 +355,11 @@ export function AdminBooths() {
       ).filter(
         (idx) =>
           !permissions.some(
-            (p) => p.zoneId === zoneId && p.sections.includes(idx)
+            (p) =>
+              p.zoneId === zoneId &&
+              p.sections.includes(idx) &&
+              p.day === selectedDay &&
+              p.time === selectedTime
           )
       )
       if (sections.length > 0) setAssignModal({ zoneId, sections })
@@ -384,7 +401,8 @@ export function AdminBooths() {
     })
 
     setAssignModal(null)
-    setNotice(`${org.name}에 권한을 부여했어요`)
+    setToast(`${org.name}에 권한을 부여했어요`)
+    setTimeout(() => setToast(null), 3000)
   }
 
   return (
@@ -394,24 +412,12 @@ export function AdminBooths() {
         sub={`${step === 'configure' ? '구역 설정' : `${mapMode} · 권한 부여`} · ${displayedNotice}`}
         right={
           step === 'assign' ? (
-            <>
-              <AdminBtn
-                icon={I.edit(FESTIV_TOKENS.ink60)}
-                onClick={() => {
-                  setStep('configure')
-                  setNotice('구역별 섹션 개수를 설정하고 저장하세요')
-                }}
-              >
-                구역 재설정
-              </AdminBtn>
-              <AdminBtn
-                primary
-                icon={I.check('#fff')}
-                onClick={() => setNotice('권한 설정을 저장했어요')}
-              >
-                저장
-              </AdminBtn>
-            </>
+            <AdminBtn
+              icon={I.edit(FESTIV_TOKENS.ink60)}
+              onClick={tryEnterConfigure}
+            >
+              구역 재설정
+            </AdminBtn>
           ) : undefined
         }
       />
@@ -431,10 +437,7 @@ export function AdminBooths() {
             orgs={allOrgs}
             selectedDay={selectedDay}
             onDayChange={setSelectedDay}
-            onBack={() => {
-              setStep('configure')
-              setNotice('구역별 섹션 개수를 설정하고 저장하세요')
-            }}
+            onBack={tryEnterConfigure}
             activeMode={mapMode}
             onModeChange={setMapMode}
             selectedTruckZone={selectedTruckZone}
@@ -613,7 +616,11 @@ export function AdminBooths() {
                   >
                     {Array.from({ length: divisions }, (_, idx) => {
                       const perm = permissions.find(
-                        (p) => p.zoneId === zone.id && p.sections.includes(idx)
+                        (p) =>
+                          p.zoneId === zone.id &&
+                          p.sections.includes(idx) &&
+                          p.day === selectedDay &&
+                          p.time === selectedTime
                       )
                       const si = dragState.startIdx
                       const ci = dragState.currentIdx
@@ -644,7 +651,10 @@ export function AdminBooths() {
                       const isLast = idx === divisions - 1
                       const nextPerm = permissions.find(
                         (p) =>
-                          p.zoneId === zone.id && p.sections.includes(idx + 1)
+                          p.zoneId === zone.id &&
+                          p.sections.includes(idx + 1) &&
+                          p.day === selectedDay &&
+                          p.time === selectedTime
                       )
                       const sameGroup =
                         !!perm && !!nextPerm && perm.id === nextPerm.id
@@ -759,6 +769,18 @@ export function AdminBooths() {
           )}
         </main>
       </div>
+
+      {toast && <AdminToast message={toast} />}
+
+      {/* ── Configure block modal ── */}
+      <AdminModal
+        open={showConfigureBlockModal}
+        variant="warning"
+        title="일자별 권한을 모두 제거해야 해요"
+        body="슬롯 구역 설정을 변경하려면 모든 일자의 배정 권한을 먼저 삭제해야 해요. 권한 부여 화면에서 배정을 모두 제거한 후 다시 시도하세요."
+        confirmLabel="확인"
+        onClose={() => setShowConfigureBlockModal(false)}
+      />
 
       {/* ── Permission modal ── */}
       {assignModal && (
