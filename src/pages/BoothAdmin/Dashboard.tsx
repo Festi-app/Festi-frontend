@@ -11,8 +11,14 @@ import { useBoothWaitings } from '../../features/Waiting/hooks/useBoothWaitings'
 import { useCallWaiting } from '../../features/Waiting/hooks/useCallWaiting'
 import { useUpdateWaitingStatus } from '../../features/Waiting/hooks/useUpdateWaitingStatus'
 import { useToggleBoothWaiting } from '../../features/Waiting/hooks/useToggleBoothWaiting'
+import { useMenus } from '../../features/Menu/hooks/useMenus'
+import { useCreateMenu } from '../../features/Menu/hooks/useCreateMenu'
+import { useUpdateMenu } from '../../features/Menu/hooks/useUpdateMenu'
+import { useDeleteMenu } from '../../features/Menu/hooks/useDeleteMenu'
+import { useMenuSoldOut } from '../../features/Menu/hooks/useMenuSoldOut'
 import type { BoothApplicationResponseDto } from '../../features/BoothApplication/types/BoothApplicationResponseDto'
 import type { WaitingResponseDto } from '../../features/Waiting/types/WaitingResponseDto'
+import type { MenusResponseDto } from '../../features/Menu/types/MenusResponseDto'
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
@@ -238,8 +244,6 @@ function InfoTab({
   )
 }
 
-<<<<<<< Updated upstream
-=======
 // ── Menu tab ──────────────────────────────────────────────────────────────────
 
 const INPUT_CLS =
@@ -542,7 +546,6 @@ function MenuTab({ boothId }: { boothId: string }) {
   )
 }
 
->>>>>>> Stashed changes
 // ── Waiting tab ───────────────────────────────────────────────────────────────
 
 function WaitingTab({
@@ -567,25 +570,26 @@ function WaitingTab({
     new Set()
   )
 
-<<<<<<< Updated upstream
-  const queueOnly = waitingList.filter((w) => w.status === 'WAITING')
-=======
-  // 로컬에서 처리 완료한 항목 — API가 SEATED/CANCELLED를 반환하지 않을 때 대비
   const [localProcessed, setLocalProcessed] = useState<WaitingResponseDto[]>([])
 
   const processedIds = new Set(localProcessed.map((p) => p.id))
 
-  // active: API에서 WAITING/CALLED이고 로컬에서 처리 완료 처리되지 않은 항목
   const queueOnly = waitingList.filter(
     (w) => w.status === 'WAITING' && !processedIds.has(w.id)
   )
->>>>>>> Stashed changes
-  const active = waitingList.filter(
-    (w) => w.status === 'WAITING' || w.status === 'CALLED'
-  )
-  const finished = waitingList.filter(
+  const apiFinished = waitingList.filter(
     (w) => w.status === 'SEATED' || w.status === 'CANCELLED'
   )
+  const apiFinishedIds = new Set(apiFinished.map((w) => w.id))
+  const active = waitingList.filter(
+    (w) =>
+      (w.status === 'WAITING' || w.status === 'CALLED') &&
+      !processedIds.has(w.id)
+  )
+  const finished = [
+    ...apiFinished,
+    ...localProcessed.filter((w) => !apiFinishedIds.has(w.id)),
+  ]
 
   const queueKey = queueOnly.map((w) => w.id).join(',')
 
@@ -763,10 +767,19 @@ function WaitingTab({
                     <button
                       type="button"
                       onClick={() =>
-                        updateStatus({
-                          waitingId: w.id,
-                          body: { status: 'SEATED' },
-                        })
+                        updateStatus(
+                          {
+                            waitingId: w.id,
+                            body: { status: 'SEATED' },
+                          },
+                          {
+                            onSuccess: () =>
+                              setLocalProcessed((prev) => [
+                                ...prev.filter((item) => item.id !== w.id),
+                                { ...w, status: 'SEATED' as const },
+                              ]),
+                          }
+                        )
                       }
                       className="flex items-center justify-center gap-1.5 rounded-xl bg-pop py-2.5 text-[13px] font-extrabold text-white"
                     >
@@ -776,10 +789,19 @@ function WaitingTab({
                     <button
                       type="button"
                       onClick={() =>
-                        updateStatus({
-                          waitingId: w.id,
-                          body: { status: 'CANCELLED' },
-                        })
+                        updateStatus(
+                          {
+                            waitingId: w.id,
+                            body: { status: 'CANCELLED' },
+                          },
+                          {
+                            onSuccess: () =>
+                              setLocalProcessed((prev) => [
+                                ...prev.filter((item) => item.id !== w.id),
+                                { ...w, status: 'CANCELLED' as const },
+                              ]),
+                          }
+                        )
                       }
                       className="rounded-xl border border-border bg-surface py-2.5 text-[13px] font-bold text-ink-60 hover:bg-surface-alt"
                     >
@@ -829,7 +851,7 @@ function WaitingTab({
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
-type TabKey = 'info' | 'waiting'
+type TabKey = 'info' | 'menu' | 'waiting'
 
 export function BoothAdminDashboard() {
   const navigate = useNavigate()
@@ -899,9 +921,11 @@ export function BoothAdminDashboard() {
     application.status === 'APPROVED' &&
     application.boothType === 'NIGHT' &&
     !!application.boothId
+  const hasBooth = application.status === 'APPROVED' && !!application.boothId
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'info', label: '부스 정보' },
+    ...(hasBooth ? [{ key: 'menu' as TabKey, label: '메뉴' }] : []),
     ...(hasNightWaiting ? [{ key: 'waiting' as TabKey, label: '웨이팅' }] : []),
   ]
 
@@ -968,6 +992,9 @@ export function BoothAdminDashboard() {
 
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           {tab === 'info' && <InfoTab application={application} />}
+          {tab === 'menu' && application.boothId && (
+            <MenuTab boothId={application.boothId} />
+          )}
           {tab === 'waiting' && application.boothId && (
             <WaitingTab
               boothId={application.boothId}
