@@ -11,8 +11,14 @@ import { useBoothWaitings } from '../../features/Waiting/hooks/useBoothWaitings'
 import { useCallWaiting } from '../../features/Waiting/hooks/useCallWaiting'
 import { useUpdateWaitingStatus } from '../../features/Waiting/hooks/useUpdateWaitingStatus'
 import { useToggleBoothWaiting } from '../../features/Waiting/hooks/useToggleBoothWaiting'
+import { useMenus } from '../../features/Menu/hooks/useMenus'
+import { useCreateMenu } from '../../features/Menu/hooks/useCreateMenu'
+import { useUpdateMenu } from '../../features/Menu/hooks/useUpdateMenu'
+import { useDeleteMenu } from '../../features/Menu/hooks/useDeleteMenu'
+import { useMenuSoldOut } from '../../features/Menu/hooks/useMenuSoldOut'
 import type { BoothApplicationResponseDto } from '../../features/BoothApplication/types/BoothApplicationResponseDto'
 import type { WaitingResponseDto } from '../../features/Waiting/types/WaitingResponseDto'
+import type { MenusResponseDto } from '../../features/Menu/types/MenusResponseDto'
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
@@ -238,6 +244,308 @@ function InfoTab({
   )
 }
 
+// ── Menu tab ──────────────────────────────────────────────────────────────────
+
+const INPUT_CLS =
+  'w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none'
+
+function MenuItemRow({
+  idx,
+  menu,
+  boothId,
+}: {
+  idx: number
+  menu: MenusResponseDto
+  boothId: string
+}) {
+  const { mutate: updateMenu, isPending: isSaving } = useUpdateMenu(boothId)
+  const { mutate: deleteMenu } = useDeleteMenu(boothId)
+  const { mutate: toggleSoldOut } = useMenuSoldOut(boothId)
+
+  const [name, setName] = useState(menu.name)
+  const [price, setPrice] = useState(String(menu.price))
+  const [description, setDescription] = useState(menu.description ?? '')
+  const [imageUrl, setImageUrl] = useState(menu.imageUrl ?? '')
+  const [saved, setSaved] = useState(false)
+
+  function handleSave() {
+    const parsedPrice = parseInt(price, 10)
+    if (!name.trim() || isNaN(parsedPrice)) return
+    updateMenu(
+      {
+        menuId: menu.id,
+        body: {
+          name: name.trim(),
+          price: parsedPrice,
+          ...(description.trim() ? { description: description.trim() } : {}),
+          ...(imageUrl.trim() ? { imageUrl: imageUrl.trim() } : {}),
+        },
+      },
+      {
+        onSuccess: () => {
+          setSaved(true)
+          setTimeout(() => setSaved(false), 2000)
+        },
+      }
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-bg p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold text-ink-40">
+            메뉴 {idx + 1}
+          </span>
+          {menu.isSoldOut && (
+            <span className="rounded-full bg-alert/15 px-2 py-0.5 text-[10px] font-bold text-alert">
+              품절
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => toggleSoldOut(menu.id)}
+            className={cn(
+              'text-[11px] font-semibold',
+              menu.isSoldOut ? 'text-pop' : 'text-ink-60'
+            )}
+          >
+            {menu.isSoldOut ? '품절 해제' : '품절'}
+          </button>
+          <button
+            type="button"
+            onClick={() => deleteMenu(menu.id)}
+            className="text-[11px] font-semibold text-alert"
+          >
+            삭제
+          </button>
+        </div>
+      </div>
+      <div className="flex gap-3">
+        <div className="size-16 shrink-0 self-start overflow-hidden rounded-xl border border-border bg-surface-alt">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                ;(e.target as HTMLImageElement).style.display = 'none'
+              }}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-[10px] text-ink-40">
+              사진
+            </div>
+          )}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="메뉴명"
+            className={INPUT_CLS}
+          />
+          <input
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="가격 (예: 8000)"
+            min={0}
+            className={INPUT_CLS}
+          />
+          <input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="메뉴 소개"
+            className={INPUT_CLS}
+          />
+          <input
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="이미지 URL (선택)"
+            className={INPUT_CLS}
+          />
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className={cn(
+              'rounded-lg py-1.5 text-[12px] font-bold text-white disabled:opacity-50',
+              saved ? 'bg-pop' : 'bg-cta'
+            )}
+          >
+            {saved ? '저장됨' : isSaving ? '저장 중...' : '저장'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function NewMenuRow({
+  boothId,
+  onCreated,
+  onCancel,
+}: {
+  boothId: string
+  onCreated: () => void
+  onCancel: () => void
+}) {
+  const { mutate: createMenu, isPending: isCreating } = useCreateMenu(boothId)
+
+  const [name, setName] = useState('')
+  const [price, setPrice] = useState('')
+  const [description, setDescription] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+
+  function handleCreate() {
+    const parsedPrice = parseInt(price, 10)
+    if (!name.trim() || isNaN(parsedPrice) || parsedPrice < 0) return
+    createMenu(
+      {
+        name: name.trim(),
+        price: parsedPrice,
+        description: description.trim() || null,
+        imageUrl: imageUrl.trim() || null,
+        isSoldOut: false,
+        sortOrder: 0,
+      },
+      { onSuccess: onCreated }
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-dashed border-cta/50 bg-cta/5 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[11px] font-bold text-cta">새 메뉴</span>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-[11px] font-semibold text-ink-60"
+        >
+          취소
+        </button>
+      </div>
+      <div className="flex gap-3">
+        <div className="size-16 shrink-0 self-start overflow-hidden rounded-xl border border-border bg-surface-alt">
+          {imageUrl.trim() ? (
+            <img
+              src={imageUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                ;(e.target as HTMLImageElement).style.display = 'none'
+              }}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-[10px] text-ink-40">
+              사진
+            </div>
+          )}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="메뉴명"
+            className={INPUT_CLS}
+          />
+          <input
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="가격 (예: 8000)"
+            min={0}
+            className={INPUT_CLS}
+          />
+          <input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="메뉴 소개"
+            className={INPUT_CLS}
+          />
+          <input
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="이미지 URL (선택)"
+            className={INPUT_CLS}
+          />
+          <button
+            type="button"
+            onClick={handleCreate}
+            disabled={isCreating || !name.trim() || !price}
+            className="rounded-lg bg-cta py-1.5 text-[12px] font-bold text-white disabled:opacity-50"
+          >
+            {isCreating ? '추가 중...' : '추가'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MenuTab({ boothId }: { boothId: string }) {
+  const { data: menus = [], isLoading } = useMenus(boothId)
+  const [showNewRow, setShowNewRow] = useState(false)
+
+  return (
+    <div className="max-w-2xl p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <div className="text-[18px] font-extrabold text-ink">메뉴 관리</div>
+          <div className="text-[12px] text-ink-60">
+            메뉴를 추가하고 품절 상태를 관리하세요
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowNewRow(true)}
+          disabled={showNewRow}
+          className="rounded-xl bg-cta px-4 py-2.5 text-[13px] font-extrabold text-white disabled:opacity-40"
+        >
+          + 메뉴 추가
+        </button>
+      </div>
+
+      {isLoading ? (
+        <div className="py-12 text-center text-sm text-ink-40">
+          불러오는 중...
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {menus.map((menu, idx) => (
+            <MenuItemRow
+              key={menu.id}
+              idx={idx}
+              menu={menu}
+              boothId={boothId}
+            />
+          ))}
+          {showNewRow && (
+            <NewMenuRow
+              boothId={boothId}
+              onCreated={() => setShowNewRow(false)}
+              onCancel={() => setShowNewRow(false)}
+            />
+          )}
+          {menus.length === 0 && !showNewRow && (
+            <div className="rounded-2xl border border-border bg-surface py-12 text-center">
+              <div className="mb-1 text-[15px] font-bold text-ink-60">
+                등록된 메뉴가 없어요
+              </div>
+              <div className="text-[12px] text-ink-40">
+                메뉴 추가 버튼을 눌러 등록하세요
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Waiting tab ───────────────────────────────────────────────────────────────
 
 function WaitingTab({
@@ -262,13 +570,26 @@ function WaitingTab({
     new Set()
   )
 
-  const queueOnly = waitingList.filter((w) => w.status === 'WAITING')
-  const active = waitingList.filter(
-    (w) => w.status === 'WAITING' || w.status === 'CALLED'
+  const [localProcessed, setLocalProcessed] = useState<WaitingResponseDto[]>([])
+
+  const processedIds = new Set(localProcessed.map((p) => p.id))
+
+  const queueOnly = waitingList.filter(
+    (w) => w.status === 'WAITING' && !processedIds.has(w.id)
   )
-  const finished = waitingList.filter(
+  const apiFinished = waitingList.filter(
     (w) => w.status === 'SEATED' || w.status === 'CANCELLED'
   )
+  const apiFinishedIds = new Set(apiFinished.map((w) => w.id))
+  const active = waitingList.filter(
+    (w) =>
+      (w.status === 'WAITING' || w.status === 'CALLED') &&
+      !processedIds.has(w.id)
+  )
+  const finished = [
+    ...apiFinished,
+    ...localProcessed.filter((w) => !apiFinishedIds.has(w.id)),
+  ]
 
   const queueKey = queueOnly.map((w) => w.id).join(',')
 
@@ -446,10 +767,19 @@ function WaitingTab({
                     <button
                       type="button"
                       onClick={() =>
-                        updateStatus({
-                          waitingId: w.id,
-                          body: { status: 'SEATED' },
-                        })
+                        updateStatus(
+                          {
+                            waitingId: w.id,
+                            body: { status: 'SEATED' },
+                          },
+                          {
+                            onSuccess: () =>
+                              setLocalProcessed((prev) => [
+                                ...prev.filter((item) => item.id !== w.id),
+                                { ...w, status: 'SEATED' as const },
+                              ]),
+                          }
+                        )
                       }
                       className="flex items-center justify-center gap-1.5 rounded-xl bg-pop py-2.5 text-[13px] font-extrabold text-white"
                     >
@@ -459,10 +789,19 @@ function WaitingTab({
                     <button
                       type="button"
                       onClick={() =>
-                        updateStatus({
-                          waitingId: w.id,
-                          body: { status: 'CANCELLED' },
-                        })
+                        updateStatus(
+                          {
+                            waitingId: w.id,
+                            body: { status: 'CANCELLED' },
+                          },
+                          {
+                            onSuccess: () =>
+                              setLocalProcessed((prev) => [
+                                ...prev.filter((item) => item.id !== w.id),
+                                { ...w, status: 'CANCELLED' as const },
+                              ]),
+                          }
+                        )
                       }
                       className="rounded-xl border border-border bg-surface py-2.5 text-[13px] font-bold text-ink-60 hover:bg-surface-alt"
                     >
@@ -512,7 +851,7 @@ function WaitingTab({
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
-type TabKey = 'info' | 'waiting'
+type TabKey = 'info' | 'menu' | 'waiting'
 
 export function BoothAdminDashboard() {
   const navigate = useNavigate()
@@ -582,9 +921,11 @@ export function BoothAdminDashboard() {
     application.status === 'APPROVED' &&
     application.boothType === 'NIGHT' &&
     !!application.boothId
+  const hasBooth = application.status === 'APPROVED' && !!application.boothId
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'info', label: '부스 정보' },
+    ...(hasBooth ? [{ key: 'menu' as TabKey, label: '메뉴' }] : []),
     ...(hasNightWaiting ? [{ key: 'waiting' as TabKey, label: '웨이팅' }] : []),
   ]
 
@@ -651,6 +992,9 @@ export function BoothAdminDashboard() {
 
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           {tab === 'info' && <InfoTab application={application} />}
+          {tab === 'menu' && application.boothId && (
+            <MenuTab boothId={application.boothId} />
+          )}
           {tab === 'waiting' && application.boothId && (
             <WaitingTab
               boothId={application.boothId}

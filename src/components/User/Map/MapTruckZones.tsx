@@ -60,7 +60,7 @@ export function MapTruckZones({
                         ? zone.color
                         : truck
                           ? zone.color
-                          : 'transparent',
+                          : 'rgba(0,0,0,0.15)',
                       color: FESTIV_TOKENS.ink,
                       boxShadow: isSelected
                         ? 'inset 0 0 0 2px rgba(255,255,255,0.9)'
