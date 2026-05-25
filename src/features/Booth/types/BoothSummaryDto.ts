@@ -16,4 +16,5 @@ export interface BoothSummaryDto {
   description: string | null
   imageUrl: string | null
   isWaitingOpen: boolean
+  waitingTeamCount?: number | null
 }

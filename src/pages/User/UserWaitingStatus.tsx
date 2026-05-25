@@ -79,6 +79,8 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
             dark={dark}
             boothName={main.boothSummary?.name ?? '—'}
             registered={formatRegistered(main.partySize, main.registeredAt)}
+            waitNo={main.position}
+            callNo={main.currentCallPosition}
             onCancel={() => setConfirmCancel(true)}
             onClick={() =>
               main.boothSummary?.id &&

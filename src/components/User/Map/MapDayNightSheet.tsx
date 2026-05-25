@@ -126,10 +126,15 @@ export function MapDayNightSheet({
                     onWaiting={() => onWaiting(linkedBooth.id)}
                     onAlreadyWaiting={() => onAlreadyWaiting(linkedBooth.id)}
                     alreadyWaiting={isAlreadyWaiting(linkedBooth.id)}
+                    isWaitingOpen={linkedBooth.isWaitingOpen}
                   />
                 )}
               </>
-            ) : null}
+            ) : (
+              <div className="flex items-center justify-center py-6 text-[13px] text-ink-40">
+                등록된 부스가 없어요
+              </div>
+            )}
           </>
         )}
 
@@ -162,6 +167,7 @@ export function MapDayNightSheet({
                 onWaiting={() => onWaiting(linkedBooth.id)}
                 onAlreadyWaiting={() => onAlreadyWaiting(linkedBooth.id)}
                 alreadyWaiting={isAlreadyWaiting(linkedBooth.id)}
+                isWaitingOpen={linkedBooth.isWaitingOpen}
               />
             )}
           </div>

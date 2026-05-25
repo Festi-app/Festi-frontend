@@ -82,7 +82,7 @@ export function MapDayNightZones({
                 selectedBoothCell?.zoneId === zone.id &&
                 selectedBoothCell.slot >= start &&
                 selectedBoothCell.slot <= end
-              const label = start === end ? `#${start}` : `#${start}-${end}`
+              const label = start === end ? `${start}` : `${start}-${end}`
               const bgColor = booth
                 ? isDay
                   ? (CAT_COLOR[category ?? ''] ?? zone.color)

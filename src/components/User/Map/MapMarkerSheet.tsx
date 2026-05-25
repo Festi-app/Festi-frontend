@@ -94,6 +94,7 @@ export function MapMarkerSheet({
                 onAlreadyWaiting(String(selectedMarker.id))
               }
               alreadyWaiting={isAlreadyWaiting(String(selectedMarker.id))}
+              isWaitingOpen={boothDetail?.isWaitingOpen}
             />
           )}
         </>
@@ -126,6 +127,7 @@ export function MapMarkerSheet({
                 onAlreadyWaiting(String(selectedMarker.id))
               }
               alreadyWaiting={isAlreadyWaiting(String(selectedMarker.id))}
+              isWaitingOpen={boothDetail?.isWaitingOpen}
             />
           )}
         </div>

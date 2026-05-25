@@ -89,6 +89,11 @@ export function WaitingTicketCard({
             <div className="mt-0.5 text-[34px] leading-none font-extrabold tracking-[-1px]">
               {callNo ?? '--'}
             </div>
+            {callNo == null && (
+              <div className="mt-1 text-[11px] font-semibold opacity-60">
+                아직 호출된 번호 없음
+              </div>
+            )}
           </div>
         </div>
 
