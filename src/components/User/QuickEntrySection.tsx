@@ -23,10 +23,12 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
   const { data: festivalDaysList = [] } = useFestivalDays()
   const todayFestivalDay =
     festivalDaysList.find((d) => d.day === todayStr)?.day ?? ''
-  const { data: nightLocations = [], refetch: refetchLocations } = useLocations({
-    day: todayFestivalDay,
-    type: 'NIGHT',
-  })
+  const { data: nightLocations = [], refetch: refetchLocations } = useLocations(
+    {
+      day: todayFestivalDay,
+      type: 'NIGHT',
+    }
+  )
   const { data: nightBooths = [], refetch: refetchBooths } = useBooths({
     day: todayFestivalDay,
     type: 'NIGHT',
@@ -36,9 +38,7 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
     .filter((booth) => (booth.waitingTeamCount ?? Infinity) <= 2)
     .map((booth) => ({
       booth,
-      location: nightLocations.find(
-        (loc) => loc.boothSummary?.id === booth.id
-      ),
+      location: nightLocations.find((loc) => loc.boothSummary?.id === booth.id),
     }))
 
   return (
