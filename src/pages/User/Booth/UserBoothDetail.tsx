@@ -131,31 +131,11 @@ export function UserBoothDetail({
           {!booth.isWaitingOpen ? (
             <button
               type="button"
-              onClick={() =>
-                alreadyWaiting
-                  ? setConfirmCancel(true)
-                  : navigate(`/waiting/register?id=${booth.id}`, {
-                      replace: true,
-                    })
-              }
-              className={`flex items-center w-full justify-between rounded-[20px] px-5 py-4 text-left transition-transform duration-100 active:scale-[0.98] ${
-                alreadyWaiting
-                  ? 'bg-[#D0D5D8] text-ink-60 dark:bg-[#2F353B] dark:text-ink-40'
-                  : 'bg-pop text-white'
-              }`}
+              disabled
+              className="flex items-center justify-center w-full rounded-[20px] bg-[#141A1F] px-5 py-4 text-white cursor-not-allowed"
             >
-              <div>
-                <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px]">
-                  {alreadyWaiting ? '이미 웨이팅 중' : '웨이팅 걸기'}
-                </div>
-                <div className="text-[11px] font-semibold opacity-60">
-                  {alreadyWaiting
-                    ? '웨이팅을 취소할 수 있어요'
-                    : '웨이팅 등록하기'}
-                </div>
-              </div>
-              <div className="size-4.5">
-                {I.chev(alreadyWaiting ? undefined : '#fff', 'r')}
+              <div className="mt-1 text-[17px] font-extrabold tracking-[-0.4px]">
+                웨이팅 등록이 마감되었습니다.
               </div>
             </button>
           ) : (
