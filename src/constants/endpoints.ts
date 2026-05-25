@@ -72,4 +72,9 @@ export const ENDPOINTS = {
     DETAIL: (subscriptionId: string) =>
       `/api/push-subscriptions/${subscriptionId}`,
   },
+  IMAGES: {
+    BOOTH: (boothId: string) => `/api/booths/${boothId}/image`,
+    MENU: (boothId: string, menuId: string) =>
+      `/api/booths/${boothId}/menus/${menuId}/image`,
+  },
 } as const

@@ -16,6 +16,15 @@ import { useCreateMenu } from '../../features/Menu/hooks/useCreateMenu'
 import { useUpdateMenu } from '../../features/Menu/hooks/useUpdateMenu'
 import { useDeleteMenu } from '../../features/Menu/hooks/useDeleteMenu'
 import { useMenuSoldOut } from '../../features/Menu/hooks/useMenuSoldOut'
+import {
+  useUploadBoothImage,
+  useDeleteBoothImage,
+} from '../../features/Image/hooks/useBoothImage'
+import {
+  useUploadMenuImage,
+  useDeleteMenuImage,
+} from '../../features/Image/hooks/useMenuImage'
+import { ImageUpload } from '../../components/shared/ImageUpload'
 import type { BoothApplicationResponseDto } from '../../features/BoothApplication/types/BoothApplicationResponseDto'
 import type { WaitingResponseDto } from '../../features/Waiting/types/WaitingResponseDto'
 import type { MenusResponseDto } from '../../features/Menu/types/MenusResponseDto'
@@ -128,14 +137,24 @@ function InfoTab({
 
   const [name, setName] = useState(application.boothName)
   const [description, setDescription] = useState(application.description ?? '')
-  const [operatingHours, setOperatingHours] = useState(
-    application.operatingHours ?? ''
-  )
-  const [imageUrl, setImageUrl] = useState(application.imageUrl ?? '')
   const [saved, setSaved] = useState(false)
+
+  const parsedTimes = (() => {
+    const raw = application.operatingHours ?? ''
+    const match = raw.match(/(\d{2}:\d{2})\s*[~-]\s*(\d{2}:\d{2})/)
+    return match ? [match[1], match[2]] : ['', '']
+  })()
+  const [startTime, setStartTime] = useState(parsedTimes[0])
+  const [endTime, setEndTime] = useState(parsedTimes[1])
 
   const boothId = application.boothId
   const isApproved = application.status === 'APPROVED'
+
+  const { data: boothDetail } = useBooth(boothId ?? null)
+  const { mutate: uploadBoothImage, isPending: isUploadingBooth } =
+    useUploadBoothImage(boothId ?? '')
+  const { mutate: deleteBoothImg, isPending: isDeletingBooth } =
+    useDeleteBoothImage(boothId ?? '')
 
   function handleSave() {
     if (!boothId) return
@@ -145,8 +164,8 @@ function InfoTab({
         body: {
           name: name.trim() || undefined,
           description: description.trim() || undefined,
-          operatingHours: operatingHours.trim() || undefined,
-          imageUrl: imageUrl.trim() || undefined,
+          operatingHours:
+            startTime && endTime ? `${startTime} ~ ${endTime}` : undefined,
         },
       },
       {
@@ -219,24 +238,36 @@ function InfoTab({
           <div className="mb-1.5 text-[12px] font-bold text-ink-60">
             운영 시간
           </div>
-          <input
-            value={operatingHours}
-            onChange={(e) => setOperatingHours(e.target.value)}
-            disabled={!isApproved || !boothId}
-            placeholder="예: 10:00 ~ 18:00"
-            className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none disabled:opacity-60"
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              disabled={!isApproved || !boothId}
+              className="flex-1 rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink focus:border-cta focus:outline-none disabled:opacity-60"
+            />
+            <span className="text-[13px] font-bold text-ink-40">~</span>
+            <input
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              disabled={!isApproved || !boothId}
+              className="flex-1 rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink focus:border-cta focus:outline-none disabled:opacity-60"
+            />
+          </div>
         </div>
         <div>
           <div className="mb-1.5 text-[12px] font-bold text-ink-60">
-            이미지 URL
+            부스 이미지
           </div>
-          <input
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
+          <ImageUpload
+            currentUrl={boothDetail?.imageUrl}
+            onUpload={(file) => uploadBoothImage(file)}
+            onDelete={() => deleteBoothImg()}
             disabled={!isApproved || !boothId}
-            placeholder="https://..."
-            className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none disabled:opacity-60"
+            isUploading={isUploadingBooth}
+            isDeleting={isDeletingBooth}
+            size="md"
           />
         </div>
       </div>
@@ -262,10 +293,14 @@ function MenuItemRow({
   const { mutate: deleteMenu } = useDeleteMenu(boothId)
   const { mutate: toggleSoldOut } = useMenuSoldOut(boothId)
 
+  const { mutate: uploadMenuImage, isPending: isUploadingMenu } =
+    useUploadMenuImage(boothId)
+  const { mutate: deleteMenuImg, isPending: isDeletingMenu } =
+    useDeleteMenuImage(boothId)
+
   const [name, setName] = useState(menu.name)
   const [price, setPrice] = useState(String(menu.price))
   const [description, setDescription] = useState(menu.description ?? '')
-  const [imageUrl, setImageUrl] = useState(menu.imageUrl ?? '')
   const [saved, setSaved] = useState(false)
 
   function handleSave() {
@@ -278,7 +313,6 @@ function MenuItemRow({
           name: name.trim(),
           price: parsedPrice,
           ...(description.trim() ? { description: description.trim() } : {}),
-          ...(imageUrl.trim() ? { imageUrl: imageUrl.trim() } : {}),
         },
       },
       {
@@ -324,22 +358,14 @@ function MenuItemRow({
         </div>
       </div>
       <div className="flex gap-3">
-        <div className="size-16 shrink-0 self-start overflow-hidden rounded-xl border border-border bg-surface-alt">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt=""
-              className="h-full w-full object-cover"
-              onError={(e) => {
-                ;(e.target as HTMLImageElement).style.display = 'none'
-              }}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-[10px] text-ink-40">
-              사진
-            </div>
-          )}
-        </div>
+        <ImageUpload
+          currentUrl={menu.imageUrl}
+          onUpload={(file) => uploadMenuImage({ menuId: menu.id, file })}
+          onDelete={() => deleteMenuImg(menu.id)}
+          isUploading={isUploadingMenu}
+          isDeleting={isDeletingMenu}
+          size="sm"
+        />
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <input
             value={name}
@@ -359,12 +385,6 @@ function MenuItemRow({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="메뉴 소개"
-            className={INPUT_CLS}
-          />
-          <input
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="이미지 URL (선택)"
             className={INPUT_CLS}
           />
           <button
@@ -398,7 +418,6 @@ function NewMenuRow({
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [description, setDescription] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
 
   function handleCreate() {
     const parsedPrice = parseInt(price, 10)
@@ -408,7 +427,7 @@ function NewMenuRow({
         name: name.trim(),
         price: parsedPrice,
         description: description.trim() || null,
-        imageUrl: imageUrl.trim() || null,
+        imageUrl: null,
         isSoldOut: false,
         sortOrder: 0,
       },
@@ -430,20 +449,9 @@ function NewMenuRow({
       </div>
       <div className="flex gap-3">
         <div className="size-16 shrink-0 self-start overflow-hidden rounded-xl border border-border bg-surface-alt">
-          {imageUrl.trim() ? (
-            <img
-              src={imageUrl}
-              alt=""
-              className="h-full w-full object-cover"
-              onError={(e) => {
-                ;(e.target as HTMLImageElement).style.display = 'none'
-              }}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-[10px] text-ink-40">
-              사진
-            </div>
-          )}
+          <div className="flex h-full w-full items-center justify-center text-[10px] text-ink-40">
+            사진
+          </div>
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <input
@@ -464,12 +472,6 @@ function NewMenuRow({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="메뉴 소개"
-            className={INPUT_CLS}
-          />
-          <input
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="이미지 URL (선택)"
             className={INPUT_CLS}
           />
           <button

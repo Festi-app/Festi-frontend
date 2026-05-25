@@ -20,6 +20,11 @@ import { getMenus } from '../../features/Menu/apis/getMenus'
 import { deleteMenu as deleteMenuApi } from '../../features/Menu/apis/deleteMenu'
 import type { MenusResponseDto } from '../../features/Menu/types/MenusResponseDto'
 import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
+import {
+  useUploadMenuImage,
+  useDeleteMenuImage,
+} from '../../features/Image/hooks/useMenuImage'
+import { ImageUpload } from '../../components/shared/ImageUpload'
 
 // ── operatingHours 파싱/빌드 헬퍼 ────────────────────────────────────────────
 // 저장 포맷: "1일차·2일차 10:00~20:00"
@@ -69,16 +74,22 @@ function buildOH(days: number[], start: string, end: string) {
 
 function MenuRow({
   menu,
+  boothId,
   onUpdate,
   onDelete,
 }: {
   menu: MenusResponseDto
+  boothId: string
   onUpdate: (menuId: string, body: Partial<MenusResponseDto>) => void
   onDelete: (menuId: string) => void
 }) {
   const [name, setName] = useState(menu.name)
   const [price, setPrice] = useState(String(menu.price))
   const canSave = isValidMenuInput(name, price)
+  const { mutate: uploadMenuImage, isPending: isUploadingMenu } =
+    useUploadMenuImage(boothId)
+  const { mutate: deleteMenuImg, isPending: isDeletingMenu } =
+    useDeleteMenuImage(boothId)
 
   function handleSave() {
     if (!canSave) return
@@ -93,35 +104,47 @@ function MenuRow({
   }
 
   return (
-    <div className={cn('grid items-center gap-2', MENU_GRID_COLS)}>
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="min-w-0 w-full rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+    <div className="flex items-center gap-2">
+      <ImageUpload
+        currentUrl={menu.imageUrl}
+        onUpload={(file) => uploadMenuImage({ menuId: menu.id, file })}
+        onDelete={() => deleteMenuImg(menu.id)}
+        isUploading={isUploadingMenu}
+        isDeleting={isDeletingMenu}
+        size="sm"
       />
-      <input
-        value={price}
-        inputMode="numeric"
-        pattern="[0-9]*"
-        onChange={(e) => setPrice(onlyDigits(e.target.value))}
-        className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
-      />
-      <div className="flex w-14 justify-end gap-1">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!canSave}
-          className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-cta text-white disabled:opacity-30"
-        >
-          <div className="size-3">{I.check('#fff')}</div>
-        </button>
-        <button
-          type="button"
-          onClick={() => onDelete(menu.id)}
-          className="flex size-6 shrink-0 items-center justify-center rounded-lg text-ink-40 hover:text-alert"
-        >
-          <div className="size-3.5">{I.trash(FESTIV_TOKENS.ink40)}</div>
-        </button>
+      <div
+        className={cn('grid min-w-0 flex-1 items-center gap-2', MENU_GRID_COLS)}
+      >
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="min-w-0 w-full rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+        />
+        <input
+          value={price}
+          inputMode="numeric"
+          pattern="[0-9]*"
+          onChange={(e) => setPrice(onlyDigits(e.target.value))}
+          className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+        />
+        <div className="flex w-14 justify-end gap-1">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!canSave}
+            className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-cta text-white disabled:opacity-30"
+          >
+            <div className="size-3">{I.check('#fff')}</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(menu.id)}
+            className="flex size-6 shrink-0 items-center justify-center rounded-lg text-ink-40 hover:text-alert"
+          >
+            <div className="size-3.5">{I.trash(FESTIV_TOKENS.ink40)}</div>
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -533,6 +556,7 @@ function TruckEditorForm({
                 <MenuRow
                   key={menu.id}
                   menu={menu}
+                  boothId={boothId}
                   onUpdate={(menuId, body) =>
                     updateMenu(
                       { menuId, body },

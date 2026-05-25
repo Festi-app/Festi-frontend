@@ -9,6 +9,12 @@ import { useFestivalDays } from '../../../features/Festival/hooks/useFestivalDay
 import { Toast } from '../../../components/shared/Toast'
 import { formatSections, getZoneName } from '../../../lib/format'
 import type { BoothType } from '../../../features/Booth/types/BoothSummaryDto'
+import { API_BASE } from '../../../constants/endpoints'
+
+function resolveUrl(url: string | null | undefined) {
+  if (!url) return null
+  return url.startsWith('/') ? `${API_BASE}${url}` : url
+}
 
 const _d = new Date()
 const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`
@@ -89,7 +95,19 @@ export function UserBoothList() {
                   className="cursor-pointer overflow-hidden rounded-[20px] border border-border bg-surface transition-transform duration-100 active:scale-[0.98]"
                 >
                   <div className="flex items-stretch gap-3.5 p-3">
-                    <div className="size-24 shrink-0 overflow-hidden rounded-[14px] bg-surface-alt" />
+                    <div className="size-24 shrink-0 overflow-hidden rounded-[14px] bg-surface-alt">
+                      {resolveUrl(b.imageUrl) && (
+                        <img
+                          src={resolveUrl(b.imageUrl)!}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            ;(e.target as HTMLImageElement).style.display =
+                              'none'
+                          }}
+                        />
+                      )}
+                    </div>
                     <div className="flex min-w-0 flex-1 flex-col pt-1">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">

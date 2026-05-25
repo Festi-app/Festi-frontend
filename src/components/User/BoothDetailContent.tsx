@@ -159,6 +159,7 @@ export function BoothDetailContent({
                       tone="leaf"
                       isSoldOut={m.isSoldOut}
                       showImage
+                      imageUrl={m.imageUrl}
                     />
                   ))}
                 </div>

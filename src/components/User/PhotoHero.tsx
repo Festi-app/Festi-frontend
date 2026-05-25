@@ -1,8 +1,15 @@
 import { FESTIV_TOKENS, I, PhotoSlot } from '../../tokens'
+import { API_BASE } from '../../constants/endpoints'
+
+function resolveUrl(url: string | null | undefined) {
+  if (!url) return null
+  return url.startsWith('/') ? `${API_BASE}${url}` : url
+}
 
 export function PhotoHero({
   tone,
   label,
+  imageUrl,
   height = 'h-80',
   showDots = false,
   dotsCount = 4,
@@ -12,6 +19,7 @@ export function PhotoHero({
 }: {
   tone?: string
   label?: string
+  imageUrl?: string | null
   height?: string
   showDots?: boolean
   dotsCount?: number
@@ -19,16 +27,29 @@ export function PhotoHero({
   favorite?: boolean
   onFavorite?: () => void
 }) {
+  const resolvedImageUrl = resolveUrl(imageUrl)
+
   return (
     <div className={`relative ${height}`}>
-      <PhotoSlot
-        label={label ?? ''}
-        tone={tone}
-        ratio="auto"
-        radius={0}
-        className="h-full"
-        style={{ aspectRatio: 'auto' }}
-      />
+      {resolvedImageUrl ? (
+        <img
+          src={resolvedImageUrl}
+          alt=""
+          className="h-full w-full object-cover"
+          onError={(e) => {
+            ;(e.target as HTMLImageElement).style.display = 'none'
+          }}
+        />
+      ) : (
+        <PhotoSlot
+          label={label ?? ''}
+          tone={tone}
+          ratio="auto"
+          radius={0}
+          className="h-full"
+          style={{ aspectRatio: 'auto' }}
+        />
+      )}
       <div className="absolute inset-x-0 top-0 h-27.5 bg-[linear-gradient(180deg,rgba(15,42,51,0.4)_0%,rgba(15,42,51,0)_100%)]" />
       <div className="absolute top-4 right-4 left-4 flex items-center justify-between">
         <button
