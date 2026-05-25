@@ -1,9 +1,13 @@
+import { useState } from 'react'
 import type { TouchEventHandler } from 'react'
 import type { ZoneDef } from '../../../data/zones'
 import type { BoothSummary } from '../../../types/common'
 import type { GetBoothResponseDto } from '../../../features/Booth/types/GetBoothResponseDto'
 import type { MenuResponseDto } from '../../../features/Booth/types/MenuResponseDto'
 import { tabBarPb, tabBarPbTall } from '../../../lib/safeArea'
+import { I } from '../../../tokens'
+import { Toast } from '../../shared/Toast'
+import { useToggleFavorite } from '../../../features/Favorite/hooks/useToggleFavorite'
 import { MapSheet } from './MapSheet'
 import { WaitingActions } from './WaitingActions'
 import { BoothDetailContent } from '../BoothDetailContent'
@@ -59,85 +63,136 @@ export function MapDayNightSheet({
   isAlreadyWaiting,
 }: Props) {
   const isNight = mapView === 'night'
+  const { isSaved, toggle } = useToggleFavorite()
+  const [toast, setToast] = useState<'saved' | 'unsaved' | null>(null)
+
+  function toggleFavorite() {
+    if (!linkedBooth) return
+    const id = String(linkedBooth.id)
+    const wasSaved = isSaved(id)
+    toggle(id)
+    setToast(wasSaved ? 'unsaved' : 'saved')
+    setTimeout(() => setToast(null), 2000)
+  }
+
+  const favoriteButton = linkedBooth ? (
+    <button
+      type="button"
+      onClick={toggleFavorite}
+      className="flex size-8 items-center justify-center rounded-full bg-surface-alt"
+    >
+      {I.star(
+        isSaved(String(linkedBooth.id)) ? '#FFB800' : 'none',
+        isSaved(String(linkedBooth.id)) ? '#FFB800' : '#8A9BA8'
+      )}
+    </button>
+  ) : undefined
 
   return (
-    <MapSheet
-      sheetDragY={sheetDragY}
-      sheetDismissing={sheetDismissing}
-      expanded={sheetExpanded}
-      expandable={!!linkedBooth}
-      onTouchStart={onSheetTouchStart}
-      onTouchMove={onSheetTouchMove}
-      onTouchEnd={onSheetTouchEnd}
-      onDismiss={onDismiss}
-      onToggleExpand={onToggleExpand}
-    >
-      {!sheetExpanded && (
-        <>
-          {linkedBooth ? (
-            <BoothDetailContent
-              dark={dark}
-              type={isNight ? 'night' : 'day'}
-              name={linkedBooth.name}
-              description={boothDetail?.description ?? undefined}
-              operatingHours={boothDetail?.operatingHours ?? undefined}
-              sections={
-                selectedBoothCell ? [selectedBoothCell.slot] : undefined
-              }
-              category={
-                API_CAT_TO_KR[linkedBooth.category] ?? linkedBooth.category
-              }
-              area={selectedBoothZone.name}
-              circleColor={selectedBoothZone.color}
-            />
-          ) : (
-            <div className="my-3 rounded-xl bg-surface-alt px-4 py-3 text-center text-[12px] text-ink-40">
-              이 섹션에 배정된 부스가 없어요
-            </div>
-          )}
-          {isNight && linkedBooth && (
-            <WaitingActions
-              onWaiting={() => onWaiting(linkedBooth.id)}
-              onAlreadyWaiting={() => onAlreadyWaiting(linkedBooth.id)}
-              alreadyWaiting={isAlreadyWaiting(linkedBooth.id)}
-            />
-          )}
-        </>
-      )}
+    <>
+      <MapSheet
+        sheetDragY={sheetDragY}
+        sheetDismissing={sheetDismissing}
+        expanded={sheetExpanded}
+        expandable={!!linkedBooth}
+        favoriteButton={favoriteButton}
+        onTouchStart={onSheetTouchStart}
+        onTouchMove={onSheetTouchMove}
+        onTouchEnd={onSheetTouchEnd}
+        onDismiss={onDismiss}
+        onToggleExpand={onToggleExpand}
+      >
+        {!sheetExpanded && (
+          <>
+            {linkedBooth ? (
+              <>
+                <BoothDetailContent
+                  dark={dark}
+                  type={isNight ? 'night' : 'day'}
+                  name={linkedBooth.name}
+                  description={boothDetail?.description ?? undefined}
+                  operatingHours={boothDetail?.operatingHours ?? undefined}
+                  sections={
+                    selectedBoothCell ? [selectedBoothCell.slot] : undefined
+                  }
+                  category={
+                    API_CAT_TO_KR[linkedBooth.category] ?? linkedBooth.category
+                  }
+                  area={selectedBoothZone.name}
+                  circleColor={selectedBoothZone.color}
+                />
+                {isNight && (
+                  <WaitingActions
+                    onWaiting={() => onWaiting(linkedBooth.id)}
+                    onAlreadyWaiting={() => onAlreadyWaiting(linkedBooth.id)}
+                    alreadyWaiting={isAlreadyWaiting(linkedBooth.id)}
+                  />
+                )}
+              </>
+            ) : null}
+          </>
+        )}
 
-      {sheetExpanded && linkedBooth && (
-        <div className="relative h-full overflow-hidden">
-          <div
-            className="h-full overflow-y-auto overscroll-none px-5 pt-4"
-            style={{ paddingBottom: isNight ? tabBarPbTall : tabBarPb }}
-          >
-            <BoothDetailContent
-              dark={dark}
-              type={isNight ? 'night' : 'day'}
-              name={linkedBooth.name}
-              description={boothDetail?.description ?? undefined}
-              operatingHours={boothDetail?.operatingHours ?? undefined}
-              sections={
-                selectedBoothCell ? [selectedBoothCell.slot] : undefined
-              }
-              category={
-                API_CAT_TO_KR[linkedBooth.category] ?? linkedBooth.category
-              }
-              area={selectedBoothZone.name}
-              menus={boothMenus}
-              circleColor={selectedBoothZone.color}
-            />
+        {sheetExpanded && linkedBooth && (
+          <div className="relative h-full overflow-hidden">
+            <div
+              className="h-full overflow-y-auto overscroll-none px-5 pt-4"
+              style={{ paddingBottom: isNight ? tabBarPbTall : tabBarPb }}
+            >
+              <BoothDetailContent
+                dark={dark}
+                type={isNight ? 'night' : 'day'}
+                name={linkedBooth.name}
+                description={boothDetail?.description ?? undefined}
+                operatingHours={boothDetail?.operatingHours ?? undefined}
+                sections={
+                  selectedBoothCell ? [selectedBoothCell.slot] : undefined
+                }
+                category={
+                  API_CAT_TO_KR[linkedBooth.category] ?? linkedBooth.category
+                }
+                area={selectedBoothZone.name}
+                menus={boothMenus}
+                circleColor={selectedBoothZone.color}
+              />
+            </div>
+            {isNight && (
+              <WaitingActions
+                sticky
+                onWaiting={() => onWaiting(linkedBooth.id)}
+                onAlreadyWaiting={() => onAlreadyWaiting(linkedBooth.id)}
+                alreadyWaiting={isAlreadyWaiting(linkedBooth.id)}
+              />
+            )}
           </div>
-          {isNight && (
-            <WaitingActions
-              sticky
-              onWaiting={() => onWaiting(linkedBooth.id)}
-              onAlreadyWaiting={() => onAlreadyWaiting(linkedBooth.id)}
-              alreadyWaiting={isAlreadyWaiting(linkedBooth.id)}
-            />
-          )}
-        </div>
+        )}
+      </MapSheet>
+      {toast && (
+        <Toast
+          bottom="bottom-6"
+          message={
+            toast === 'saved' ? '저장되었습니다' : '저장이 취소되었습니다'
+          }
+          icon={
+            toast === 'saved' ? (
+              <div className="flex size-8 items-center justify-center rounded-full bg-alert">
+                {I.star('#fff', '#fff')}
+              </div>
+            ) : (
+              <div className="flex size-8 items-center justify-center rounded-full bg-alert/20">
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                  <path
+                    d="M3 3l10 10M13 3L3 13"
+                    stroke="#FF6B6B"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+            )
+          }
+        />
       )}
-    </MapSheet>
+    </>
   )
 }

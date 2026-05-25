@@ -8,6 +8,7 @@ export function MapSheet({
   sheetDismissing,
   expanded,
   expandable = true,
+  favoriteButton,
   onTouchStart,
   onTouchMove,
   onTouchEnd,
@@ -18,6 +19,7 @@ export function MapSheet({
   sheetDismissing: boolean
   expanded: boolean
   expandable?: boolean
+  favoriteButton?: React.ReactNode
   onTouchStart: (e: React.TouchEvent<HTMLDivElement>) => void
   onTouchMove: (e: React.TouchEvent<HTMLDivElement>) => void
   onTouchEnd: (e: React.TouchEvent<HTMLDivElement>) => void
@@ -55,6 +57,7 @@ export function MapSheet({
           >
             <div className="size-4">{I.chev(undefined, 'l')}</div>
           </button>
+          {favoriteButton && <div className="ml-auto">{favoriteButton}</div>}
         </div>
       ) : (
         <div className="mx-auto mb-3 flex h-5 w-full items-center justify-center">

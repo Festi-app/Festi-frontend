@@ -127,44 +127,45 @@ export function BoothDetailContent({
         ]}
       />
 
-      {(() => {
-        const sectionLabel =
-          !isNight && !isTruck && category ? category : '메뉴'
-        const iGa = (w: string) =>
-          (w.charCodeAt(w.length - 1) - 0xac00) % 28 === 0 ? '가' : '이'
-        return (
-          <>
-            <SubHeader
-              title={sectionLabel}
-              right={
-                resolvedMenus.length > 0
-                  ? `총 ${resolvedMenus.length}종`
-                  : undefined
-              }
-            />
-            {resolvedMenus.length === 0 ? (
-              <div className="flex items-center justify-center rounded-[18px] bg-surface-alt py-6 text-[13px] text-ink-40">
-                등록된 {sectionLabel}
-                {iGa(sectionLabel)} 없어요
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2.5">
-                {resolvedMenus.map((m) => (
-                  <MenuItemCard
-                    key={m.id}
-                    name={m.name}
-                    description={m.description ?? ''}
-                    price={m.price}
-                    tone="leaf"
-                    isSoldOut={m.isSoldOut}
-                    showImage
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )
-      })()}
+      {menus !== undefined &&
+        (() => {
+          const sectionLabel =
+            !isNight && !isTruck && category ? category : '메뉴'
+          const iGa = (w: string) =>
+            (w.charCodeAt(w.length - 1) - 0xac00) % 28 === 0 ? '가' : '이'
+          return (
+            <>
+              <SubHeader
+                title={sectionLabel}
+                right={
+                  resolvedMenus.length > 0
+                    ? `총 ${resolvedMenus.length}종`
+                    : undefined
+                }
+              />
+              {resolvedMenus.length === 0 ? (
+                <div className="flex items-center justify-center rounded-[18px] bg-surface-alt py-6 text-[13px] text-ink-40">
+                  등록된 {sectionLabel}
+                  {iGa(sectionLabel)} 없어요
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {resolvedMenus.map((m) => (
+                    <MenuItemCard
+                      key={m.id}
+                      name={m.name}
+                      description={m.description ?? ''}
+                      price={m.price}
+                      tone="leaf"
+                      isSoldOut={m.isSoldOut}
+                      showImage
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )
+        })()}
     </>
   )
 }

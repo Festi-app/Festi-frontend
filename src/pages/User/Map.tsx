@@ -149,8 +149,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
       return festivalDaysList[selectedDayIndex]?.day ?? ''
     const s = new Date(festival.startDate + 'T00:00:00')
     s.setDate(s.getDate() + selectedDayIndex)
-    const dayStr = s.toISOString().slice(0, 10)
-    return festivalDaysList.find((d) => d.day === dayStr)?.day ?? ''
+    return `${s.getFullYear()}-${String(s.getMonth() + 1).padStart(2, '0')}-${String(s.getDate()).padStart(2, '0')}`
   }, [festival?.startDate, selectedDayIndex, festivalDaysList])
   const { data: locations = [] } = useLocations({
     day: currentApiDay,
@@ -164,19 +163,35 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
     day: currentApiDay,
     type: 'NIGHT',
   })
+  const { data: truckListLocations = [] } = useLocations({
+    day: currentApiDay,
+    type: 'FOOD_TRUCK',
+  })
+
+  const zoneLabelToId = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const z of [...ZONES, ...NIGHT_ZONES]) {
+      map[z.name] = z.id
+      map[`${z.id} ${z.name}`] = z.id
+    }
+    for (const z of TRUCK_ZONES) {
+      map[z.name] = z.id
+    }
+    return map
+  }, [])
 
   const locationsByZone = useMemo(() => {
     const map: Record<string, GetLocationsResponseDto[]> = {}
     for (const loc of locations) {
-      const zoneChar = loc.zoneLabel
-      if (!map[zoneChar]) map[zoneChar] = []
-      map[zoneChar].push(loc)
+      const zoneId = zoneLabelToId[loc.zoneLabel] ?? loc.zoneLabel
+      if (!map[zoneId]) map[zoneId] = []
+      map[zoneId].push(loc)
     }
     for (const key of Object.keys(map)) {
       map[key].sort((a, b) => a.index - b.index)
     }
     return map
-  }, [locations])
+  }, [locations, zoneLabelToId])
 
   const activeMapRatio =
     mapView === 'day'
@@ -294,7 +309,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
       .map((l) => ({
         id: l.boothSummary!.id,
         name: l.boothSummary!.name,
-        zoneId: l.zoneLabel,
+        zoneId: zoneLabelToId[l.zoneLabel] ?? l.zoneLabel,
         type,
         category:
           API_CAT_TO_KR[l.boothSummary!.category] ?? l.boothSummary!.category,
@@ -306,7 +321,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
       ? toMarkers(dayListLocations, 'day')
       : listTab === 'night'
         ? toMarkers(nightListLocations, 'night')
-        : []
+        : toMarkers(truckListLocations, 'truck')
   const listMarkers = listCatFilter
     ? listMarkersBase.filter((m) => m.category === listCatFilter)
     : listMarkersBase

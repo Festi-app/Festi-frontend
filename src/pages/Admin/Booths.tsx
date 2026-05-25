@@ -7,10 +7,7 @@ import { AdminTopBar } from '../../components/Admin/AdminTopBar'
 import { AdminBtn } from '../../components/Admin/AdminBtn'
 import { BoothConfigureSidebar } from '../../components/Admin/Booth/BoothConfigure/BoothConfigureSidebar'
 import { BoothAssignSidebar } from '../../components/Admin/Booth/BoothAssign/BoothAssignSidebar'
-import {
-  type OrgAccount,
-  CATEGORY_COLORS,
-} from '../../components/Admin/Booth/boothShared'
+import { type OrgAccount } from '../../components/Admin/Booth/boothShared'
 import { cn } from '../../lib/cn'
 import soongsilDayMap from '../../assets/soongsil-day-map.png'
 import soongsilNightMap from '../../assets/soongsil-night-map.png'
@@ -261,7 +258,7 @@ export function AdminBooths() {
       sections: assignModal.sections,
       orgId,
       orgName: org.name,
-      color: CATEGORY_COLORS[category],
+      color: org.color,
       category,
       day: selectedDay,
       time: selectedTime,

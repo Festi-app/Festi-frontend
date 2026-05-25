@@ -2,15 +2,6 @@ import type { ZoneDef } from '../../../data/zones'
 import type { GetLocationsResponseDto } from '../../../features/Map/types/LocationsResponseDto'
 import { FESTIV_TOKENS } from '../../../tokens'
 
-const CAT_COLOR_MAP: Record<string, string> = {
-  ACTIVITY: FESTIV_TOKENS.pop,
-  INFO: FESTIV_TOKENS.mint,
-  MARKET: FESTIV_TOKENS.sun,
-  EXPERIENCE: FESTIV_TOKENS.grape,
-  PROMOTION: FESTIV_TOKENS.coral,
-  ALCOHOL: FESTIV_TOKENS.alert,
-}
-
 interface Props {
   activeBoothZones: ZoneDef[]
   locationsByZone: Record<string, GetLocationsResponseDto[]>
@@ -42,42 +33,45 @@ export function MapDayNightZones({
               border: '1.5px solid rgba(20,26,31,0.22)',
             }}
           >
-            {zoneLocations.map((loc, gi) => {
-              const booth = loc.boothSummary
-              const isLast = gi === zoneLocations.length - 1
-              const isSelected =
-                selectedBoothCell?.zoneId === zone.id &&
-                selectedBoothCell.slot === loc.index
-              const slotColor = booth
-                ? (CAT_COLOR_MAP[booth.category] ?? zone.color)
-                : 'transparent'
-              return (
-                <button
-                  key={loc.index}
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onSelectCell(zone.id, loc.index, !!booth)
-                  }}
-                  className="relative flex min-h-0 min-w-0 select-none items-center justify-center overflow-hidden text-[7px] font-extrabold transition-[background,box-shadow,opacity]"
-                  style={{
-                    flex: 1,
-                    background: slotColor,
-                    color: FESTIV_TOKENS.ink,
-                    boxShadow: isSelected
-                      ? 'inset 0 0 0 2px rgba(255,255,255,0.95), 0 0 0 1px rgba(20,26,31,0.2)'
-                      : undefined,
-                    ...(isLast
-                      ? {}
-                      : zone.dir === 'row'
-                        ? { borderRight: '1.5px solid rgba(20,26,31,0.22)' }
-                        : { borderBottom: '1.5px solid rgba(20,26,31,0.22)' }),
-                  }}
-                >
-                  {loc.index}
-                </button>
-              )
-            })}
+            {Array.from({ length: zone.defaultCount }, (_, i) => i + 1).map(
+              (slotIndex) => {
+                const loc = zoneLocations.find((l) => l.index === slotIndex)
+                const booth = loc?.boothSummary ?? null
+                const isLast = slotIndex === zone.defaultCount
+                const isSelected =
+                  selectedBoothCell?.zoneId === zone.id &&
+                  selectedBoothCell.slot === slotIndex
+                const slotColor = booth ? zone.color : 'transparent'
+                return (
+                  <button
+                    key={slotIndex}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onSelectCell(zone.id, slotIndex, !!booth)
+                    }}
+                    className="relative flex min-h-0 min-w-0 select-none items-center justify-center overflow-hidden text-[7px] font-extrabold transition-[background,box-shadow,opacity]"
+                    style={{
+                      flex: 1,
+                      background: slotColor,
+                      color: FESTIV_TOKENS.ink,
+                      boxShadow: isSelected
+                        ? 'inset 0 0 0 2px rgba(255,255,255,0.95), 0 0 0 1px rgba(20,26,31,0.2)'
+                        : undefined,
+                      ...(isLast
+                        ? {}
+                        : zone.dir === 'row'
+                          ? { borderRight: '1.5px solid rgba(20,26,31,0.22)' }
+                          : {
+                              borderBottom: '1.5px solid rgba(20,26,31,0.22)',
+                            }),
+                    }}
+                  >
+                    {slotIndex}
+                  </button>
+                )
+              }
+            )}
           </div>
         )
       })}
