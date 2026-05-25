@@ -77,13 +77,6 @@ export function AdminSidebar({ active }: { active: string }) {
     to: string
   }> = [
     {
-      id: 'home',
-      label: '대시보드',
-      icon: I.home,
-      badge: null,
-      to: ROUTES.HOME,
-    },
-    {
       id: 'festival',
       label: '축제 설정',
       icon: I.settings,
