@@ -7,5 +7,7 @@ export function useMyBoothApplication() {
     queryKey: boothApplicationKeys.mine(),
     queryFn: getMyBoothApplication,
     retry: false,
+    staleTime: 0,
+    gcTime: 0,
   })
 }

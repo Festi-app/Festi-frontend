@@ -78,10 +78,11 @@ export function UserWaitingDetail({
                 <div className="text-[15px] font-extrabold tracking-[-0.3px] text-ink">
                   {boothName}
                 </div>
-                <div className="mt-0.5 text-xs text-ink-60">
-                  {booth?.location ?? ''}
-                  {boothId && ` · #${boothId}`}
-                </div>
+                {booth?.operatingHours && (
+                  <div className="mt-0.5 text-xs text-ink-60">
+                    {booth.operatingHours}
+                  </div>
+                )}
               </div>
               <button
                 type="button"

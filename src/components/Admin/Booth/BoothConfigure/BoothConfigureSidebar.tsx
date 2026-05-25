@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ZONES, NIGHT_ZONES } from '../../../../data/zones'
 import { TRUCK_ZONES } from '../../../../stores/useTruckPlacementStore'
 import { useBoothSectionStore } from '../../../../stores/useBoothSectionStore'
@@ -9,7 +9,16 @@ import { cn } from '../../../../lib/cn'
 import { GroupHeader } from './GroupHeader'
 import { ZoneRow } from './ZoneRow'
 
-export function BoothConfigureSidebar({ onSave }: { onSave: () => void }) {
+export function BoothConfigureSidebar({
+  onSave,
+  onDraftChange,
+}: {
+  onSave: () => void
+  onDraftChange?: (
+    divisions: Record<string, number>,
+    truckSlots: Record<string, number>
+  ) => void
+}) {
   const {
     zoneDivisions,
     setZoneDivisions,
@@ -31,6 +40,10 @@ export function BoothConfigureSidebar({ onSave }: { onSave: () => void }) {
   const [showConfirm, setShowConfirm] = useState(false)
 
   const allZones = [...ZONES, ...NIGHT_ZONES]
+
+  useEffect(() => {
+    onDraftChange?.(draftDivisions, draftTruckSlots)
+  }, [draftDivisions, draftTruckSlots]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function changeDayNight(zoneId: string, delta: number) {
     const zone = allZones.find((z) => z.id === zoneId)
