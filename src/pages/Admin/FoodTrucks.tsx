@@ -449,19 +449,19 @@ function TruckEditorForm({
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2 px-1">
+                <div
+                  className={cn('grid items-center gap-2 px-1', MENU_GRID_COLS)}
+                >
                   <div className="text-[11px] font-bold text-ink-40">
                     메뉴명
                   </div>
-                  <div className="w-28 text-[11px] font-bold text-ink-40">
-                    가격
-                  </div>
-                  <div className="size-6" />
+                  <div className="text-[11px] font-bold text-ink-40">가격</div>
+                  <div className="w-14" />
                 </div>
                 {draftMenus.map((m) => (
                   <div
                     key={m.localId}
-                    className="grid grid-cols-[1fr_auto_auto] items-center gap-2"
+                    className={cn('grid items-center gap-2', MENU_GRID_COLS)}
                   >
                     <input
                       value={m.name}
@@ -475,35 +475,39 @@ function TruckEditorForm({
                         )
                       }
                       placeholder="메뉴명"
-                      className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+                      className="min-w-0 w-full rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
                     />
                     <input
                       value={m.price}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       onChange={(e) =>
                         setDraftMenus((prev) =>
                           prev.map((d) =>
                             d.localId === m.localId
-                              ? { ...d, price: e.target.value }
+                              ? { ...d, price: onlyDigits(e.target.value) }
                               : d
                           )
                         )
                       }
                       placeholder="가격"
-                      className="w-28 rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+                      className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
                     />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setDraftMenus((prev) =>
-                          prev.filter((d) => d.localId !== m.localId)
-                        )
-                      }
-                      className="flex size-6 shrink-0 items-center justify-center rounded-lg text-ink-40 hover:text-alert"
-                    >
-                      <div className="size-3.5">
-                        {I.trash(FESTIV_TOKENS.ink40)}
-                      </div>
-                    </button>
+                    <div className="flex w-14 justify-end">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDraftMenus((prev) =>
+                            prev.filter((d) => d.localId !== m.localId)
+                          )
+                        }
+                        className="flex size-6 shrink-0 items-center justify-center rounded-lg text-ink-40 hover:text-alert"
+                      >
+                        <div className="size-3.5">
+                          {I.trash(FESTIV_TOKENS.ink40)}
+                        </div>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -515,14 +519,10 @@ function TruckEditorForm({
           ) : (
             <div className="flex flex-col gap-2">
               {(menus.length > 0 || pendingMenus.length > 0) && (
-                <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2 px-1">
-                  <div className="text-[11px] font-bold text-ink-40">
-                    메뉴명
-                  </div>
-                  <div className="w-28 text-[11px] font-bold text-ink-40">
-                    가격
-                  </div>
-                  <div className="size-6" />
+                <div className={cn('grid items-center gap-2 px-1', MENU_GRID_COLS)}>
+                  <div className="text-[11px] font-bold text-ink-40">메뉴명</div>
+                  <div className="text-[11px] font-bold text-ink-40">가격</div>
+                  <div className="w-14" />
                 </div>
               )}
               {menus.map((menu) => (
@@ -532,9 +532,7 @@ function TruckEditorForm({
                   onUpdate={(menuId, body) =>
                     updateMenu(
                       { menuId, body },
-                      {
-                        onSuccess: () => showMenuToast('메뉴가 수정되었습니다'),
-                      }
+                      { onSuccess: () => showMenuToast('메뉴가 수정되었습니다') }
                     )
                   }
                   onDelete={(menuId) => {
@@ -547,7 +545,7 @@ function TruckEditorForm({
               {pendingMenus.map((m) => (
                 <div
                   key={m.localId}
-                  className="grid grid-cols-[1fr_auto_auto] items-center gap-2"
+                  className={cn('grid items-center gap-2', MENU_GRID_COLS)}
                 >
                   <input
                     autoFocus
@@ -562,23 +560,25 @@ function TruckEditorForm({
                       )
                     }
                     placeholder="메뉴명"
-                    className="w-full rounded-xl border border-cta/50 bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+                    className="min-w-0 w-full rounded-xl border border-cta/50 bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
                   />
                   <input
                     value={m.price}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     onChange={(e) =>
                       setPendingMenus((prev) =>
                         prev.map((d) =>
                           d.localId === m.localId
-                            ? { ...d, price: e.target.value }
+                            ? { ...d, price: onlyDigits(e.target.value) }
                             : d
                         )
                       )
                     }
                     placeholder="가격"
-                    className="w-28 rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+                    className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-[13px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
                   />
-                  <div className="flex gap-1">
+                  <div className="flex w-14 justify-end gap-1">
                     <button
                       type="button"
                       onClick={() => commitPending(m.localId, m.name, m.price)}
@@ -596,9 +596,7 @@ function TruckEditorForm({
                       }
                       className="flex size-6 shrink-0 items-center justify-center rounded-lg text-ink-40 hover:text-alert"
                     >
-                      <div className="size-3.5">
-                        {I.trash(FESTIV_TOKENS.ink40)}
-                      </div>
+                      <div className="size-3.5">{I.trash(FESTIV_TOKENS.ink40)}</div>
                     </button>
                   </div>
                 </div>

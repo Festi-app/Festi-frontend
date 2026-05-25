@@ -122,9 +122,7 @@ export function UserWaitingRegister({ id }: { dark?: boolean; id?: string }) {
         {/* Booth card */}
         <button
           type="button"
-          onClick={() =>
-            id && navigate(boothUrl(boothTypeView.param, id))
-          }
+          onClick={() => id && navigate(boothUrl(boothTypeView.param, id))}
           className="flex w-full gap-3 rounded-[18px] border border-border bg-surface p-3 text-left"
         >
           <div className="size-14 shrink-0 overflow-hidden rounded-[14px]">
