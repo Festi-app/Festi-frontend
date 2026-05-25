@@ -64,6 +64,8 @@ export function UserWaitingDetail({
             dark={dark}
             boothName={boothName}
             registered={registered}
+            waitNo={waiting.position}
+            callNo={waiting.currentCallPosition}
             onCancel={() => setConfirmCancel(true)}
           />
         )}
@@ -78,11 +80,6 @@ export function UserWaitingDetail({
                 <div className="text-[15px] font-extrabold tracking-[-0.3px] text-ink">
                   {boothName}
                 </div>
-                {booth?.operatingHours && (
-                  <div className="mt-0.5 text-xs text-ink-60">
-                    {booth.operatingHours}
-                  </div>
-                )}
               </div>
               <button
                 type="button"
@@ -96,7 +93,7 @@ export function UserWaitingDetail({
               {[
                 {
                   l: '운영 상태',
-                  v: booth?.isWaitingOpen ? '웨이팅 중' : '웨이팅 마감',
+                  v: booth?.isWaitingOpen ? '웨이팅 가능' : '웨이팅 마감',
                 },
                 {
                   l: '운영 시간',

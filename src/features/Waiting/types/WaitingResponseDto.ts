@@ -9,4 +9,6 @@ export interface WaitingResponseDto {
   status: WaitingStatus
   callCount: number
   registeredAt: string
+  position?: number | null
+  currentCallPosition?: number | null
 }

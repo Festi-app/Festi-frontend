@@ -71,7 +71,7 @@ export function WaitingCarousel() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="mb-0.5 text-[11px] font-semibold opacity-75">
-                    {isCalled ? '호출됨' : '웨이팅 진행 중'}
+                    {isCalled ? `${w.callCount}번 호출됨` : '웨이팅 진행 중'}
                   </div>
                   <div className="flex items-center gap-1.5 text-[15px] font-bold tracking-[-0.3px]">
                     {isCalled && (
@@ -83,7 +83,7 @@ export function WaitingCarousel() {
                       />
                     )}
                     {boothName}
-                    {isCalled ? ' · 지금 호출됨!' : ` · ${w.partySize}명`}
+                    {isCalled ? ' · 호출됨' : ` · ${w.partySize}명`}
                   </div>
                 </div>
                 <div

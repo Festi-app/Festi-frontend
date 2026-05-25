@@ -2,14 +2,36 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I, PhotoSlot } from '../../tokens'
 import { boothUrl } from '../../constants/routes'
-import { NIGHT_BOOTHS } from '../../data/booths'
-import { getBoothZoneName } from '../../data/zones'
+import { useLocations } from '../../features/Map/hooks/useLocations'
+import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
+import { getZoneName } from '../../lib/format'
 
-const BOOTHS = NIGHT_BOOTHS.filter((b) => (b.wait ?? 0) <= 2)
+const _d = new Date()
+const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`
 
 export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
   const navigate = useNavigate()
   const [spinning, setSpinning] = useState(false)
+
+  function handleRefresh() {
+    setSpinning(true)
+    refetch()
+  }
+
+  const { data: festivalDaysList = [] } = useFestivalDays()
+  const todayFestivalDay =
+    festivalDaysList.find((d) => d.day === todayStr)?.day ?? ''
+  const { data: nightLocations = [], refetch } = useLocations({
+    day: todayFestivalDay,
+    type: 'NIGHT',
+  })
+
+  const booths = nightLocations.filter(
+    (loc) =>
+      loc.boothSummary !== null &&
+      loc.boothSummary.isWaitingOpen &&
+      (loc.boothSummary.waitingTeamCount ?? Infinity) <= 2
+  )
 
   return (
     <>
@@ -33,7 +55,7 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
           </div>
           <button
             type="button"
-            onClick={() => setSpinning(true)}
+            onClick={handleRefresh}
             onAnimationEnd={() => setSpinning(false)}
             className="flex size-8 items-center justify-center rounded-full border border-border bg-surface-alt p-1.5 text-ink-60"
             style={
@@ -46,7 +68,7 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
           </button>
         </div>
       )}
-      {BOOTHS.length === 0 ? (
+      {booths.length === 0 ? (
         <div
           className={`mx-5 flex items-center justify-center rounded-[18px] border border-border bg-surface py-6 text-[13px] text-ink-40 ${compact ? '' : 'mb-6'}`}
         >
@@ -56,11 +78,13 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
         <div
           className={`flex gap-3 overflow-x-auto px-5 pb-1 ${compact ? 'mb-0' : 'mb-6'}`}
         >
-          {BOOTHS.map((b) => {
+          {booths.map((loc) => {
+            const b = loc.boothSummary!
+            const wait = b.waitingTeamCount ?? 0
             const badgeBg =
-              b.wait === 0
+              wait === 0
                 ? FESTIV_TOKENS.pop
-                : b.wait === 1
+                : wait === 1
                   ? '#A3E635'
                   : FESTIV_TOKENS.sun
             return (
@@ -71,22 +95,29 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
                 className="w-36 shrink-0 rounded-[20px] border border-border bg-surface p-2.5 text-left transition-transform duration-100 active:scale-[0.97]"
               >
                 <div className="relative mb-2.5">
-                  <PhotoSlot label="" tone={b.tone} ratio="1/1" radius={14} />
-                  <div className="absolute top-2 left-2 rounded-full bg-[rgba(15,42,51,0.85)] px-2 py-0.75 text-[11px] font-bold text-white">
-                    #{(b.sections?.[0] ?? 0) + 1}
-                  </div>
+                  <PhotoSlot
+                    label=""
+                    tone={undefined}
+                    ratio="1/1"
+                    radius={14}
+                  />
+                  {loc.index != null && (
+                    <div className="absolute top-2 left-2 rounded-full bg-[rgba(15,42,51,0.85)] px-2 py-0.75 text-[11px] font-bold text-white">
+                      #{loc.index + 1}
+                    </div>
+                  )}
                   <div
                     className="absolute right-2 bottom-2 rounded-full px-2 py-0.75 text-[11px] font-bold text-[#141A1F]"
                     style={{ background: badgeBg }}
                   >
-                    {b.wait === 0 ? '바로 입장' : `${b.wait}팀`}
+                    {wait === 0 ? '바로 입장' : `${wait}팀`}
                   </div>
                 </div>
                 <div className="text-sm font-bold leading-[1.2] tracking-[-0.3px] text-ink">
                   {b.name}
                 </div>
                 <div className="mt-1 text-[11px] text-ink-60">
-                  {getBoothZoneName(b)}
+                  {getZoneName(loc.zoneLabel)}
                 </div>
               </button>
             )

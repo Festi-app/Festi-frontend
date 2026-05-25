@@ -4,7 +4,6 @@ import { ROUTES } from '../../constants/routes'
 import { ADMIN_STEPS } from '../../constants/queryParams'
 import { AdminShell } from '../../components/Admin/AdminShell'
 import { AdminTopBar } from '../../components/Admin/AdminTopBar'
-import { AdminBtn } from '../../components/Admin/AdminBtn'
 import { AdminModal } from '../../components/Admin/AdminModal'
 import { AdminToast } from '../../components/Admin/AdminToast'
 import { useBoothSectionStore } from '../../stores/useBoothSectionStore'
@@ -209,11 +208,6 @@ export function AdminBoothRequests() {
       <AdminTopBar
         title="부스 신청 관리"
         sub={`총 ${applications.length}건 · 대기 ${pending.length}건`}
-        right={
-          <AdminBtn ghost icon={I.bell()}>
-            알림 설정
-          </AdminBtn>
-        }
       />
 
       <div className="flex gap-1.5 border-b border-border bg-surface px-6 pt-4 pb-0">

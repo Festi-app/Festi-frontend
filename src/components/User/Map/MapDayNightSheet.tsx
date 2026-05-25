@@ -129,7 +129,11 @@ export function MapDayNightSheet({
                   />
                 )}
               </>
-            ) : null}
+            ) : (
+              <div className="flex items-center justify-center py-6 text-[13px] text-ink-40">
+                등록된 부스가 없어요
+              </div>
+            )}
           </>
         )}
 

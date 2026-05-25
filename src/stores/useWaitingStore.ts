@@ -8,7 +8,7 @@ export type ActiveWaiting = {
   boothSections?: number[]
   registered: string
   waitNo?: number | null
-  callNo?: number | null
+  callCount?: number | null
   progressPct?: number
   aheadTeams?: number
 }
