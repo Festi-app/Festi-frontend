@@ -1,14 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import {
   Routes,
   Route,
   Navigate,
-  NavLink,
   useLocation,
   useSearchParams,
 } from 'react-router-dom'
-import { FestivMark, FestivWordmark } from './components/Logo'
 import { useUI } from './stores/useUIStore'
 import { UserNavBar } from './components/User/UserNavbar'
 
@@ -38,7 +36,7 @@ import { UserWaitingDetail } from './pages/User/UserWaitingDetail'
 import { UserWaitingStatus } from './pages/User/UserWaitingStatus'
 import { UserBoothDetail } from './pages/User/Booth/UserBoothDetail'
 import { UserBoothList } from './pages/User/Booth/UserBoothList'
-import { ROUTES, boothUrl, boothListUrl } from './constants/routes'
+import { ROUTES, boothUrl } from './constants/routes'
 
 // ── Auth helpers ─────────────────────────────────────────────────────────
 
@@ -69,24 +67,6 @@ function RequireRole({
   return <>{children}</>
 }
 
-// ── Standalone (PWA home screen) detection ────────────────────────────────
-
-function isStandalone(): boolean {
-  return (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as { standalone?: boolean }).standalone === true
-  )
-}
-
-const IS_STANDALONE = isStandalone()
-
-const STANDALONE_STYLE = IS_STANDALONE
-  ? {
-      marginTop: 'calc(3.5rem + env(safe-area-inset-top))',
-      height: 'calc(100svh - 3.5rem - env(safe-area-inset-top))',
-    }
-  : undefined
-
 // ── Dark mode class sync ──────────────────────────────────────────────────
 
 function DarkSync(): null {
@@ -97,212 +77,19 @@ function DarkSync(): null {
   return null
 }
 
-// function AdminOnly({ children }: { children: ReactNode }) {
-//   const { pathname } = useLocation()
-//   if (!pathname.startsWith('/admin') && !pathname.startsWith('/booth-admin'))
-//     return null
-//   return <>{children}</>
-// }
-
-function FestivLogo({ large }: { large?: boolean }) {
-  return (
-    <div className="flex items-center gap-1">
-      <FestivMark size={large ? 24 : 18} color="currentColor" />
-      <FestivWordmark size={large ? 18 : 14} color="currentColor" />
-    </div>
-  )
-}
-
-// ── Nav ───────────────────────────────────────────────────────────────────
-
-const NAV_SECTIONS = [
-  {
-    title: '유저',
-    links: [
-      { to: ROUTES.SPLASH, label: '로딩 화면' },
-      { to: ROUTES.OFF_SEASON, label: '비축제 기간' },
-      { to: ROUTES.LOGIN, label: '로그인' },
-      { to: ROUTES.ONBOARDING, label: '회원가입' },
-      { to: ROUTES.HOME, label: '홈' },
-      { to: ROUTES.MAP, label: '배치도' },
-      { to: ROUTES.WAITING, label: '웨이팅' },
-      { to: ROUTES.MY, label: '마이' },
-      { to: ROUTES.WAITING_REGISTER, label: '웨이팅 등록' },
-      { to: ROUTES.WAITING_DETAIL, label: '웨이팅 상세' },
-      { to: boothListUrl('day'), label: '주간 부스 목록' },
-      { to: boothListUrl('night'), label: '야간 부스 목록' },
-      { to: boothListUrl('truck'), label: '푸드트럭 목록' },
-      { to: boothUrl('day'), label: '주간 부스 상세' },
-      { to: ROUTES.BOOTH, label: '야간 부스 상세' },
-      { to: boothUrl('truck'), label: '푸드트럭 상세' },
-    ],
-  },
-  {
-    title: '관리자',
-    links: [
-      { to: ROUTES.ADMIN.FESTIVAL, label: '축제 설정' },
-      { to: ROUTES.ADMIN.BOOTHS, label: '부스 배치' },
-      { to: ROUTES.ADMIN.TRUCKS, label: '푸드트럭' },
-      { to: ROUTES.ADMIN.BOOTH_REQUESTS, label: '부스 신청 관리' },
-      { to: ROUTES.ADMIN.TIMETABLE, label: '공연 타임테이블' },
-      { to: ROUTES.ADMIN.NOTICES, label: '공지 관리' },
-    ],
-  },
-  {
-    title: '부스 관리자',
-    links: [
-      { to: ROUTES.BOOTH_ADMIN.LOGIN, label: '로그인' },
-      { to: ROUTES.BOOTH_ADMIN.REGISTER, label: '회원가입' },
-      { to: ROUTES.BOOTH_ADMIN.DASHBOARD, label: '대시보드' },
-    ],
-  },
-]
-
-const ALL_NAV_LINKS = NAV_SECTIONS.flatMap((s) => s.links)
-
-function NavLinks({ onClick, User }: { onClick?: () => void; User?: boolean }) {
-  return (
-    <>
-      {NAV_SECTIONS.map((section) => (
-        <div key={section.title} className={User ? 'mb-2' : 'mb-3'}>
-          <div
-            className={`px-2.5 font-bold tracking-wider text-ink-40 ${
-              User ? 'pb-1 pt-2 text-[10px]' : 'pb-1.5 text-[9px]'
-            }`}
-          >
-            {section.title.toUpperCase()}
-          </div>
-          {section.links.map((l) => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              end
-              onClick={onClick}
-              className={({ isActive }) =>
-                `block rounded-lg no-underline ${
-                  User ? 'px-3 py-2.5 text-sm' : 'px-2.5 py-2 text-xs'
-                } ${
-                  isActive
-                    ? 'bg-mint font-bold text-[#141A1F]'
-                    : 'font-medium text-ink-60'
-                }`
-              }
-            >
-              {l.label}
-            </NavLink>
-          ))}
-        </div>
-      ))}
-    </>
-  )
-}
-
-const NO_NAV_ROUTES = [ROUTES.SPLASH, ROUTES.LOGIN, ROUTES.ONBOARDING]
-
-function Nav() {
-  const [open, setOpen] = useState(false)
-  const { pathname } = useLocation()
-  const isAdmin =
-    pathname.startsWith('/admin') || pathname.startsWith('/booth-admin')
-  if (NO_NAV_ROUTES.includes(pathname as (typeof NO_NAV_ROUTES)[number]))
-    return null
-  if (IS_STANDALONE) {
-    return (
-      <div
-        className="fixed top-0 right-0 left-0 z-50 bg-surface font-festi"
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
-      >
-        <div className="flex h-14 items-center px-4 text-ink">
-          <FestivLogo large />
-        </div>
-      </div>
-    )
-  }
-  return (
-    <>
-      {/* Desktop sidebar */}
-      <nav className="fixed top-0 bottom-0 left-0 z-50 hidden w-45 flex-col overflow-y-auto border-r border-border bg-surface px-2.5 py-4 font-festi md:flex">
-        <div className="px-2 pb-3 text-[#141A1F] dark:text-white">
-          <FestivLogo />
-        </div>
-        <NavLinks />
-      </nav>
-
-      {/* User top bar */}
-      <div className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center bg-surface px-4 font-festi md:hidden">
-        <div className="text-[#141A1F] dark:text-white">
-          <FestivLogo large />
-        </div>
-        <div className="flex-1" />
-        {isAdmin && (
-          <button
-            onClick={() => setOpen((o) => !o)}
-            className="flex h-9 w-9 cursor-pointer items-center justify-center text-ink"
-          >
-            <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-              <line
-                x1="3"
-                y1="7"
-                x2="21"
-                y2="7"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-              <line
-                x1="3"
-                y1="12"
-                x2="21"
-                y2="12"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-              <line
-                x1="3"
-                y1="17"
-                x2="21"
-                y2="17"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        )}
-      </div>
-
-      {/* User dropdown */}
-      {isAdmin && open && (
-        <div className="fixed top-14 right-0 left-0 z-50 max-h-[70vh] overflow-y-auto border-b border-border bg-surface px-3 py-2 font-festi shadow-xl md:hidden">
-          <NavLinks User onClick={() => setOpen(false)} />
-        </div>
-      )}
-    </>
-  )
-}
-
-// tree-shake unused export
-export { ALL_NAV_LINKS }
-
 // ── Layout wrappers ───────────────────────────────────────────────────────
 
 function UserLayout({
   children,
   footer,
-  noHeader,
 }: {
   children: ReactNode
   footer?: ReactNode
-  noHeader?: boolean
 }) {
   const { key } = useLocation()
   return (
-    <div className="min-h-screen overflow-hidden bg-bg md:ml-45 md:flex md:items-start md:justify-center md:px-6 md:py-10">
-      <div
-        className={`relative w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)] ${noHeader ? 'h-svh' : 'mt-14 h-[calc(100svh-3.5rem)]'}`}
-        style={STANDALONE_STYLE}
-      >
+    <div className="min-h-screen overflow-hidden bg-bg md:flex md:items-start md:justify-center md:px-6 md:py-10">
+      <div className="relative h-svh w-full overflow-hidden md:mt-0 md:h-211 md:w-97.5 md:shrink-0 md:rounded-3xl md:shadow-[0_24px_80px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.08)]">
         <div
           key={key}
           className="h-full w-full"
@@ -335,11 +122,7 @@ function UserTabLayout({
 }
 
 function AdminLayout({ children }: { children: ReactNode }) {
-  return (
-    <div className="h-screen overflow-hidden bg-bg pt-14 md:ml-45 md:pt-0">
-      {children}
-    </div>
-  )
+  return <div className="h-screen overflow-hidden bg-bg">{children}</div>
 }
 
 // ── Route components ──────────────────────────────────────────────────────
@@ -426,7 +209,7 @@ function MyRoute() {
 function LoginRoute() {
   const { dark } = useUI()
   return (
-    <UserLayout noHeader>
+    <UserLayout>
       <UserLogin dark={dark} />
     </UserLayout>
   )
@@ -434,7 +217,7 @@ function LoginRoute() {
 function OnboardingRoute() {
   const { dark } = useUI()
   return (
-    <UserLayout noHeader>
+    <UserLayout>
       <UserOnboarding dark={dark} />
     </UserLayout>
   )
@@ -527,7 +310,6 @@ export default function App() {
   return (
     <>
       <DarkSync />
-      <Nav />
       <Routes>
         <Route
           path={ROUTES.ROOT}
