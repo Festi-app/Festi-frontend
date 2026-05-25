@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { postMenu } from '../apis/postMenu'
 import { menuKeys } from './useMenus'
+import { boothKeys } from '../../Booth/hooks/useBooths'
 import type { MenusResponseDto } from '../types/MenusResponseDto'
 
 export function useCreateMenu(boothId: string) {
@@ -10,6 +11,7 @@ export function useCreateMenu(boothId: string) {
     mutationFn: (body: Omit<MenusResponseDto, 'id'>) => postMenu(boothId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: menuKeys.list(boothId) })
+      queryClient.invalidateQueries({ queryKey: boothKeys.menus(boothId) })
     },
   })
 }

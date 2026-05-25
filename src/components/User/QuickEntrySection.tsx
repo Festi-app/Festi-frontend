@@ -1,11 +1,17 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FESTIV_TOKENS, I, PhotoSlot } from '../../tokens'
+import { API_BASE } from '../../constants/endpoints'
 import { boothUrl } from '../../constants/routes'
 import { useLocations } from '../../features/Map/hooks/useLocations'
 import { useBooths } from '../../features/Booth/hooks/useBooths'
 import { useFestivalDays } from '../../features/Festival/hooks/useFestivalDays'
 import { getZoneName } from '../../lib/format'
+
+function resolveUrl(url: string | null | undefined) {
+  if (!url) return null
+  return url.startsWith('/') ? `${API_BASE}${url}` : url
+}
 
 const _d = new Date()
 const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`
@@ -88,6 +94,7 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
         >
           {booths.map(({ booth, location }) => {
             const wait = booth.waitingTeamCount ?? 0
+            const imageUrl = resolveUrl(booth.imageUrl)
             const badgeBg =
               wait === 0
                 ? FESTIV_TOKENS.pop
@@ -102,12 +109,26 @@ export function QuickEntrySection({ compact = false }: { compact?: boolean }) {
                 className="w-36 shrink-0 rounded-[20px] border border-border bg-surface p-2.5 text-left transition-transform duration-100 active:scale-[0.97]"
               >
                 <div className="relative mb-2.5">
-                  <PhotoSlot
-                    label=""
-                    tone={undefined}
-                    ratio="1/1"
-                    radius={14}
-                  />
+                  <div className="overflow-hidden rounded-[14px]">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt=""
+                        className="aspect-square w-full object-cover"
+                        onError={(e) => {
+                          ;(e.target as HTMLImageElement).style.display =
+                            'none'
+                        }}
+                      />
+                    ) : (
+                      <PhotoSlot
+                        label=""
+                        tone={undefined}
+                        ratio="1/1"
+                        radius={14}
+                      />
+                    )}
+                  </div>
                   {location?.index != null && (
                     <div className="absolute top-2 left-2 rounded-full bg-[rgba(15,42,51,0.85)] px-2 py-0.75 text-[11px] font-bold text-white">
                       #{location.index + 1}
