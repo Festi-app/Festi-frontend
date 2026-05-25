@@ -95,6 +95,7 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
             </div>
           )}
 
+<<<<<<< Updated upstream
           {pushSupported &&
             !isSubscribed &&
             Notification.permission !== 'denied' && (
@@ -120,6 +121,24 @@ export function UserWaitingStatus({ dark = false }: { dark?: boolean }) {
                 </div>
               </button>
             )}
+=======
+          {pushSupported && Notification.permission !== 'denied' && (
+            <div className="mt-3.5 flex w-full items-center gap-3 rounded-[18px] border border-border bg-surface p-3.5">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface-alt text-ink-60">
+                {I.bell()}
+              </div>
+              <div className="flex-1">
+                <div className="text-[13px] font-bold tracking-[-0.2px] text-ink">
+                  호출 알림 받기
+                </div>
+                <div className="mt-0.5 text-xs text-ink-60">
+                  호출 시 브라우저 알림으로 바로 알려드려요
+                </div>
+              </div>
+              <Switch on={isSubscribed} onClick={handleToggleNotification} />
+            </div>
+          )}
+>>>>>>> Stashed changes
 
           <div className="flex items-center justify-between px-0.5 pb-2 pt-5">
             <div className="flex items-center gap-1.5">

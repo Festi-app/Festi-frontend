@@ -41,6 +41,32 @@ const ORG_COLORS = [
   FESTIV_TOKENS.leaf,
 ]
 
+const CAT_COLOR: Record<string, string> = {
+  정보: FESTIV_TOKENS.mint,
+  체험: FESTIV_TOKENS.grape,
+  마켓: FESTIV_TOKENS.sun,
+  활동: FESTIV_TOKENS.pop,
+}
+
+function groupBorder(idx: number, sections: number[], dir: 'row' | 'column') {
+  const sorted = [...sections].sort((a, b) => a - b)
+  const isFirst = sorted[0] === idx
+  const isLast = sorted[sorted.length - 1] === idx
+  const c = 'rgba(255,255,255,0.72)'
+  const w = '2px'
+  const parts: string[] = []
+  if (dir === 'row') {
+    parts.push(`inset 0 ${w} 0 0 ${c}`, `inset 0 -${w} 0 0 ${c}`)
+    if (isFirst) parts.push(`inset ${w} 0 0 0 ${c}`)
+    if (isLast) parts.push(`inset -${w} 0 0 0 ${c}`)
+  } else {
+    parts.push(`inset ${w} 0 0 0 ${c}`, `inset -${w} 0 0 0 ${c}`)
+    if (isFirst) parts.push(`inset 0 ${w} 0 0 ${c}`)
+    if (isLast) parts.push(`inset 0 -${w} 0 0 ${c}`)
+  }
+  return parts.join(', ')
+}
+
 function selectionShadow(
   idx: number,
   lo: number,
@@ -152,36 +178,40 @@ export function AdminBooths() {
     Record<string, number>
   >({})
 
-  function handleConfigureSave() {
+  async function handleConfigureSave() {
     const { zoneDivisions } = useBoothSectionStore.getState()
     const { slotCounts: truckCounts } = useTruckPlacementStore.getState()
 
-    festivalDays.forEach((fd) => {
-      createLocationSlots.mutate({
-        festivalDayId: fd.id,
-        type: 'DAY',
-        zones: ZONES.map((z) => ({
-          zoneLabel: z.id,
-          count: zoneDivisions[z.id] ?? z.defaultCount,
-        })),
-      })
-      createLocationSlots.mutate({
-        festivalDayId: fd.id,
-        type: 'NIGHT',
-        zones: NIGHT_ZONES.map((z) => ({
-          zoneLabel: z.id,
-          count: zoneDivisions[z.id] ?? z.defaultCount,
-        })),
-      })
-      createLocationSlots.mutate({
-        festivalDayId: fd.id,
-        type: 'FOOD_TRUCK',
-        zones: TRUCK_ZONES.map((z) => ({
-          zoneLabel: z.id,
-          count: truckCounts[z.id] ?? z.slotCount,
-        })),
-      })
-    })
+    setNotice('슬롯 생성 중...')
+
+    await Promise.all(
+      festivalDays.flatMap((fd) => [
+        createLocationSlots.mutateAsync({
+          festivalDayId: fd.id,
+          type: 'DAY',
+          zones: ZONES.map((z) => ({
+            zoneLabel: z.id,
+            count: zoneDivisions[z.id] ?? z.defaultCount,
+          })),
+        }),
+        createLocationSlots.mutateAsync({
+          festivalDayId: fd.id,
+          type: 'NIGHT',
+          zones: NIGHT_ZONES.map((z) => ({
+            zoneLabel: z.id,
+            count: zoneDivisions[z.id] ?? z.defaultCount,
+          })),
+        }),
+        createLocationSlots.mutateAsync({
+          festivalDayId: fd.id,
+          type: 'FOOD_TRUCK',
+          zones: TRUCK_ZONES.map((z) => ({
+            zoneLabel: z.id,
+            count: truckCounts[z.id] ?? z.slotCount,
+          })),
+        }),
+      ])
+    )
 
     markModeConfigured('주간')
     markModeConfigured('야간')
@@ -254,7 +284,7 @@ export function AdminBooths() {
 
     assignModal.sections.forEach((sectionIdx) => {
       const loc = locations.find(
-        (l) => l.zoneLabel === assignModal.zoneId && l.index === sectionIdx
+        (l) => l.zoneLabel === assignModal.zoneId && l.index === sectionIdx + 1
       )
       if (loc) {
         assignBooth.mutate({
@@ -425,8 +455,10 @@ export function AdminBooths() {
                                 : 'hover:brightness-110'
                             )}
                             style={{
-                              background: truck ? '#2E363C' : 'transparent',
-                              color: truck ? '#fff' : 'transparent',
+                              background: truck
+                                ? zone.color
+                                : 'rgba(0,0,0,0.15)',
+                              color: FESTIV_TOKENS.ink,
                               ...(isLast
                                 ? {}
                                 : zone.dir === 'row'
@@ -521,8 +553,14 @@ export function AdminBooths() {
                       }
 
                       const isLast = idx === divisions - 1
+                      const nextPerm = permissions.find(
+                        (p) =>
+                          p.zoneId === zone.id && p.sections.includes(idx + 1)
+                      )
+                      const sameGroup =
+                        !!perm && !!nextPerm && perm.id === nextPerm.id
                       const dividerStyle =
-                        isLast || isScaled
+                        isLast || isScaled || sameGroup
                           ? {}
                           : zone.dir === 'row'
                             ? { borderRight: '1px solid rgba(20,26,31,0.18)' }
@@ -543,14 +581,16 @@ export function AdminBooths() {
                           )}
                           style={{
                             background: perm
-                              ? perm.color
+                              ? (CAT_COLOR[perm.category] ?? perm.color)
                               : isScaled
                                 ? 'rgba(0,0,0,0.22)'
-                                : 'transparent',
+                                : 'rgba(0,0,0,0.15)',
                             boxShadow:
                               isScaled && selLo !== null && selHi !== null
                                 ? selectionShadow(idx, selLo, selHi, zone.dir)
-                                : undefined,
+                                : perm && !isScaled
+                                  ? groupBorder(idx, perm.sections, zone.dir)
+                                  : undefined,
                             ...dividerStyle,
                           }}
                           onMouseDown={

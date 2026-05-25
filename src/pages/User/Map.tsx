@@ -496,6 +496,7 @@ export function UserMap({ dark = false }: { dark?: boolean }) {
       >
         {mapView !== 'truck' && (
           <MapDayNightZones
+            mapView={mapView}
             activeBoothZones={activeBoothZones}
             locationsByZone={locationsByZone}
             selectedBoothCell={selectedBoothCell}

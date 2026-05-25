@@ -39,7 +39,10 @@ export function UserWaitingDetail({
 
   const { confirmCancel, setConfirmCancel, showCancelToast, handleCancel } =
     useWaitingCancel(() => navigate(ROUTES.WAITING))
+<<<<<<< Updated upstream
   const [notifValues, setNotifValues] = useState([true, true])
+=======
+>>>>>>> Stashed changes
 
   if (!waiting && !showCancelToast) {
     navigate(ROUTES.WAITING, { replace: true })
