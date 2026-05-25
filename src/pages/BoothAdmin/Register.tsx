@@ -31,11 +31,13 @@ function TextInput({
   onChange,
   placeholder,
   type = 'text',
+  error,
 }: {
   value: string
   onChange: (v: string) => void
   placeholder?: string
   type?: string
+  error?: boolean
 }) {
   return (
     <input
@@ -43,9 +45,35 @@ function TextInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:border-cta focus:outline-none"
+      className={cn(
+        'w-full rounded-xl border bg-bg px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-40 focus:outline-none',
+        error
+          ? 'border-alert focus:border-alert'
+          : 'border-border focus:border-cta'
+      )}
     />
   )
+}
+
+// 전화번호 자동 하이픈 포맷 (010-XXXX-XXXX)
+function formatPhone(raw: string) {
+  const digits = raw.replace(/\D/g, '').slice(0, 11)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+}
+
+// 비밀번호 조건 체크
+const PW_RULES = [
+  { label: '8자 이상', test: (v: string) => v.length >= 8 },
+  { label: '영어 대문자 포함', test: (v: string) => /[A-Z]/.test(v) },
+  { label: '영어 소문자 포함', test: (v: string) => /[a-z]/.test(v) },
+  { label: '숫자 포함', test: (v: string) => /\d/.test(v) },
+  { label: '특수문자 포함', test: (v: string) => /[^A-Za-z\d]/.test(v) },
+]
+
+function isValidPassword(v: string) {
+  return PW_RULES.every((r) => r.test(v))
 }
 
 const BOOTH_TYPE_OPTIONS: { value: BoothType; label: string; desc: string }[] =
@@ -92,7 +120,7 @@ export function BoothAdminRegister() {
       !userId.trim() ||
       !repName.trim() ||
       !phone.trim() ||
-      !password ||
+      !isValidPassword(password) ||
       password !== passwordConfirm
     )
       return
@@ -274,10 +302,16 @@ export function BoothAdminRegister() {
                 <FieldLabel required>전화번호</FieldLabel>
                 <TextInput
                   value={phone}
-                  onChange={setPhone}
+                  onChange={(v) => setPhone(formatPhone(v))}
                   placeholder="010-0000-0000"
                   type="tel"
+                  error={!!phone && !/^010-\d{4}-\d{4}$/.test(phone)}
                 />
+                {phone && !/^010-\d{4}-\d{4}$/.test(phone) && (
+                  <div className="mt-1.5 text-[11px] text-alert">
+                    010-XXXX-XXXX 형식으로 입력해주세요
+                  </div>
+                )}
               </div>
               <div>
                 <FieldLabel required>비밀번호</FieldLabel>
@@ -286,7 +320,27 @@ export function BoothAdminRegister() {
                   value={password}
                   onChange={setPassword}
                   placeholder="비밀번호"
+                  error={!!password && !isValidPassword(password)}
                 />
+                {password && (
+                  <div className="mt-2 flex flex-col gap-1">
+                    {PW_RULES.map((rule) => {
+                      const ok = rule.test(password)
+                      return (
+                        <div
+                          key={rule.label}
+                          className={cn(
+                            'flex items-center gap-1.5 text-[11px] font-medium transition-colors',
+                            ok ? 'text-pop' : 'text-ink-40'
+                          )}
+                        >
+                          <span className="text-[10px]">{ok ? '✓' : '·'}</span>
+                          {rule.label}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
               <div>
                 <FieldLabel required>비밀번호 확인</FieldLabel>
@@ -295,6 +349,7 @@ export function BoothAdminRegister() {
                   value={passwordConfirm}
                   onChange={setPasswordConfirm}
                   placeholder="비밀번호를 한 번 더 입력하세요"
+                  error={!!passwordConfirm && password !== passwordConfirm}
                 />
                 {passwordConfirm && password !== passwordConfirm && (
                   <div className="mt-1.5 text-[11px] text-alert">
@@ -340,8 +395,8 @@ export function BoothAdminRegister() {
               disabled={
                 !userId.trim() ||
                 !repName.trim() ||
-                !phone.trim() ||
-                !password ||
+                !/^010-\d{4}-\d{4}$/.test(phone) ||
+                !isValidPassword(password) ||
                 password !== passwordConfirm ||
                 isLoading
               }

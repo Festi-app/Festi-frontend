@@ -1,5 +1,6 @@
 import { type TruckTime } from '../../../../stores/useTruckPlacementStore'
 import {
+  type BoothPermission,
   type PermDay,
   type BoothMapMode,
 } from '../../../../stores/useBoothSectionStore'
@@ -23,6 +24,7 @@ export function BoothAssignSidebar({
   onTruckTimeChange,
   truckDay,
   onTruckDayChange,
+  permissions,
 }: {
   orgs: OrgAccount[]
   selectedDay: PermDay
@@ -37,6 +39,7 @@ export function BoothAssignSidebar({
   onTruckTimeChange: (t: TruckTime) => void
   truckDay: number
   onTruckDayChange: (d: number) => void
+  permissions: BoothPermission[]
 }) {
   return (
     <aside className="flex w-72 shrink-0 flex-col border-r border-border bg-surface">
@@ -67,6 +70,7 @@ export function BoothAssignSidebar({
           selectedDay={selectedDay}
           onDayChange={onDayChange}
           activeMode={activeMode}
+          permissions={permissions}
         />
       ) : (
         <TruckContent
